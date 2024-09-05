@@ -1,0 +1,58 @@
+\documentclass{article}
+%
+%\usepackage{trace}
+%
+\usepackage{luatex}
+\ifluatex \else\usepackage{pdfprivacy}\usepackage{fontspec}\fi
+%
+\setlength{\parindent}{0pt}
+%
+\def\esphor{\hspace{1cm}}
+%
+\def\packtested{mys-notation-arith}
+\usepackage{\packtested}
+%
+%####################################################
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%
+%  Titre du chapitre
+                     \title{\packtested}
+                     \author{moi}
+%
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%####################################################
+%
+\begin{document}
+%
+\maketitle{}
+%
+$\PGCD{2,3,5}$
+  \esphor  
+$\PGCD*{2^{3^3},3,4,5}$
+  \esphor  
+$\PGCD[\Bigg]{b^b,q_q}$
+
+\def\testb{c^{c^c}}
+\def\testa{b,\testb}
+\def\test{a,\testa}
+$\congru\test$
+  \esphor  
+$\congru{a,b,2\pi}$
+
+$\congrup\test$
+  \esphor  
+$\congrup*\test$
+  \esphor  
+$\congrup[\bigg]{a,b,c^{c^c}}$
+  \esphor 
+\SetCongruEq{=}  $\congrup{a,b,2\pi}$
+
+$\congrub\test$
+  \esphor  
+$\congrub[\bigg]\test$
+  \esphor  
+$\congrub*{a,b,c^{c^c}}$
+  \esphor  
+$\congrub{a,b,2\pi}$
+%
+\end{document}

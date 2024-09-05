@@ -1,0 +1,340 @@
+%
+%
+%
+%####################################################
+%####################################################
+%
+%  Dimensions (longueur et hauteur) de la bounding box d'une tikzpicture
+%
+%####################################################
+%####################################################
+%
+%
+%
+% Trouve les dimensions de la bounding box d'une tikzpicture
+%
+\newcommand{\pgfsize}[2]{%
+% #1 = macro storing width of the bounding box of a tikz picture
+% #2 = macro storing height
+%    \pgfextractx%
+%        {\@tempdima}%
+%        {\pgfpointdiff%
+%            {\pgfpointanchor{current bounding box}{west}}%
+%            {\pgfpointanchor{current bounding box}{east}}%
+%        }%
+%    \global#1=\@tempdima%
+%    \pgfextracty%
+%        {\@tempdima}%
+%        {\pgfpointdiff%
+%            {\pgfpointanchor{current bounding box}{south}}%
+%            {\pgfpointanchor{current bounding box}{north}}%
+%        }%
+%    \global#2=\@tempdima%
+    \pgfpointdiff%
+        {\pgfpointanchor{current bounding box}{south west}}%
+        {\pgfpointanchor{current bounding box}{north east}}%
+    \pgfgetlastxy{#1}{#2}%
+    \global\let#1#1
+    \global\let#2#2
+%\show#1\show#2
+}%
+%
+% Trouve les dimensions de la bounding box d'une tikzpicture et définit le path de cette bb
+%
+\newlength{\mys@utilstikz@bb@longueur}%
+\newlength{\mys@utilstikz@bb@hauteur}%
+%
+\def\mys@boundingboxdimensions{%
+% UTILE ? FONCTIONNEL ?
+    \pgfsize{\mys@utilstikz@bb@longueur}{\mys@utilstikz@bb@hauteur}%
+    \path[use as bounding box]  (0,0) rectangle (\mys@utilstikz@bb@longueur,\mys@utilstikz@bb@hauteur);%
+}%
+%
+% Style (trouve les dimensions de la bb)
+%
+\pgfkeys{%
+    /tikz/boundingboxdimensions/.style=%
+        {/tikz/execute at end picture={\pgfsize{\mys@utilstikz@bb@longueur}{\mys@utilstikz@bb@hauteur}}}%
+}%
+%
+%
+%
+%####################################################
+%####################################################
+%
+%  Imprimer le contenu d'un style (ou d'une clé ?) dans le log
+%
+%####################################################
+%####################################################
+%
+%
+%
+%Paul Gaborit : https://tex.stackexchange.com/questions/406975/how-to-see-content-of-a-tikz-style/413527#413527
+\pgfkeys{%
+    /handlers/.typeout code/.code={%
+        \pgfkeysgetvalue{\pgfkeyscurrentpath/.@cmd}{\pgfkeysshower}%
+        \typeout{--- \pgfkeyscurrentpath\space---}%
+        \typeout{\meaning\pgfkeysshower}%
+        }%
+    }%
+% usage \pgfkeys{/path/to/style/mon style/.typeout code} puis aller regarder le log
+%
+%
+%
+%####################################################
+%####################################################
+%
+%  Sauvegarde les coordonnées d'un point (node?) dans deux macros
+%
+%####################################################
+%####################################################
+%
+%
+%
+\def\extractcoord#1#2#3{%
+    \path let \p1=(#3) in \pgfextra{%
+        \pgfmathsetmacro#1{(\x{1}/\pgf@xx)/\sbxunit}%
+        \pgfmathsetmacro#2{(\y{1}/\pgf@yy)/\sbyunit}%
+        \xdef#1{#1}\xdef#2{#2}%
+        };%
+    }%
+%
+%
+%
+%####################################################
+%####################################################
+%
+%  Extraction des coordonnées d'un node
+%
+%####################################################
+%####################################################
+%
+%
+%
+\newcommand{\Getxycoords}[3]{%
+% #1: node name
+% #2: output macro name: x coordinate
+% #3: output macro name: y coordinate
+    \pgfplotsextra{%
+    % using `\pgfplotspointgetcoordinates' stores the (axis)
+    % coordinates in `data point' which then can be called by
+    % `\pgfkeysvalueof' or `\pgfkeysgetvalue'
+        \pgfplotspointgetcoordinates{(#1)}%
+        % `\global' (a TeX macro and not a TikZ/PGFPlots one) allows to
+        % store the values globally
+        \global\pgfkeysgetvalue{/data point/x}{#2}%
+        \global\pgfkeysgetvalue{/data point/y}{#3}%
+        }%
+    }
+%
+%
+%
+%####################################################
+%####################################################
+%
+%  Baseline en haut du graphique
+%
+%####################################################
+%####################################################
+%
+%
+%
+\pgfkeys{tikz/topitem/.style={baseline={($(current bounding box.north)-(0,\ht\strutbox)$)}}}
+
+\pgfkeys{tikz/align at top/.style={baseline={($(current bounding box.north)-(0,\ht\strutbox)$)}}}
+
+\pgfkeys{tikz/align at center/.style={baseline={($(current bounding box.center)-(0,\ht\strutbox)$)}}}
+
+%\pgfkeys{tikz/align at center/.style={baseline={($(current bounding box.center)-(0,\ht\strutbox)$)}}}
+%
+%
+%
+%####################################################
+%####################################################
+%
+%  Le texte suit la courbe
+%
+%####################################################
+%####################################################
+%
+%
+%
+% \usetikzlibrary {decorations.text}
+\tikzset{text deco/.style={postaction={decorate, decoration={text along path, #1}}}}%
+%
+\pgfkeys{tikz/texte suit courbe/.style={postaction={decorate, decoration={text along path, #1}}}}%
+%
+%
+%
+%####################################################
+%####################################################
+%
+%  Label entouré pour enumitem     
+%
+%####################################################
+%####################################################
+%
+%
+%
+\newcommand*\circledlabel[1]{%
+    \begin{tikzpicture}[baseline=(C.base)]%
+    \node[draw,circle,inner sep=1pt,minimum size=3ex](C) {#1};%
+    \end{tikzpicture}%
+    }%
+%
+%
+%
+%####################################################
+%####################################################
+%
+%  Points     
+%
+%####################################################
+%####################################################
+%
+%
+%
+\tikzset{point/.style={
+    thick,
+    fill=black,
+    circle,%
+    inner sep=0pt,
+    minimum width=3.5pt,
+    minimum height=3.5pt,
+    }%
+}
+%
+%
+%
+%####################################################
+%####################################################
+%
+%  Vecteurs     
+%
+%####################################################
+%####################################################
+%
+%
+%
+\pgfkeys{%
+    tikz/vecteur/.style args={#1}%
+        {#1},%
+    vecteur/.default= {-{Stealth[]}}%
+    }%
+%
+%
+%
+%####################################################
+%####################################################
+%
+%  Marques     
+%
+%####################################################
+%####################################################
+%
+%
+%
+\pgfkeys{%
+    tikz/parallel/.style args={#1,#2}%
+        {% 
+        decoration={%
+            markings,% switch on markings
+            mark= at position #1 with
+                {\foreach \n in{1,...,#2}{\pgfmathparse{2*\n-2}\draw[xshift=\pgfmathresult pt] (-3pt,-3pt)--  (0pt,3pt);}},% 
+            },%
+        postaction={decorate}%, opacity=0
+        },%
+    parallel/.default= {0.5,2}%
+    }%
+%
+%
+%
+\tikzset{%
+    || mark/.style={%
+        postaction=decorate,%
+        decoration={%
+            markings,%
+            mark=at position #1 with {%
+                \draw[line cap=round,mark segment] (-1pt,-2pt) -- (-1pt,2pt);%
+                \draw[line cap=round,mark segment] (1pt,-2pt) -- (1pt,2pt);%
+                }%
+            }%
+        },%
+%
+    ||| mark/.style={%
+        postaction=decorate,%
+        decoration={%
+            markings,%
+            mark=at position #1 with {%
+                \draw[line cap=round,mark segment] (-2pt,-2pt) -- (-2pt,2pt);%
+                \draw[line cap=round,mark segment] (0pt,-2pt) -- (0pt,2pt);%
+                \draw[line cap=round,mark segment] (2pt,-2pt) -- (2pt,2pt);%
+                }%
+            }%
+        },%
+%
+    mark segment/.style={thick}%
+    }%
+%
+%
+%
+%####################################################
+%####################################################
+%
+%  Droite graduée     
+%
+%####################################################
+%####################################################
+%
+%
+%
+\pgfkeys{%
+    /mys/droitegraduee/.cd,%
+    begin space/.store in = \mys@drtgrad@begin@space,%
+    xmin/.store in = \mys@drtgrad@x@min,%
+    xmax/.store in = \mys@drtgrad@x@max,%
+    end space/.store in = \mys@drtgrad@end@space,%
+    grad/.store in = \mys@drtgrad@grad,%
+    unit/.store in = \mys@drtgrad@unit,%
+    subgrad/.store in = \mys@drtgrad@subgrad,%
+    grad width/.store in = \mys@drtgrad@grad@linewidth,%
+    subgrad width/.store in = \mys@drtgrad@subgrad@linewidth,%
+    line width/.store in = \mys@drtgrad@line@linewidth,%
+    }%
+%
+%
+%
+\newcommand*\droitegraduee[3][]{%
+    \begingroup%
+    \pgfkeys{%
+        /mys/droitegraduee/.cd,%
+        begin space=0.25cm,%
+        end space=0.5cm,%
+        grad=1,%
+        subgrad=0,%
+        subgrad width=0.5pt,%
+        line width=0.75pt,%
+        grad width=0.75pt,%
+        #1,%
+        xmin=#2,%
+        xmax=#3%
+    }%
+    %
+    \pgfmathgreater{\mys@drtgrad@subgrad}{0}%
+    \ifnum\pgfmathresult=1\relax%
+        \foreach \i in {0,\mys@drtgrad@subgrad,...,\mys@drtgrad@x@max}{\draw[line width=\mys@drtgrad@subgrad@linewidth] (\i,-2pt)--(\i,2pt);}%
+        \foreach \i in {0,-\mys@drtgrad@subgrad,...,\mys@drtgrad@x@min}{\draw[line width=\mys@drtgrad@subgrad@linewidth] (\i,-2pt)--(\i,2pt);}%
+    \fi
+    %
+    \draw[line width=\mys@drtgrad@line@linewidth,-{Latex[]}]([xshift=-\mys@drtgrad@begin@space]\mys@drtgrad@x@min,0)--([xshift=\mys@drtgrad@end@space]\mys@drtgrad@x@max,0);%
+    %
+    \foreach \i in {0,-\mys@drtgrad@grad,...,\mys@drtgrad@x@min}{%
+        \draw[line width=\mys@drtgrad@grad@linewidth] (\i,-2pt)--(\i,2pt);
+        \node[below,anchor=north] at (\i,-2pt) {$\pgfmathprintnumber[zerofill=false]{\i}$};    
+    }%
+    \foreach \i in {0,\mys@drtgrad@grad,...,\mys@drtgrad@x@max}{%
+        \draw[line width=\mys@drtgrad@grad@linewidth] (\i,-2pt)--(\i,2pt);
+        \node[below,anchor=north] at (\i,-2pt) {$\pgfmathprintnumber[zerofill=false]{\i}$};    
+    }%
+    \endgroup
+    }%

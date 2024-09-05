@@ -1,0 +1,120 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\ProvidesExplPackage%
+    {mys-calcul-outil}%
+    {2019/07/07}
+    {0.0}
+    {to do the job}%
+%
+%####################################################
+%
+%
+\@ifpackageloaded{xfp}%
+    {\typeout{Essai de chargement multiple du package xfp.}}%
+    {\RequirePackage{xfp}}%
+%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%####################################################
+%
+%--- Latex3 variants
+%
+%####################################################
+%
+\cs_generate_variant:Nn\fp_set:Nn{Nx}
+%
+%####################################################
+%
+%--- Arrondir
+%
+%####################################################
+%
+%   ---   aux
+%
+ \cs_new:Npn\__mslf_round:nn#1#2
+    {#1<0 ? round(#1,#2,-1) : round(#1,#2,+1)}
+%
+\cs_new:Npn\__mslf_round:nN#1#2% Utile ?
+  {
+  #1<0?
+    round(#1,#2,-1)
+    :round(#1,#2,+1)
+  }
+%
+%####################################################
+%
+%--- Décide de mettre = ou \simeq
+%
+%####################################################
+%
+%   ---   user macro
+%
+\NewDocumentCommand{\eqorsimeq}{mm}
+	{
+	\group_begin:
+	\fp_set:Nn\l_tmpa_fp{\fp_eval:f{#1}}
+	\fp_set:Nn\l_tmpb_fp{\fp_eval:f{#2}}	
+	\_mslf_eq_or_simeq_print:NN\l_tmpa_fp\l_tmpb_fp
+	\group_end:
+	}
+%
+%   ---   aux
+%
+\cs_new:Npn\_mslf_eq_or_simeq_print:NN#1#2
+  {\fp_compare:nTF{abs((#1)-(#2))<\l_mslf_calc_eq_uplim_fp}{=}{\simeq}}
+%
+%   ---   UTILE ?
+%
+\cs_new:Npn\_mslf_eq_or_simeq:NN#1#2
+  {\fp_compare:nTF{abs((#1)-(#2))<\l_mslf_calc_eq_uplim_fp}{=}{\simeq}}
+%
+\cs_new:Npn\_mslf_eq_or_simeq:nn#1#2% Utile ?
+  {\fp_compare:nTF{abs((#1)-(#2))<\l_mslf_calc_eq_uplim_fp}{=}{\simeq}}
+%
+\cs_generate_variant:Nn\_mslf_eq_or_simeq:nn{VV}
+%
+%####################################################
+%
+%--- SI = (i.e écart <10^-9) ou non
+%
+%####################################################
+%
+\prg_set_conditional:Npnn
+  \_mslf_if_eq:NN 
+  #1#2
+  { p , T , TF }
+  {
+  \fp_compare:nTF{abs((#1)-(#2))<1e-9}
+    {\prg_return_true:}
+    {\prg_return_false:}
+  }
+%
+%####################################################
+%
+%--- SI à peu près égal (i.e écart <10^-9) ou non
+%
+%####################################################
+%
+\prg_set_conditional:Npnn
+  \_mslf_if_simeq:NN 
+  #1#2
+  { p , T , TF }
+  {
+  \fp_compare:nTF{abs((#1)-(#2))<1e-9}
+    {\prg_return_true:}
+    {\prg_return_false:}
+  }
+%
+\endinput

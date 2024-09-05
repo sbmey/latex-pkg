@@ -1,0 +1,67 @@
+\documentclass{article}
+%
+%\usepackage{trace}
+%
+%\usepackage{luatex}
+%\ifluatex \else\usepackage{pdfprivacy}\usepackage{fontspec}\fi
+%
+\setlength{\parindent}{0pt}
+%
+\def\esphor{\hspace{1cm}}
+%
+\def\packtested{mys-notation-complexe}
+\usepackage{\packtested}
+%
+%####################################################
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%
+%  Titre du chapitre
+                     \title{\packtested}
+                     \author{moi}
+%
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%####################################################
+%
+\begin{document}
+%
+\maketitle{}
+%
+$\expimag{-\theta}$
+  \esphor  
+$\expimag{\theta}$
+  \esphor  
+$\expimag{-x}$
+
+Problèmes avec :
+    \begin{itemize}
+    \item $\expimag{-(-3)}$
+    \item $\expimag{2}$
+    \end{itemize}
+
+$\Conj{2+3\I}$
+  \esphor  
+$\conj{z}$
+
+$\module{2-3\I}$
+  \esphor  
+$\module{\frac23+\I}$
+
+$\arg{2-5\I}$
+  \esphor  
+$\arg*{\frac23+\I}$
+  \esphor  
+$\arg[\bigg]{\frac23+\I}$
+
+$\im{2-5\I}$
+  \esphor  
+$\im*{\frac23+\I}$
+  \esphor  
+$\im[\bigg]{\frac23+\I}$
+
+$\re{2-5\I}$
+  \esphor  
+$\re*{\frac23+\I}$
+  \esphor  
+$\re[\bigg]{\frac23+\I}$
+%
+\end{document}

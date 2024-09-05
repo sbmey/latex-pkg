@@ -1,0 +1,502 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-info-python}%
+    [2019/07/07 v0.0 to do the job]%
+%
+%####################################################
+%
+%
+\@ifpackageloaded{xparse}%
+    {\typeout{Essai de chargement multiple du package xparse.}}%
+    {\RequirePackage{xparse}}%
+\@ifpackageloaded{pythontex}%
+    {\typeout{Essai de chargement multiple du package pythontex.}}%
+    {\RequirePackage[makestderr,stderrfilename=session]{pythontex}}%
+\@ifpackageloaded{minted}%
+    {\typeout{Essai de chargement multiple du package minted.}}%
+    {\RequirePackage{minted}}%
+\@ifpackageloaded{fancyvrb}%
+    {\typeout{Essai de chargement multiple du package fancyvrb.}}%
+    {\RequirePackage{fancyvrb}}%
+\@ifpackageloaded{listings}%
+    {\typeout{Essai de chargement multiple du package listings.}}%
+    {\RequirePackage{listings}}%
+\@ifpackageloaded{color}%
+    {\typeout{Essai de chargement multiple du package color.}}%
+    {\RequirePackage{color}}%
+\@ifpackageloaded{ifluatex}%
+    {\typeout{Essai de chargement multiple du package ifluatex.}}%
+    {\RequirePackage{ifluatex}}%
+\@ifpackageloaded{tcolorbox}%
+    {\typeout{Essai de chargement multiple du package tcolorbox.}}%
+    {\RequirePackage{tcolorbox}}%
+%
+\tcbuselibrary{theorems,skins,breakable,listings, minted}
+\RequirePackage[french]{algorithm2e}
+%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%--- listings : coloration syntaxique
+%++++++++++++++++++++
+%
+%   ---   Default fixed font does not support bold face
+%
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12}% for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}% for normal
+%
+%   ---   Custom colors
+%
+\definecolor{deepblue}{rgb}{0,0,0.5}%
+\definecolor{deepred}{rgb}{0.6,0,0}%
+\definecolor{deepgreen}{rgb}{0,0.5,0}%
+%
+%   ---   Python style for highlighting
+%
+\newcommand\pythonstyle{%
+    \lstset{%
+        language=Python,%
+        basicstyle=\ttm,%
+        otherkeywords={self},%                        Add keywords here
+        keywordstyle=\ttb\color{deepblue},%
+        emph={MyClass,__init__},%                  Custom highlighting
+        emphstyle=\ttb\color{deepred},%       Custom highlighting style
+        stringstyle=\color{deepgreen},%
+        frame=tb,%
+        showstringspaces=false,%
+        morestring=[s]{"""}{"""},% 
+        }%
+    }%
+%\renewcommand\pythonstyle{%
+%    \lstset{%
+%      belowcaptionskip=1\baselineskip,
+%        breaklines=true,
+%        frame=l,
+%        xleftmargin=\parindent,
+%        language=Python,
+%        showstringspaces=false,
+%        basicstyle=\footnotesize\ttfamily,
+%        keywordstyle=\bfseries\color{green!40!black},
+%        commentstyle=\itshape\color{black!40!white},
+%        identifierstyle=\color{blue},
+%        stringstyle=\color{orange},
+%        numbers=left,
+%        numbersep=15pt, 
+%        numberstyle=\tiny\color{black!60!white},
+%        }%
+%    }%
+%
+%   ---   Python environment
+%
+\lstnewenvironment{python}[1][]{%
+    \pythonstyle%
+    \lstset{#1}%
+    }{}%
+%
+%   ---   Python for external files
+%
+\newcommand\pythonexternal[2][]{%
+    {%
+    \pythonstyle%
+    \lstinputlisting[#1]{#2}%
+    }%
+}%
+%
+%   ---   Python for inline
+%
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}%
+%
+%---   Ajouter des L en marge du code python pour montrer les blocs
+%++++++++++++++++++++
+%
+%https://tex.stackexchange.com/questions/249755/showing-nice-indentation-of-python-code
+%
+\ifluatex\def\pdfliteral#1{\special{pdf:literal #1}}\fi%
+%
+\def\Llist{}%
+%
+\def\sxdef#1{\expandafter\xdef\csname#1\endcsname}%
+\def\sdef#1{\expandafter\def\csname#1\endcsname}%
+{\lccode`\?=`\p \lccode`\!=`\t  \lowercase{\gdef\ignorept#1?!{#1}}}%
+\def\ptdim#1{\expandafter\ignorept\the\dimen#1 }%
+%
+\newcount\spacenum  \newcount\linenum  \newcount\linenumA  \newcount\tmpnum%
+%
+\def\Lcountspaces#1{\spacenum=0 \ifx\end#1\end\else \LcountspacesA#1\end\fi}%
+\def\LcountspacesA#1{%
+   \ifx#1\fspace \advance\spacenum by1 \let\next=\LcountspacesA%
+   \else \let\next=\LcountspacesB \fi%
+   \ifx#1\end \let\next=\relax \fi%
+   \next%
+}%
+%
+\def\LcountspacesB#1\end{}%
+%
+\expandafter\def\expandafter\fspace\expandafter{\csname FV@Space\endcsname}%
+%
+\def\Lbegin{\global\linenum=0 \gdef\Llist{}}%
+%
+\def\Lformat#1{%
+    \global\advance\linenum by1 %
+    \sxdef{L:\the\spacenum}{\the\linenum}%
+    \tmpnum=\spacenum \gdef\Llist{}\let\Ldraw=\relax%
+    \loop %
+        \advance\tmpnum by-1 %
+        \ifnum\tmpnum>-1 %
+            \expandafter\ifx\csname L:\the\tmpnum\endcsname \relax%
+        \else%
+            \advance\spacenum by-\tmpnum %
+            \linenumA=\linenum %
+            \advance\linenumA by-\csname L:\the\tmpnum\endcsname%
+            \xdef\Llist{\Ldraw{\the\spacenum}{\the\linenumA}\Llist}%
+            \spacenum=\tmpnum %
+        \fi%
+    \repeat  %
+    \csname FV@ObeyTabs\endcsname{#1}%
+    }%
+%
+\def\Lbox#1{%
+    \hbox to\hsize{%
+        \rlap{\box#1}%
+        \kern\csname @totalleftmargin\endcsname \kern\csname FV@XLeftMargin\endcsname%
+        \setbox0=\hbox{\csname FV@LeftListFrame\endcsname}\kern\wd0 %
+        \tmpnum=0 \Llist\hss%
+        }%
+    }%
+%
+\def\Ldraw{\ifnum\tmpnum<\spacenum \expandafter\LdrawI \else \expandafter\LdrawL\fi}%
+%
+\def\LdrawL#1#2{%
+    \dimen0=.5em \dimen0=#1\dimen0 \advance\dimen0 by-.4em %
+    \dimen1=1.4ex%
+    \dimen2=.5ex% 
+    \pdfliteral{q \Lshape\space .9963 0 0 .9963 \ptdim2 \ptdim2 cm \ptdim0 0 m 0 0 l 0 \ptdim1 l S Q}%
+    \LdrawE{#1}%
+    }%
+%
+\def\LdrawI#1#2{%
+    \dimen0=-.85ex%
+    \dimen1=\normalbaselineskip%
+    \dimen2=.5ex%
+    \pdfliteral{q \Lshape\space .9963 0 0 .9963 \ptdim2 \ptdim0 cm 0 0 m 0 \ptdim1 l S Q}%
+    \LdrawE{#1}%
+    }%
+%
+\def\LdrawE#1{\dimen0=.5em \kern#1\dimen0 \advance\tmpnum by#1 }%
+%
+\csname define@key\endcsname{FV}{indent}{\csname FV@indent@#1\endcsname}%
+%
+\sdef{FV@indent@L}{\let\FancyVerbFormatLine=\Lformat}%
+%
+\def\Lshape{1 g .5 G 1 w 1 j 1 J} % .5 gray 1bp width rounded ends, rounded corner
+%
+% re-definition of internal macros from fancyvrb.sty
+%
+{%
+    \makeatletter%
+    \gdef\FV@ListProcessLine@i#1{%
+        \Lcountspaces{#1}%  <--- added by P.O.
+        \hbox{%
+            \ifvoid\@labels\else
+            \hbox to \z@{\kern\@totalleftmargin\box\@labels\hss}%
+            \fi%
+            \FV@ListProcessLine{#1}%
+            }%
+        \let\FV@ProcessLine\FV@ListProcessLine@ii%
+        }%
+    \gdef\FV@ListProcessLine@ii#1{%
+        \Lcountspaces{#1}%  <--- added by P.O. 
+        \setbox\@tempboxa=\FV@ListProcessLine{#1}%
+        \let\FV@ProcessLine\FV@ListProcessLine@iii%
+        }%
+    \gdef\FV@ListProcessLine@iii#1{%
+        \Lcountspaces{#1}% <--- added by P.O.
+        {\advance\interlinepenalty\clubpenalty\penalty\interlinepenalty}%  
+        \Lbox\@tempboxa                              % <--- Lbox by P.O.
+        \setbox\@tempboxa=\FV@ListProcessLine{#1}% 
+        \let\FV@ProcessLine\FV@ListProcessLine@iv%
+        }%
+    \gdef\FV@ListProcessLine@iv#1{%
+        \Lcountspaces{#1}%  <--- added by P.O. 
+        \penalty\interlinepenalty%
+        \Lbox\@tempboxa                              % <--- Lbox by P.O.
+        \setbox\@tempboxa=\FV@ListProcessLine{#1}%
+        }%
+    \gdef\FV@ListProcessLastLine{%
+        \spacenum=0 %     % <--- added by P.O.  
+        \ifx\FV@ProcessLine\FV@ListProcessLine@iv%
+            {\advance\interlinepenalty\widowpenalty\penalty\interlinepenalty}%
+            \Lbox\@tempboxa                            % <--- Lbox by P.O.
+        \else%
+            \ifx\FV@ProcessLine\FV@ListProcessLine@iii
+                {%
+                \advance\interlinepenalty\widowpenalty%
+                \advance\interlinepenalty\clubpenalty%
+                \penalty\interlinepenalty%
+                }%
+                \Lbox\@tempboxa                         % <--- Lbox by P.O.
+            \else%
+                \ifx\FV@ProcessLine\FV@ListProcessLine@i%
+                    \FV@Error{Empty verbatim environment}{}%
+                    \FV@ProcessLine{}%
+                \fi%
+            \fi%
+        \fi%
+        }%
+    \gdef\FVB@Verbatim{\Lbegin\FV@VerbatimBegin\FV@Scan} % <--- Lbegin added by P.O.
+    \gdef\@begin@pygments@hook{\Lbegin}%
+}%
+%%% end of re-definition
+%
+% --- langage naturel
+%
+\newcommand\keywordstyle[2][0]%
+  {%
+  \begingroup
+  \bfseries\color{AlgoKW#1}\uppercase{#2}
+  \endgroup%
+  }%
+%\colorlet{AlgoKW0}{Maroon}
+\definecolor{DarkBlue}{rgb}{0.0,0.0,0.55}
+\colorlet{AlgoKW1}{DarkBlue}
+%\colorlet{AlgoKW2}{Green}
+\lstdefinelanguage{naturel}{%
+  ,inputencoding=utf8%/latin9%
+  ,mathescape%
+  ,extendedchars=true % Allows 256 instead of 128 ASCII characters
+  ,morecomment=[l]{//}, % l is for line comment
+  ,morecomment=[s]{/*}{*/}, % s is for start and end delimiter
+  ,keywords=[0]{%
+    Début%
+    ,Variables%
+    ,Variable%
+    ,Fin%
+    }%
+  ,morekeywords=[1]{%
+    ,Lire%
+    ,Afficher%
+    ,Faire%
+    ,Si%
+    ,Sinon%
+    ,FinSi%
+    ,Alors%
+    ,TantQue%
+    ,Faire%
+    ,FinTantQue%
+    ,Pour%
+    ,FinPour%
+    ,Repeter%
+    ,FinRepeter%
+    }%
+  ,morekeywords=[2]{%
+    ,Nombre%
+    ,Entier%
+    ,Naturel%
+    ,Fonction%
+    ,Liste%
+    ,NombreEntier%
+    ,NombreRéel%
+    }%
+  ,showstringspaces=false%
+  ,sensitive=true%
+  ,morestring=[bd]"%
+  ,literate=%
+    *{TantQue}{{\keywordstyle[1]{Tant Que}}}{8}
+          {Repeter}{{\keywordstyle[1]{Répéter}}}{7}
+          {FinSi}{{\keywordstyle[1]{Fin Si}}}{6}
+          {FinPour}{{\keywordstyle[1]{Fin Pour}}}{8}
+          {FinRepeter}{{\keywordstyle[1]{Fin Repeter}}}{11}
+          {FinTantQue}{{\keywordstyle[1]{Fin Tant Que}}}{12}          
+         {->}{{$\rightarrow$ }}{16}%
+         {<-}{{$\leftarrow$ }}{16}%
+%        {à}{{\'a}}1%
+%        {é}{{\'e}}1%
+%        {É}{{\'E}}1%
+%        {è}{{\`e}}1%
+%        {í}{{\'i}}1%
+%        {ó}{{\'o}}1%
+%        {ú}{{\'u}}1%
+    ,basicstyle=\rmfamily%\ttfamilywithbold%
+    ,keywordstyle=[0]*\bfseries\color{AlgoKW0}%
+    ,keywordstyle=[1]*\bfseries\color{AlgoKW1}%
+    ,keywordstyle=[2]*\bfseries\color{AlgoKW2}%
+    ,stringstyle=\color{black!50!green}%
+    ,numberstyle=\tiny% style of the line numbers
+    ,commentstyle=\itshape\color{gray}%
+    }%
+\lstdefinestyle{algostyle}{%
+    columns=fullflexible% character width 
+    ,keepspaces=true% does not ignore spaces to fit width, convert tabs to spaces
+    ,tabsize=4 % number of spaces indented when discovering a tab 
+    ,stepnumber=2%
+    ,breaklines=true% wrap lines if they don't fit
+    ,showspaces=false%
+    ,showstringspaces=false% lets spaces in strings appear as real spaces
+    ,showtabs=false%
+    ,numbersep=5pt%
+    ,numbers=left%
+   %    ,frame=single%
+  %  ,frameround=tftf%
+ %   ,backgroundcolor=\color{white}%
+    }
+\lstnewenvironment{naturel}[1][]
+{\lstset{language=naturel,style=algostyle,#1}}
+{}%
+\lstloadlanguages{naturel}
+%
+%--- minted box
+%++++++++++++++++++++
+%https://tex.stackexchange.com/questions/124657/combine-minted-and-tcolorbox
+\newcommand{\mynewminted}[3]{%
+  \newminted[#1]{#2}{#3}%
+  \tcbset{myminted/#1/.style={minted language=#2,minted options={#3}}}%
+  }%
+%
+\mynewminted{mypycon}{pycon}{bgcolor=bg, linenos=true, tabsize=4}
+\mynewminted{mycsharp}{csharp}{tabsize=2,fontsize=\footnotesize}%
+\mynewminted{myjson}{js}{tabsize=2,fontsize=\footnotesize}%
+\mynewminted{myxml}{xml}{tabsize=2,fontsize=\footnotesize}%
+\mynewminted{myshell}{shell-session}{tabsize=2,fontsize=\footnotesize}%
+\mynewminted{mycode}{text}{tabsize=2,fontsize=\footnotesize}%
+\mynewminted{mypython}{python}{fontsize=\small,breaklines,autogobble,linenos,numbersep=3mm}%
+\newtcblisting%
+    [auto counter,number within=section,list inside=mypyg]%
+    {code}%
+    [3][]%
+    {%
+    listing only,title={Listing \thetcbcounter: #3},%
+    list entry={\protect\numberline{\thetcbcounter}#3},%
+    enhanced,colframe=red!50!black,drop fuzzy shadow,myminted/#2,#1%
+    }%
+%
+\newtcbinputlisting%
+    [auto counter,number within=section,list inside=mypyg]%
+    {\codefile}%
+    [4][]%
+    {%
+    listing file={#4},%
+    listing only,title={Programme \thetcbcounter: #3},%
+    list entry={\protect\numberline{\thetcbcounter}#3},%
+    enhanced,colframe=red!50!black,myminted/#2,#1%
+    }%
+%
+%
+%\tcbuselibrary{skins}
+\newtcblisting{htmlcode}[1][]{%
+    listing engine=minted,%
+%    minted style=colorful,%
+    minted language=html,%
+    breakable,%
+    colback=black!10,%
+    colframe=black!30,%
+    listing only,%
+    minted options={%
+        fontsize=\small,%
+        breaklines,%
+        autogobble,%
+        linenos,%
+        numbersep=3mm,%
+        texcomments=true,%
+        escapeinside=||,%
+        },%
+    left=5mm,
+    enhanced,%
+    overlay={%
+        \begin{tcbclipinterior}
+        \fill[black!30] (frame.south west) rectangle ([xshift=5mm]frame.north west);
+        \end{tcbclipinterior}},%
+    #1%
+    }%
+%
+%
+%
+\newtcblisting{csscode}[1][]{%
+    listing engine=minted,%
+%    minted style=colorful,%
+    minted language=css,%
+    breakable,%
+    colback=black!10,%
+    colframe=black!30,%
+    listing only,%
+    minted options={%
+        fontsize=\small,%
+        breaklines,%
+        autogobble,%
+        linenos,%
+        numbersep=3mm,%
+        texcomments=true,%
+        escapeinside=||,%
+        },%
+    left=5mm,
+    enhanced,%
+    overlay={%
+        \begin{tcbclipinterior}
+        \fill[black!30] (frame.south west) rectangle ([xshift=5mm]frame.north west);
+        \end{tcbclipinterior}},%
+    #1%
+    }%
+%
+%
+%
+\newtcblisting{pythoncode}[2][]{%
+  listing engine=minted,%
+  breakable,%
+  colback=bg,%
+  colframe=black!70,%
+  listing only,%
+  minted style=colorful,%
+  minted language=python,%
+  minted options={numbersep=3mm,texcl=true,#1},%
+  left=5mm,enhanced,%
+  overlay={\begin{tcbclipinterior}\fill[black!25] (frame.south west) %
+            rectangle ([xshift=5mm]frame.north west);\end{tcbclipinterior}},%
+            #2,%
+}%
+%
+%
+%
+\newif\if@mys@python@sol@print@
+\def\mys@python@sol@after{}
+\def\mys@python@sol@before{}
+%
+\pgfkeys{%
+    /mys/python/sol/.cd,%
+    print/.is if = @mys@python@sol@print@,%
+    print/.default=true,%
+    before/.store in = \mys@python@sol@before,%
+    before/.default = Le résultat est :\ ,%
+    after/.store in = \mys@python@sol@after,%
+    after/.default=.,%
+    }%
+%
+\pgfkeys{/mys/python/sol/.cd,print,before,after}% initialisation
+%
+\NewDocumentCommand\pythonsolution{O{}}{%
+    \begingroup%
+    \IfNoValueF{#1}{\pgfkeys{/mys/python/sol/.cd,#1}}%
+    \if@mys@python@sol@print@%
+    \mys@python@sol@before\og{}\printpythontex\fg{}\mys@python@sol@after%
+    \fi%
+     \endgroup%
+    }%
+%
+\NewDocumentCommand\Setpythonsolution{m}{\pgfkeys{/mys/python/sol/.cd,#1}}
+%%%%%     TESTER
+%
+%https://tex.stackexchange.com/questions/175429/help-about-tcboutputlisting-and-tcblisting-tcolorbox-package%
+%https://tex.stackexchange.com/questions/304449/combine-minted-and-tcolorbox-for-code-from-file-inputminted
+\endinput

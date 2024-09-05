@@ -1,0 +1,88 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-input-path}%
+    [2019/07/07 v0.0 to do the job]%
+%
+%####################################################
+%
+%
+\@ifpackageloaded{mys-code-tool}%
+    {\typeout{Essai de chargement multiple du package mys-code-tool.}}%
+    {\RequirePackage{mys-code-tool}}%
+%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%
+%####################################################
+%
+%--- formatte le chemin donné.
+% enlève les éventuels / surnuméraires à la fin de l'argument et rajoute le dernier / si omis :
+%    test/ --> test/
+%    /a////b/c/// --> /a/b/c/
+%    /a////b/c --> /a/b/c/
+%
+%   ---   macro d'appel
+%
+\def\mys@fichier@path@sanitize#1{% 
+    \mys@fichier@path@sanitize@#1/\mys@stop%
+    }%
+%
+%   ---   aux macro
+%
+%
+%      ---   premier scan, on garde le premier terme de la forme <texte sans />/ puis on regarde ce qui suit
+%
+\def\mys@fichier@path@sanitize@#1/#2\mys@stop{%
+    #1/%
+    \mys@fichier@path@sanitize@@#2\mys@stop%
+    }%
+%
+%      ---   si ce qui suivait est vide on arrête sinon on continue car on a un argument de la forme <machin>/<truc>
+%
+\def\mys@fichier@path@sanitize@@#1\mys@stop{%
+    \mys@ifempty@gobbleuntilstop{#1}%
+        \mys@fichier@path@sanitize@@@#1\mys@stop%
+    }%
+%
+%      ---   si le premier argument est vide on passe à la suite sinon on le garde et on rajoute / puis on itère sur la suite
+%
+\def\mys@fichier@path@sanitize@@@#1/#2\mys@stop{%
+    \mys@ifempty{#1}{}{#1/}%
+    \mys@fichier@path@sanitize@@#2\mys@stop%
+    }%
+%
+%---   itère sur une suite de chemins séparés par une virgule en formattant ces chemins et en les entourant par des accolades et en juxtaposant les résultats
+%
+%   ---   initialisation (car la macro n'est pas connue ici)
+%
+\def\input@path{}%
+%
+%   ---   macro d'appel
+%
+\def\mys@fichier@path#1{\mys@fichier@path@#1,\mys@stop\edef\input@path{\input@path}}%
+%
+%   ---   itération sur les chemins
+%
+\def\mys@fichier@path@#1,#2\mys@stop{%
+    \ifx\relax#1\relax\else\g@addto@macro\input@path{{\mys@fichier@path@sanitize{#1}}} \fi%
+    \ifx\relax#2\relax%
+    \else%
+        \mys@fichier@path@#2\mys@stop%
+    \fi%
+    }%
+%

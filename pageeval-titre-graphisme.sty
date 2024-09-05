@@ -1,0 +1,411 @@
+%
+%####################################################
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%
+%  Declaration package
+%
+%+++++++++++++
+%#############
+%
+\NeedsTeXFormat{LaTeX2e}
+%
+\ProvidesPackage
+  {pageeval-titre-graphisme}%
+  [2016/08/18 v0.0 to do the job]
+%
+%####################################################
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%
+%  Packages nécessaires
+%
+%+++++++++++++
+%#############
+%
+\RequirePackage{tikz}%
+\RequirePackage{tikzpagenodes}%
+\RequirePackage{pgffor}
+\usetikzlibrary{calc,decorations.text} 
+\usetikzlibrary{positioning}
+\RequirePackage[noeuro]{wasysym}%
+%
+%####################################################
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%
+%   Helpers macros
+%
+%+++++++++++++
+%#############
+%
+%
+%####################################################
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%
+%  Définition de (macro stockant des) paramètres calculés ultérieurement
+%
+%+++++++++++++
+%#############
+%
+%\newlength{\longueur}
+%\newlength{\hauteur}
+\newlength{\hauteurtete}%
+\newlength\hauteurtetechap%
+\newlength\largeurnumpartie%
+\newsavebox\tetechap%
+%
+\def\mys@heightCinfont{}%
+\def\mys@depthpinfont%
+%
+\def\MysRayCercleChap{}%
+\def\MysRayonChaptername{}%
+%
+\newsavebox\boxnumchapetalon%
+\newsavebox\boxnumchap%
+%
+%####################################################
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%
+%  Définition de (macro stockant des) paramètres initialisés avant la compilation
+%
+%+++++++++++++
+%#############
+%
+\def\mys@fontsize@chapternumber{35}%
+\def\scalefactor{1}%
+\def\partname{Partie}%
+\def\chaptername{Chapitre}%
+\def\classname{class name}%
+%
+%####################################################
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%
+%  Macros d'aides
+%
+%+++++++++++++
+%#############
+%
+% Numéro de chapitre
+%
+\pgfkeys{%
+    /mys/graphisme page/numero chapitre/.style={%
+        node font={%
+            \bfseries\sffamily%
+            \fontsize{\mys@fontsize@chapternumber}{0}%
+            \selectfont%
+        },%
+        inner sep=1pt,%
+        outer sep=0pt,%
+        circle%
+    }%
+}%
+%
+\def\nodenumchap#1#2#3{\node[/mys/graphisme page/numero chapitre,#3] #2 {#1};}%
+%
+\def\graphnumchapetalon{%
+    \begin{tikzpicture}
+    \nodenumchap{99}{at (0,0)}{}
+    \end{tikzpicture}%
+}%
+%
+\def\graphnumchapcourant#1{%
+    \begin{tikzpicture}%
+        \nodenumchap{#1}{}{}%
+    \end{tikzpicture}%
+}%
+%
+\AtBeginDocument{%
+    % Rayon du cercle contenant le numéro de chapitre
+    \savebox\boxnumchapetalon{\graphnumchapetalon}%
+    \pgfmathsetmacro{\MysRayCercleChap}{\wd\boxnumchapetalon/2}%
+}%
+%
+% Gestion de la taille de fonte
+%
+\AtBeginDocument{%
+    \makeatletter%
+    {% 
+    \sffamily\Large\bfseries%
+    \pgfmathparse{depth("p")}%
+    \expandafter\global\expandafter\def\expandafter\mys@depthpinfont\expandafter{\pgfmathresult pt}%
+    \pgfmathparse{height("C")+depth("p")}%
+    \expandafter\global\expandafter\def\expandafter\mys@heightCinfont\expandafter{\pgfmathresult pt}%
+    }%
+    {%
+    \bfseries\Huge%
+    \pgfmathsetlength{\hauteurtetechap}{width("A")+depth("p")+2*\baselineskip}%
+    \global\hauteurtetechap=\hauteurtetechap%
+    \pgfmathparse{width("A")+depth("p")+\baselineskip}%
+    \global\let\hauteurtitrechap\pgfmathresult%
+    }%
+    {%
+    \fontsize{\mys@fontsize@chapternumber}{0}\selectfont%
+    \pgfmathsetlength{\largeurnumpartie}{width("41")+10pt}%
+    \global\largeurnumpartie=\largeurnumpartie%
+    }%
+    \makeatother%
+}%
+% 
+% Graphique cours, activite, exercice
+%
+\def\mys@parse@eval@genre#1{\mys@parse@eval@genre@aux#1 /}%
+\def\mys@parse@eval@genre@aux#1 #2 /{\gdef\@genre@i{#1}\gdef\@genre@ii{#2}}%
+%
+\def\titleshape#1#2#3#4#5#6#7#8{%
+% #1 : date
+% #2 : durée
+% #3 : classe
+% #4 : matiere
+% #5 : num de l'éval (par genre ou non). Les dm ne sont pas comptés lorsque le numéro de l'éval  n'est pas par genre (il compte alors tous les contrôles en classe)
+% #6 : genre
+% #7 : sousgenre
+% #8 : barème
+    % boîte contenant le graphique du numéro de chapitre (dans la taille de la fonte du document) ...
+    \expandafter\mys@parse@eval@genre\expandafter{#6}
+    \savebox\boxnumchap{\graphnumchapcourant{#5}}%
+    % ... --> pour calculer le facteur d'agrandissement
+    \pgfmathparse{2*\MysRayCercleChap/\wd\boxnumchap}%
+    \edef\scalefactor{\pgfmathresult}%
+    %
+    \pgfmathsetmacro{\MysRayonChaptername}%
+        {\MysRayCercleChap+\mys@depthpinfont+\pgflinewidth}%
+    \pgfmathsetmacro{\MysRayonDownChaptername}%
+        {\MysRayCercleChap+\mys@heightCinfont+\pgflinewidth}%
+    \pgfmathsetmacro{\MysRayonDownCircle}%
+        {\MysRayCercleChap+\mys@heightCinfont+\mys@depthpinfont}%
+    \pgfmathsetmacro{\MysRayonUpCircle}%
+        {\MysRayCercleChap+0.75*\mys@heightCinfont}%
+    \begin{tikzpicture}[remember picture,overlay]%
+    \coordinate[inner sep=0pt,outer sep=0pt]%
+      (chapternumber) at ($(current page text area.north)$);%
+    \coordinate%
+      (HalfCircleUpW) at ($(180:\MysRayonUpCircle pt)+(chapternumber.center)$);%
+    \coordinate%
+      (HalfCircleDownE) at ($(0:\MysRayonDownCircle pt)+(chapternumber.center)$);%
+%
+% arcs de cercles aléatoires dans (D1)
+%
+%    \foreach\i in {1,...,100}%
+%        {%
+%        \pgfmathparse{int(random(0,360))}%
+%        \edef\tempangledep{-\pgfmathresult}%
+%        \pgfmathparse{int(random(0,360))}%
+%        \edef\tempanglefin{-\pgfmathresult}%
+%        \pgfmathsetmacro{\MysRayonDeco}%
+%            {(\i)/100*\MysRayCercleChap}%
+%        \coordinate(deb)at ($(\tempangledep:\MysRayonDeco pt)+(chapternumber)$);%
+%        \draw (deb) arc (\tempangledep:\tempanglefin:\MysRayonDeco pt);%
+%        }%
+%
+% Numéro du chapitre (grossi comme il faut)
+%
+  \nodenumchap%
+    {\if@nonum\else#5\fi}%
+    {at (chapternumber)}%
+    {%
+    scale=\scalefactor,%
+    transform shape,%
+%    text=white,%
+    align=flush center,%
+    }%
+%
+% Contour extérieur contenant le numéro de chapitre
+%
+  \path%
+    [%
+    inner sep=0pt,%
+    outer sep=0pt%
+    ]%
+    (HalfCircleUpW)%
+      arc (180:0:\MysRayonUpCircle pt)%
+      --(HalfCircleDownE)%
+      arc (0:-180:\MysRayonDownCircle pt)%
+        node[pos=0.25](HalfCircleDownSE){}%
+        node[pos=0.5](HalfCircleDownS){}%
+        node[pos=1](HalfCircleDownW){}%
+      --(HalfCircleUpW);
+%
+%  "Partie" placé verticalement à côté du nuéro de partie
+%
+%
+% Trait horizontal entre les numéros de partie et de chapitre
+%
+%  \draw ($(partnumber.north east)!(HalfCircleUpW)!(partnumber.south east)$)--(HalfCircleUpW.center);%
+%
+% Titre du chapitre
+%
+%  \node%
+%    [%
+%%    overlay,%
+%    yshift=1ex,%
+%    anchor=north,%
+%    outer xsep=0pt,%
+%    outer ysep=0pt,%
+%    inner sep=0pt,%
+%    text width=\textwidth,%
+%    node font={\bfseries\Huge},%
+%    align=flush center,%
+%    minimum height=\hauteurtetechap%
+%    ] (fakechaptertitle) at (HalfCircleDownS)%
+%    {};%
+%%
+%%
+%%
+%  \node%
+%    [%
+%    outer xsep=0pt,%
+%    outer ysep=0pt,%
+%    inner sep=0pt,%
+%    node font={\bfseries\Huge},%
+%    align=flush center,%
+%%    text width=\textwidth-2cm%
+%    ] (chaptertitle) at (fakechaptertitle.base)%
+%    {fffff};%
+%
+%
+\coordinate (PosSubTitle) at ($0.5*(HalfCircleDownSE)+0.5*($(current page text area.north east)!(HalfCircleDownSE)!(current page text area.east)$)$);%
+  %%
+% "Chapitre" sur un arc de cercle concentrique avec (D1)
+%
+  \path%
+    [%
+    inner sep=0pt,%
+    outer sep=0pt%
+    ]%
+    [postaction=%
+      {%
+      decoration=%
+        {%
+        text along path,%
+        text = %
+          {|\bfseries\sffamily\large|\@genre@i},%
+        text align = {fit to path},%
+        },%
+      decorate%
+      }%
+    ]%
+    ($(150:\MysRayonChaptername pt)+(chapternumber)$) arc (150:30:\MysRayonChaptername pt);
+  \path%
+    [%
+    inner sep=0pt,%
+    outer sep=0pt%
+    ]%
+    [postaction=%
+      {%
+      decoration=%
+        {%
+        text along path,%
+        text = %
+          {|\bfseries\sffamily\large|\@genre@ii},%
+        text align = {fit to path},%
+        },%
+      decorate%
+      }%
+    ]%
+    ($(180:\MysRayonDownChaptername pt)+(chapternumber)$) arc (-180:0:\MysRayonDownChaptername pt);
+%
+  \coordinate(H) at ($(current page text area.north east)!(HalfCircleDownS.base east)!(current page text area.east)$);
+% 
+% Trait horizontal supérieur droit, vertical droit
+%
+  \draw%
+    ($(HalfCircleDownE)$)%
+    --($(current page text area.north east)!(HalfCircleDownE)!(current page text area.east)$)%
+      node [pos=0.5](PosSubTitle){}%
+      node [pos=1](Posduree){};%
+  \draw%
+    ($(HalfCircleDownW)$)%
+    --($(current page text area.north west)!(HalfCircleDownW)!(current page text area.west)$)%
+      node [pos=1](Posprenom){};%
+%
+\node[anchor=south east,outer ysep=1ex](duree) at (Posduree){\if@noduree\else#2\fi};%
+\node[anchor=south east](points) at (duree.north east){\if@nobareme\else#8\fi};%
+%
+%
+  \ifx%
+      \@empty#7\else%
+      \node%
+    [%
+    anchor= south,%
+    outer ysep=5pt,%
+    inner ysep=0pt,%
+    outer xsep=0pt,inner xsep=0pt,%
+    node font={\bfseries\Large},%
+    align=flush center%
+    ](sousgenre) at (PosSubTitle)%
+    {#7};%
+        \fi%
+%
+\if@noname\else
+\node[anchor=south west,outer ysep=1ex](prenom) at (Posprenom){Prénom : };%
+\node[anchor=south west](nom) at (prenom.north west){Nom : };%
+\fi
+%
+\if@nodate
+\else
+\node[anchor=north west,outer ysep=0ex] (date) at ($(Posprenom)-(0,2ex)$){#1};%
+\fi
+%
+\if@PAP
+\coordinate (papaux) at ($(current page text area.north east)!(HalfCircleDownE)!(current page text area.east)$);
+\coordinate (pap) at ($(HalfCircleDownE)!0.5!(papaux)$);%($(date.south west)-(0,1ex)$)
+\node[anchor=north,outer ysep=0ex,inner sep=1pt] (paptext1) at (pap){\bfseries En cas de PAP :};
+\node[anchor=north,outer ysep=0ex,inner sep=1pt] (paptext2) at (paptext1.south) {Appelez votre enseignant en début de devoir.};%
+\node[anchor=north,outer ysep=0ex,inner sep=1pt] (chx1) at (paptext2.south) {tiers-temps : \Square{}  -- barème : \Square};
+\node[anchor=north,inner sep=1pt] at (chx1.south) {Questions supprimées : \Square};
+\fi
+%
+    \coordinate (baschapeau) at (HalfCircleDownS); 
+%
+    \node%
+    [%
+    outer xsep=5pt,%
+    baseline,%
+    node font = {\bfseries\sffamily\large}%
+    ](class) at ($(current page footer area.west)!0.5!(current page footer area.center)$)%
+    {#3};%
+%
+    \node%
+    [%
+    outer xsep=5pt,%
+    baseline,%
+    node font = {\bfseries\sffamily\large}%
+    ](matiere) at ($(current page footer area.east)!0.5!(current page footer area.center)$)%
+    {#4};%
+%
+% Traits horizontaux bas de page
+%
+  \draw%
+    (current page footer area.west)--(class)--(matiere)--(current page footer area.east);%
+%
+        \pgfextracty{\@tempdima}%
+            {%
+            \pgfpointdiff{\pgfpointanchor{current page text area}{north}}%
+                {\pgfpointanchor{baschapeau}{south}}%
+            }%
+    \global\hauteurtete=\dimexpr-\@tempdima\relax%
+  \end{tikzpicture}%
+}%
+%
+\def\mysevalfauxpieddepage{%
+\begin{tikzpicture}
+\node(deb) at (0,0){};
+\node(fin) at (deb-|current page footer area.east){};
+\node (class) at ($(deb)!0.25!(fin)$) {\@classe};
+\node (matiere) at ($(deb)!0.75!(fin)$){\@matiere};
+\end{tikzpicture}
+}
+%
+%########################################
+%
+% éléments de la page (pied de page, marges, haut de page)
+%
+%########################################
+%
+\def\tikzzonespages{%
+\begin{tikzpicture}[remember picture,overlay]
+\draw [blue,line width=2mm](current page.south west)rectangle(current page.north east);
+\draw [green](current page text area.south west)rectangle(current page text area.north east);%
+\draw [yellow](current page marginpar area.south west)rectangle(current page marginpar area.north east);%
+\draw [red](current page header area.south west)rectangle(current page header area.north east);%
+\draw [orange](current page footer area.south west)rectangle(current page footer area.north east);%
+\end{tikzpicture}
+}%

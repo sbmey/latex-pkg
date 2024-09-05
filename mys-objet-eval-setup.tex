@@ -1,0 +1,126 @@
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    PACKAGES NÉCESSAIRES
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+\@ifpackageloaded{mys-objet}%
+    {\typeout{Essai de chargement multiple du package mys-objet.}}%
+    {\RequirePackage{mys-objet}}%
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    Objets
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%======================================
+%
+%---   Niveau
+%
+%======================================
+%
+\Objet{niveau}{%
+    1/1\textsuperscript{re}% première
+    ,2/2\textsuperscript{nde}%seconde
+    ,t/T\textsuperscript{le}%terminale
+    }%
+%
+%======================================
+%
+%---   Spécialité
+%
+%======================================
+%
+\Objet*{specialite}{%
+    g/Générale%
+    ,stmg/STMG%
+    ,st2s/ST2S%
+    ,sm/Spé Math%
+    ,snt/S.N.T.%
+    }%
+%
+%======================================
+%
+%---   Division
+%
+%======================================
+%
+\Objet*{division}{%
+    sm/Spé Math%
+    }%
+%
+%======================================
+%
+%---   Genre
+%
+%======================================
+%
+\Objet{genre}{%
+    ci/Contrôle intermédiaire%
+    ,cf/Contrôle final%
+    ,c/Contrôle%
+    ,dm/Devoir maison%
+    ,Corr/Correction%
+    ,corr/correction%
+    ,pcorr/(correction)%
+    }%
+%
+%--------------------------------------------------------------------
+%
+% Création de compteurs
+%
+%--------------------------------------------------------------------
+%
+\def\create@evalcountbygenre#1{\create@eval@count@by@genre#1,\@nil}
+%
+\def\create@eval@count@by@genre#1,#2\@nil
+  {%
+  \newcounter{mys@eval@count@#1}%
+  \setcounter{mys@eval@count@#1}{0}%
+  \if\relax\detokenize{#2}\relax%
+  \else%
+    \create@eval@count@by@genre#2\@nil%
+  \fi
+  }
+%
+\create@evalcountbygenre{ci,cf,c,dm}%
+%
+%======================================
+%
+%---   Sous-Genre
+%
+%======================================
+%
+\Objet*{sousgenre}{%
+    Corr/Correction%
+    ,corr/correction%
+    ,pcorr/(correction)%
+    ,pCorr/(Correction)%
+    ,ge/Grille d'évaluation%
+    }%
+%
+%======================================
+%
+%---   Matière
+%
+%======================================
+%
+\Objet{matiere}{%
+    m/Mathématique%
+    ,snt/S.N.T.%
+    ,nsi/N.S.I.%
+    }%
+%
+%======================================
+%
+%---   Partie
+%
+%======================================
+%
+%

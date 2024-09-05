@@ -1,0 +1,402 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-notation-fonction}%
+    [2019/07/07 v0.0 to do the job]%
+%
+%####################################################
+%
+%
+%
+\@ifpackageloaded{mys-delimiteur}%
+    {\typeout{Essai de chargement multiple du package mys-delimiteur.}}%
+    {\RequirePackage{mys-delimiteur}}%
+%
+\@ifpackageloaded{mys-code-tool}%
+    {\typeout{Essai de chargement multiple du package mys-code-tool.}}%
+    {\RequirePackage{mys-code-tool}}%
+%
+%\@ifpackageloaded{mathtools}% chargé par mys-delimiteur
+%    {\typeout{Essai de chargement multiple du package mathtools.}}%
+%    {\RequirePackage{mathtools}}%
+%
+\@ifpackageloaded{array}%
+    {\typeout{Essai de chargement multiple du package array.}}%
+    {\RequirePackage{array}}%
+%
+\@ifpackageloaded{tkz-tab}%
+    {\typeout{Essai de chargement multiple du package tkz-tab.}}%
+    {\RequirePackage{tkz-tab}}%
+%
+\@ifpackageloaded{tkz-fct}%
+    {\typeout{Essai de chargement multiple du package tkz-fct.}}%
+    {\RequirePackage{tkz-fct}}%
+%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+\DeclareMathOperator\ch{ch}%
+\DeclareMathOperator\sh{sh}%
+%
+%####################################################
+%
+%---   degré (polynômes)
+%
+%####################################################
+%
+\DeclareMathOperator\@Degre{d\unit{\degree}}%
+\DeclarePairedDelimiterXPP{\degre}[1]{\@Degre}(){}{#1}%
+%
+%####################################################
+%
+%---   nombre d'euler
+%
+%####################################################
+%
+\@ifundefined{E}{\newcommand*{\E}{\mathrm{e}}}{}%
+\let\euler\E
+\NewDocumentCommand{\expbase}{e{_}}{\operatorname{exp\IfValueT{#1}{_{\,#1}}}}
+%
+%####################################################
+%
+%---   Fonction exponentielle
+%
+%####################################################
+%
+%   ---   user macro
+%
+\DeclarePairedDelimiterXPP\Exp@[1]{\exp}(){}{#1}%
+\DeclarePairedDelimiterXPP\Expbase@[2]{\expbase{#1}}(){}{#2}%
+%
+\def\Exp#1{\E^{#1}}
+%
+%   ---   user macro
+%
+%\setiipdformati\fctexp{#1}{#1}%
+%\setiipdformatii\fctexp{#1}{#1}%
+%\declareiipaireddelimiter\fctexp{\Exp}{\Exp@}%
+%
+\def\Exp{\@ifnextchar^\E\Exp@}
+%%%\def\Expbase[1]{\def\E@base#1{\E}\@ifnextchar^\E@base\Exp@base}
+% $\Exp^x$ ---> e^x
+% $\Exp{x^t}$ $\Exp*{x^{t^t}}$ $\Exp[\big]{x^t}$ ---> exp(...)
+%
+%####################################################
+%
+%---   Ensemble de définition
+%
+%####################################################
+%
+%   ---   operator
+%
+\def\mys@fct@deff@font{\mathcal}%
+%
+\DeclareMathOperator\Deff{\mys@fct@deff@font{D}}%
+%
+%--- user macro
+%
+\newcommand*{\deff}{\@ifnextchar\bgroup{\deff@}{\deff{f}}}%
+%
+%   ---   aux macro
+%
+\newcommand*\deff@[1]{\Deff_{#1}}%
+%
+%####################################################
+%
+%---   Ensemble des fonctions continues
+%
+%####################################################
+%
+\newcommand*{\ensfctcont}[2]{\mathcal{C}([#1,#2])}%
+%
+%####################################################
+%
+%---   Courbe représentative
+%
+%####################################################
+%
+%   ---   fonte
+%
+\def\mys@fct@crb@font{\mathcal}%
+%
+%--- user macro
+%
+\newcommand*{\crbf}{\@ifnextchar\bgroup{\crbf@}{\crbf{f}}}%
+%\newcommand*\crbf[1][f]{\Crbf{#1}}%
+%
+%   ---   aux macro
+%
+\definemacrowithnomandatory[C]{\courbe}{\mys@fct@crb@font{#1}}{\mys@fct@crb@font{#1}_{#2}}%
+\let\Crbf\courbe%
+%
+\newcommand*\crbf@[1]{\Crbf{#1}}%
+%
+%####################################################
+%
+%---   flèche "tends vers"
+%
+%####################################################
+%
+\newcommand{\tendvers}{%
+    \mathrel{\fix@height\rightarrow{-0.0625ex}{-0.03ex}{-0.01ex}}%
+    }%
+%
+%   ---   aux macro
+%
+\newcommand{\fix@height}[4]{%
+  \mathchoice
+    {\fix@@height{#1}\textstyle{#2}}
+    {\fix@@height{#1}\textstyle{#2}}
+    {\fix@@height{#1}\scriptstyle{#3}}
+    {\fix@@height{#1}\scriptscriptstyle{#4}}%
+}
+\newcommand{\fix@@height}[3]{\raisebox{#3}{$\m@th#2#1$}}
+
+%
+%####################################################
+%
+%---   Fonction
+%
+%####################################################
+%
+%--- user macro
+%
+\newcommand*\setfonctionflechelong{%
+    \let\mys@fct@fonction@flechei\longrightarrow%
+    \def\mys@fct@fonction@flecheii{\longmapsto}%
+    }%
+%
+\newcommand*\setfonctionflechenotlong{%
+    \let\mys@fct@fonction@flechei\rightarrow%
+    \def\mys@fct@fonction@flecheii{\mapsto}%
+    }%
+%
+\setfonctionflechelong{}
+%
+\newcommand*\fonction{%
+    \@ifnextchar*%
+        {\expandafter\mys@fct@fonction@star\mys@gobble}%
+        {\@ifnextchar'{\expandafter\mys@fct@fonction@prime\mys@gobble}{\mys@fct@fonction@}}%
+    }%
+%
+\gdef\mys@fct@fonction@{\@ifnextchar[{\mys@fct@fonction@opt}{\mys@fct@fonction@noopt}}%
+%
+\def\mys@fct@fonction@opt[#1]#2{%
+    \mys@fct@fonction@@ #1,#2,\mys@stop%
+    }%
+%
+\def\mys@fct@fonction@noopt#1{%
+    \mys@fct@fonction@@ x,#1,\mys@stop%
+    }%
+%
+\def\mys@fct@fonction@@ #1,#2,#3\mys@stop{%
+        #2(#1)%
+    \ifx\relax#3\relax %
+    \else%
+        =#3
+    \fi%
+    }%
+%
+%
+%
+\gdef\mys@fct@fonction@star{%
+    \@ifnextchar[{\mys@fct@fonction@star@opt}{\mys@fct@fonction@star@noopt}%
+    }%
+%
+\def\mys@fct@fonction@star@opt[#1]#2{%
+    \mys@fct@fonction@star@@ #1,#2,\mys@stop%
+    }%
+%
+\def\mys@fct@fonction@star@noopt#1{%
+    \mys@fct@fonction@star@@ x,#1,\mys@stop%
+    }%
+%
+\def\mys@fct@fonction@star@@ #1,#2,#3,#4\mys@stop{%
+    \ifx\relax#4\relax %
+        #2\colon #1\mys@fct@fonction@flecheii#3%
+    \else%
+        \mys@fct@fonction@star@@@#1,#2,#3,#4\mys@stop%
+    \fi%
+    }%
+%
+\def\mys@fct@fonction@star@@@ #1,#2,#3,#4,#5,\mys@stop{%
+    \ifx\relax#5\relax %
+        #2\colon #3\mys@fct@fonction@flechei#4%
+    \else%
+        #2\colon #3\mys@fct@fonction@flechei#4\quad#1\mys@fct@fonction@flecheii#5%
+    \fi%
+    }%
+%
+%
+%
+\gdef\mys@fct@fonction@prime{%
+    \@ifnextchar[%
+        {\mys@fct@fonction@prime@opt}%
+        {\mys@fct@fonction@prime@noopt}%
+    }%
+%
+\def\mys@fct@fonction@prime@opt[#1]#2{%
+    \mys@fct@fonction@prime@@ #1,#2\mys@stop%
+    }%
+%
+\def\mys@fct@fonction@prime@noopt#1{%
+    \mys@fct@fonction@prime@@ x,#1\mys@stop%
+    }%
+%
+\def\mys@fct@fonction@prime@@ #1,#2,#3,#4,#5\mys@stop{%
+    \begingroup%
+    \setlength\arraycolsep{0pt}%
+    #2\colon\begin{array}[t]{r @{} >{{}}c<{{}} @{} l}%
+             #3 & \mys@fct@fonction@flechei & #4 \\ 
+             #1 & \mys@fct@fonction@flecheii & #5 
+          \end{array}%
+    \endgroup%
+    }%
+%
+%####################################################
+%
+%---   intégration
+%
+%####################################################
+%
+%--- d
+%
+\newcommand*{\dx}{\mathop{}\!d}%
+%
+%--- 
+%
+\newcommand*\integrale[4][x]{\int_{#2}^{#3}#4\dx #1}%
+%
+%####################################################
+%
+%---   limite
+%
+%####################################################
+%
+%--- limite
+%
+\newcommand*\limite[1]{%
+    \@ifnextchar\bgroup{\mys@fct@limite@twoargs{#1}}{\mys@fct@limite@oneargs{#1}}%
+    }%
+%
+%   ---   limite de f
+%
+\def\mys@fct@limite@oneargs#1{\lim #1}%
+%
+%   ---   limite de f lorsque x tend vers ?
+%
+\def\mys@fct@limite@twoargs#1#2{\lim\limits_{#1} #2}%
+%
+%--- limite à gauche
+%
+\newcommand*\limiteg{%
+    \@ifstar{\mys@fct@limiteg@star}{\mys@fct@limiteg@nostar}%
+    }%
+%
+%   ---   version étoilée
+%
+\def\mys@fct@limiteg@star#1#2{\lim\limits_{#1^-}#2}%
+%
+%   ---   version non étoilée
+%
+\def\mys@fct@limiteg@aux#1\to #2\mys@stop{#1<#2}%
+%
+\def\mys@fct@limiteg@nostar#1#2{\lim\limits_{\substack{#1\\\mys@fct@limiteg@aux#1\mys@stop}}#2}%
+%
+%--- limite à droite
+%
+\newcommand*\limited{%
+    \@ifstar{\mys@fct@limited@star}{\mys@fct@limited@nostar}%
+    }%
+%
+%   ---   version étoilée
+%
+\def\mys@fct@limited@star#1#2{\lim\limits_{#1^+}#2}%
+%
+%   ---   version non étoilée
+%
+\def\mys@fct@limited@aux#1\to #2\mys@stop{#1>#2}%
+%
+\def\mys@fct@limited@nostar#1#2{\lim\limits_{\substack{#1\\\mys@fct@limited@aux#1\mys@stop}}#2}%
+%
+%####################################################
+%
+%---   Taux de variation
+%
+%####################################################
+%
+\def\mys@tuple@process@arg@element#1{}%
+%
+\def\mys@tuple@process@arg#1{\mys@tuple@process@arg@#1;\mys@stop}%
+%
+\def\mys@tuple@process@arg@#1;#2\mys@stop{%
+    \ifx\relax#2\relax%
+        \let\mys@tuple@process@arg@\mys@emptying%
+        \mys@tuple@process@arg@element{#1}%
+    \else%
+        \mys@tuple@format@\mys@tuple@process@arg@element{#1};%
+    \fi%
+    \mys@tuple@process@arg@#2\mys@stop%
+    }%
+%
+\def\mys@tuple@format@espace#1;{#1\mathclose{}\mathpunct{};\mathclose{}\mathpunct{}}%
+\def\mys@tuple@format@espace#1;{#1\,;}%
+%
+\newcommand*\tuple[1]{\mys@tuple@{#1}}%
+
+\def\mys@tuple@{\let\mys@tuple@format@\mys@tuple@format@espace\@ifstar\mys@tuple@star\mys@tuple@nostar}%
+\def\mys@tuple@star{\inparenprocess*\mys@tuple@process@arg}%
+%
+\def\mys@tuple@nostar{\@ifnextchar[\mys@tuple@nostar@opt\mys@tuple@nostar@noopt}%
+\def\mys@tuple@nostar@opt[#1]#2{\inparenprocess[#1]\mys@tuple@process@arg{#2}}%
+%
+\def\mys@tuple@nostar@noopt#1{\inparenprocess\mys@tuple@process@arg{#1}}%
+%
+\newcommand*\tauxvar[1]{\tuple{#1}}%
+%
+%####################################################
+%
+%---   Tableau u, v, u', v'
+%
+%####################################################
+%
+\NewDocumentCommand{\derivtable}{O{c}mmmm}
+    {%
+    \mleft\lbrace\begin{array}[#1]{@{ }lcl}
+            #2 & \text{et} & #3 \\
+            #4 & \text{et} & #5 \\
+    \end{array}\mright.%
+    }
+%\NewDocumentCommand{\derivtable}{sO{c}mmmm}
+%    {%
+%    \IfBooleanTF{#1}%
+%        {$\mleft\lbrace\begin{tabular}[#2]{@{ }lcl}
+%            #3 & et & #4 \\
+%            #5 & et & #6 \\
+%        \end{tabular}\mright.$%
+%        }
+%        {$\mleft\lbrace\begin{tabular}[#2]{@{ }lcl}
+%            $#3$ & et & $#4$ \\
+%            $#5$ & et & $#6$ \\
+%        \end{tabular}\mright.$%
+%        }
+%    }
+%    $\mleft\lbrace\begin{matrix}
+%        #2 & \text{ et } & #3 \\
+%        #4 & \text{ et } & #5
+%    \end{matrix}\mright.$
+
+\endinput

@@ -1,0 +1,99 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+\ProvidesPackage{mys-tableaux-tools}% Après hyperref
+	[2014/08/18 \space 0.0 \space do the job]%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+ \UseTblrLibrary{counter}
+ \UseTblrLibrary{zref}
+\@ifpackageloaded{zref-savepos}%
+    {\typeout{Essai de chargement multiple du package zref-savepos.}}%
+    {\RequirePackage{zref-savepos}}%
+%
+%####################################################
+%
+% Croix sur une cellule 
+%
+%####################################################
+%
+\def\croix@cell@color{black}
+\newcommand*\Setcroixcellcolor[1]{\def\croix@cell@color{#1}}
+%
+%
+%
+\newcounter{CroixSurCell}
+\renewcommand*{\theCroixSurCell}{NTE-\the\value{CroixSurCell}}
+\newcommand*{\croixcell}{%
+  \multicolumn{1}{@{}c@{}|}{%
+    \stepcounter{CroixSurCell}%
+    \vadjust pre{\zsavepos{\theCroixSurCell t}}% top
+    \vadjust{\zsavepos{\theCroixSurCell b}}% bottom
+    \zsavepos{\theCroixSurCell l}% left
+    \hspace{0pt plus 1filll}%
+    \zsavepos{\theCroixSurCell r}% right
+    \tikz[overlay]{%
+      \expandafter\draw\expandafter[\croix@cell@color]
+        let
+          \n{llx}={\zposx{\theCroixSurCell l}sp-\zposx{\theCroixSurCell r}sp},
+          \n{urx}={0},
+          \n{lly}={\zposy{\theCroixSurCell b}sp-\zposy{\theCroixSurCell r}sp},
+          \n{ury}={\zposy{\theCroixSurCell t}sp-\zposy{\theCroixSurCell r}sp}
+        in
+        (\n{llx}, \n{lly}) -- (\n{urx}, \n{ury})
+        (\n{llx}, \n{ury}) -- (\n{urx}, \n{lly})
+      ;
+    }% 
+  }%
+}%
+%
+%
+%
+%\NewTableCommand\CellforCross{\SetCell[c=1]{@{}c@{}|, font=\bfseries}}
+%
+\newcommand\tblrCrossCell[1][]{\rlap{\diagbox[height=\line,linecolor=\croix@cell@color,#1]{}{}}{\diagbox[dir=SW,height=\line,#1]{}{}}}
+%
+% Pour nicematrix
+\ExplSyntaxOn
+\cs_new_protected:Nn \__pantigny_crossbox:nnn
+{
+   \tikz \draw [ #3 ]
+            ( #1 -| \int_eval:n { #2 + 1 } ) -- ( \int_eval:n { #1 + 1 } -| #2 )
+            ( #1 -| #2 ) -- ( \int_eval:n { #1 + 1 } -| \int_eval:n { #2 + 1 } ) ;
+}
+%
+\NewDocumentCommand \crossbox { ! O { } }
+{
+   \tl_gput_right:Nx \g_nicematrix_code_before_tl
+      {
+         \__pantigny_crossbox:nnn
+            { \int_use:c { c@iRow } }
+            { \int_use:c { c@jCol } }
+            { \exp_not:n { #1 } }
+      }
+
+}
+\ExplSyntaxOff
+%
+%####################################################
+%
+% Croix sur une cellule 
+%
+%####################################################
+%
+\newcommand{\specialcell}[2][c]{%
+  \begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
+%
+\endinput

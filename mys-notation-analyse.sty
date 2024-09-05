@@ -1,0 +1,262 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-notation-analyse}%
+    [2019/07/07 v0.0 to do the job]%
+%
+%####################################################
+%
+\@ifpackageloaded{pgffor}%
+    {\typeout{Essai de chargement multiple du package pgffor.}}%
+    {\RequirePackage{pgffor}}%
+%
+\@ifpackageloaded{etoolbox}%
+    {\typeout{Essai de chargement multiple du package etoolbox.}}%
+    {\RequirePackage{etoolbox}}%
+%
+\@ifpackageloaded{mathtools}%
+    {\typeout{Essai de chargement multiple du package mathtools.}}%
+    {\RequirePackage{mathtools}}%
+%
+\@ifpackageloaded{mleftright}%
+    {\typeout{Essai de chargement multiple du package mleftright.}}%
+    {\RequirePackage{mleftright}}%
+%
+\@ifpackageloaded{xparse}%
+    {\typeout{Essai de chargement multiple du package xparse.}}%
+    {\RequirePackage{xparse}}%
+%
+\@ifpackageloaded{siunitx}%
+    {\typeout{Essai de chargement multiple du package siunitx.}}%
+    {\RequirePackage{siunitx}}%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%====================================================
+%
+% Suite
+%
+%====================================================
+%
+%\NewDocumentCommand\suite{sO{n}m}{%
+%    \IfBooleanTF{#1}%
+%        {#3}
+%        {\mleft(#3_{#2}\mright)}
+%    }%
+%
+%====================================================
+%
+%   Unité d'aire
+%
+%====================================================
+%
+\DeclareSIUnit{\uniteaire}{u.a.}
+%
+%====================================================
+%
+%   Distance
+%
+%====================================================
+%
+%   ---   operateur
+%
+\DeclareMathOperator\Dist{d}%
+%
+%   ---   user macro
+%
+\DeclarePairedDelimiterXPP{\dist}[1]{\Dist}(){}{\mys@anal@dist@parse#1\mys@stop}%
+%
+\def\mys@anal@dist@parse#1;#2\mys@stop{#1\,;#2}%
+%
+%====================================================
+%
+%   Valeur absolue
+%
+%====================================================
+%
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+%
+%\let\oldabs\abs
+%\def\abs{\@ifstar{\oldabs}{\oldabs*}}
+%
+%====================================================
+%
+% System
+%
+%====================================================
+%
+\newcommand*\syst[4]{%
+    \mleft\lbrace%
+    \begin{array}{rcl}
+      #1&=&#2\\
+      #3&= &#4\\
+    \end{array}
+    \mright.
+    }%
+%
+%
+%
+\newcommand*\systemeiii[3]{%
+    \mleft\lbrace%
+    \begin{array}{r@{\;}c@{\;}l}
+      #1\\
+      #2\\
+      #3\\
+    \end{array}
+    \mright.
+    }%
+%
+%
+%
+\renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]
+  {%
+  \hskip -\arraycolsep%
+  \let\@ifnextchar\new@ifnextchar%
+  \array{#1}
+  }%
+%
+\newcommand*\systeme[2][l]{%
+  \let\lignes\empty%
+  \foreach \line [count=\n]in {#2}%
+    {%
+    \ifnum\n=1%
+    \else%
+      \gappto\lignes{\\}%
+    \fi%
+     \expandafter\expandafter\expandafter\gdef\expandafter\expandafter\expandafter\lignes\expandafter\expandafter\expandafter{\expandafter\lignes\line}
+    }
+  \mleft\lbrace%
+  \begin{matrix}[#1@{\ }]%[#1@{\ }#1@{\ }l@{}]%[#1@{\ }#1@{\ }#1@{}]%
+    \lignes%
+  \end{matrix}%
+  \mright.
+  }%
+%
+%
+%
+%\ExplSyntaxOn
+%\NewDocumentCommand{\Systeme}{ O{c}m }
+%    {\mys_systeme:nn { #1 }{#2}}
+%% a variable
+%\seq_new:N \l_mys_syst_lines_seq
+%\int_new:N\l_mys_syst_cols_int
+%% the programmer level function
+%\cs_new_protected:Npn \mys_systeme:nn #1#2
+%    {
+%    % clear the sequence
+%    \seq_clear:N \l_mys_syst_lines_seq
+%    % do a mapping on the comma list separated input
+%    \clist_map_inline:nn { #2 }
+%        {\seq_put_right:Nn \l_mys_syst_lines_seq {##1}}
+%\seq_show:N\l_mys_syst_lines_seq
+%    \tl_set:Nf\l_tmpa_tl{\clist_item:nn{#2}{1}}
+%    \seq_set_split:NnV\l_tmpa_seq{&}\l_tmpa_tl
+%    \int_set:Nn\l_mys_syst_cols_int{\seq_count:N\l_tmpa_seq}
+%    \mleft\lbrace
+%    \begin{matrix}[rl]
+%    % deliver the items separated by \\
+%    \seq_use:Nn \l_mys_syst_lines_seq {\\}
+%    \end{matrix}
+%    \mright.
+%    }
+%\ExplSyntaxOff
+%
+%%%%%%%%%%%%%%%%%%
+%
+%====================================================
+%
+%---   Intervalles
+%
+%====================================================
+%
+% egreg : https://tex.stackexchange.com/questions/279029/a-robust-command-for-french-style-intervals?rq=1
+\ExplSyntaxOn
+\NewDocumentCommand{\intervalle}{O{}>{\SplitArgument{1}{;}}m}
+ {
+  \group_begin:
+  \keys_set:nn { mys/intervalle } { f, #1 }
+  \bool_if:NTF { \l_mys_interval_auto_bool }
+   {\mleft\l_mys_interval_left_tl}
+   {\mathopen{\l_mys_interval_size_tl\l_mys_interval_left_tl}}
+  \mys_interval_set:nn #2
+  \bool_if:NTF { \l_mys_interval_auto_bool }
+   {\mright\l_mys_interval_right_tl}
+   {\mathclose{\l_mys_interval_size_tl\l_mys_interval_right_tl}}
+  \group_end:
+ }
+%
+ \cs_new_protected:Nn \mys_interval_set:nn{#1 \l_mys_interval_sep_tl #2}
+%
+\keys_define:nn { mys/intervalle }
+ {
+  size .code:n =
+   \tl_if_eq:nnTF { #1 } { * }
+    { \bool_set_true:N \l_mys_interval_auto_bool }
+    {\tl_if_blank:nF{#1}{\tl_set_eq:NN \l_mys_interval_size_tl #1}},%    { \tl_set:Nx \l_mys_interval_size_tl { \exp_not:c {#1} } },
+  size .initial:n={},
+  o .code:n =
+   \tl_set:Nn \l_mys_interval_left_tl { ] }
+   \tl_set:Nn \l_mys_interval_right_tl { [ },
+  oo .code:n =
+   \tl_set:Nn \l_mys_interval_left_tl { ] }
+   \tl_set:Nn \l_mys_interval_right_tl { [ },
+  f .code:n =
+   \tl_set:Nn \l_mys_interval_left_tl { [ }
+   \tl_set:Nn \l_mys_interval_right_tl { ] },
+  ff .code:n =
+   \tl_set:Nn \l_mys_interval_left_tl { [ }
+   \tl_set:Nn \l_mys_interval_right_tl { ] },
+  of .code:n =
+   \tl_set:Nn \l_mys_interval_left_tl { ] }
+   \tl_set:Nn \l_mys_interval_right_tl { ] },
+  fo .code:n =
+   \tl_set:Nn \l_mys_interval_left_tl { [ }
+   \tl_set:Nn \l_mys_interval_right_tl { [ },
+  o .value_forbidden:n = true,
+  oo .value_forbidden:n = true,
+  f .value_forbidden:n = true,
+  ff .value_forbidden:n = true,
+  of .value_forbidden:n = true,
+  fo .value_forbidden:n = true,
+ }
+
+\tl_new:N \l_mys_interval_left_tl
+\tl_new:N \l_mys_interval_right_tl
+\tl_new:N \l_mys_interval_size_tl
+\tl_new:N \l_mys_interval_sep_tl
+\bool_new:N \l_mys_interval_auto_bool
+
+\tl_set:Nn \l_mys_interval_sep_tl { \mathpunct{;} }
+
+\newcommand*\intervallesep[1]{\tl_set:Nn \l_mys_interval_sep_tl { \mathpunct{#1} }}
+
+\newcommand*\intervallesetup[1]{  \keys_set:nn { mys/intervalle } { #1 }}
+
+\ExplSyntaxOff
+%
+\NewDocumentCommand\intervallef{sO{}m}%
+    {\IfBooleanTF{#1}{\intervalle[f,size=*]{#3}}{\intervalle[f,size={#2}]{#3}}}%
+%
+\NewDocumentCommand\intervalleo{sO{}m}%
+    {\IfBooleanTF{#1}{\intervalle[o,size=*]{#3}}{\intervalle[o,size={#2}]{#3}}}%
+%
+\NewDocumentCommand\intervalleof{sO{}m}%
+    {\IfBooleanTF{#1}{\intervalle[of,size=*]{#3}}{\intervalle[of,size={#2}]{#3}}}%
+%
+\NewDocumentCommand\intervallefo{sO{}m}%
+    {\IfBooleanTF{#1}{\intervalle[fo,size=*]{#3}}{\intervalle[fo,size={#2}]{#3}}}%
+
+\endinput

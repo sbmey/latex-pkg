@@ -1,0 +1,311 @@
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    DÉCLARATION PACKAGE
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-notation-nonmath}%
+    [2019/07/07 v0.0 to do the job]%
+%
+\@ifpackageloaded{xspace}%
+    {\typeout{Essai de chargement multiple du package xspace.}}%
+    {\RequirePackage{xspace}}%
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    PACKAGES NÉCESSAIRES
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    CODE
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+\newcommand\rappelsujet[2][\emph]{#1{\small#2}}
+%
+%======================================
+%
+%---   Symboles
+%
+%======================================
+%
+%   ---   euro
+%
+\ifluatex 
+    \ifdef{\euro}{\newcommand*\euro{€}}{}
+\fi
+%
+%   ---   cartes
+%
+\newcommand*\Ctrefle{\ding{168}}
+\newcommand*\Cpique{\ding{171}}    
+\newcommand*\Ccoeur{\color{red}\ding{170}}
+\newcommand*\Ccarreau{\color{red}\ding{169}}
+%
+%======================================
+%
+%---   Abbréviations
+%
+%======================================
+%
+%   ---   1er, ...
+%
+\@ifundefined{nd}{\def\nd{\textsuperscript{nd}}}{}%
+\@ifundefined{nde}{\def\nde{\textsuperscript{nde}}}{}%
+\newcommand*\second{2\nd}%
+\newcommand*\seconde{2\nde}%
+\@ifundefined{ier}{\def\ier{\textsuperscript{er}}}{}%
+\@ifundefined{iere}{\def\iere{\textsuperscript{re}}}{}%
+\newcommand*\premier{1\ier}%
+\newcommand*\premiere{1\iere}%
+%
+%   ---   id est
+%
+\newcommand*\ie{i.e.}%
+%
+%   ---   c'est à dire
+%
+\newcommand*\cad{%
+    \@ifstar\mys@notation@nonmath@cad@nonabb\mys@notation@nonmath@cad@abb%
+    }%
+%
+\def\mys@notation@nonmath@cad@nonabb{c.-à-d.}%
+%
+\def\mys@notation@nonmath@cad@abb{c'est-à-dire}%
+%
+%   ---   JC
+%
+\newcommand*\JC{J.-C.}%
+\newcommand*\apresJC{apr. \JC}%
+\newcommand*\avantJC{av. \JC}%
+%
+%   ---   cf
+%
+\newcommand*\cf{cf.}%
+%
+%   ---   environ
+%
+\newcommand*\environ{env.}%
+%
+%   ---   etc
+%
+\newcommand*\etc{etc.}%
+%
+%   ---   exemple
+%
+\newcommand*\exemple{ex.}%
+%
+%   ---   fig
+%
+\newcommand*\fig{fig.}%
+%
+%   ---   madame, ...
+%
+\newcommand*\madame{M\textsuperscript{me}}%
+\newcommand*\mesdames{M\textsuperscript{mes}}%
+\newcommand*\mademoiselle{M\textsuperscript{lle}}%
+\newcommand*\mesdemoiselles{M\textsuperscript{lles}}%
+%
+%   ---   monsieur, ...
+%
+\newcommand*\monsieur{M.}%
+\newcommand*\messieurs{MM.}%
+%
+%   ---   NB
+%
+\newcommand*\notabene{NB}%
+%
+%   ---   paragraphe
+%
+\newcommand*\paragraphe{§}%
+%
+%   ---   ps
+%
+\newcommand*\postScriptum{P-S}%
+%
+%   ---   recto, verso
+%
+\newcommand*\recto{r\textsuperscript{o}}%
+\newcommand*\verso{v\textsuperscript{o}}%
+%
+%   ---   siècle
+%
+\newcommand*\siecle{s.}%
+%
+%   ---   HT, TTC, TVA
+%
+\newcommand*\horstaxe{ht}%
+\newcommand*\tva{TVA}%
+\newcommand*\ttc{TTC}%
+%
+%   ---   suivant
+%
+\newcommand*\suivant{suiv.}%
+%
+%   ---   tél
+%
+\newcommand*\Telephone{Tél.}%
+\newcommand*\telephone{tél.}%
+%
+%======================================
+%
+%---   Trace une boîte de longueur donnée et place quelque chose au milieu
+%
+%======================================
+%
+%   ---   place trois points de suspension au milieu d'une boxe de la longueur indiquée
+%
+\newcommand*\suspension[2][c]{\makebox[#2][#1]{\dots}}%
+%
+%   ---   place ce qu'on veut au milieu d'une boîte de la longueur indiquée
+%
+\newcommand*\pointille[2][\dotfill]{\makebox[#2][c]{#1}}%
+%
+%======================================
+%
+%---   Cache texte
+%
+%======================================
+%
+%    ---    cache un mot par des leaders (pointillés, tiretés, ...) 
+%
+\newcommand*{\remplacephrase}[2]["]%
+% #1 : ce qui remplace la phrase, pa défaut : "
+% #2 : mot ou phrase à cacher
+    {\sbox0{#2}\makebox[\wd0][c]{\hfill #1 \hfill}}%
+%
+%    ---    cache un mot par des leaders (pointillés, tiretés, ...) 
+%
+\newlength\mys@motcache@leader@espace%
+\newcommand*\SetMotcacheEspaceLeader[1]{\setlength{\mys@motcache@leader@espace}{#1}}%
+%
+\newcommand*\SetMotcacheLeader[1]{%
+    \edef\mys@motcache@symbole{#1}%
+    \sbox0{#1}%
+    \SetMotcacheEspaceLeader{\dimexpr0.5mm+\wd0\relax}%
+    }%
+%
+\SetMotcacheLeader{.}%
+%
+\newcommand*{\motcache}[2][1]%
+% #1 : 
+%        si #1 >0 -> alors #1 est le coefficient multiplicatif appliqué à la longueur de ce qui doit être caché
+%        si #1 <= 0 alors #1 les leaders vont jusqu'à la fin de la ligne
+% #2 : mot ou phrase à cacher
+    {%
+    \sbox0{#2}%
+    \ifnum#1=1 %
+        \makebox[\wd0][c]{\xleaders\hbox to \mys@motcache@leader@espace {\hss\mys@motcache@symbole\hss}\hfill}%
+    \else%
+        \ifnum#1>0 %
+            \makebox[\dimexpr(\wd0)*#1\relax][c]{\xleaders\hbox to \mys@motcache@leader@espace {\hss\mys@motcache@symbole\hss}\hfill}%
+        \else
+           \makebox[\linegoal][c]{\xleaders\hbox to \mys@motcache@leader@espace {\hss\mys@motcache@symbole\hss}\hfill}%
+        \fi
+    \fi%  
+    }%
+%
+%======================================
+%
+%---   Superpose deux textes (mots ou phrases courtes)
+%
+%======================================
+%
+\newcommand*{\MotsSuperposes}[2]%
+  {%
+  \sbox0{\Large #1}\sbox1{#2}%
+  \ifdim \wd0 > \wd1 %
+    \makebox[\wd0]%
+      {%
+      {\Large #1}%
+      \hspace{-\wd0}%
+      \hfill #2\hfill%
+      }%
+\else
+    \makebox[\wd1][c]%
+      {%
+      #2%
+      \hspace{-\wd1}%
+      \hfill %
+      {\Large #1}%
+      \hfill%
+    }%
+\fi%
+  }%
+%
+%   ---   utile ?
+%
+\newcommand{\superpose}[2]%
+  {%
+  \sbox0{#1}\sbox1{#2}%
+  #1%
+  \hspace{\dimexpr-.5\wd0-0.5\wd1\relax}%
+  #2%
+  }%
+%
+%======================================
+%
+%---   barrer
+%
+%======================================
+%
+\newcommand{\Cancel}[2][black]{{\color{#1}\cancel{\color{black}#2}}}
+\newcommand{\Cancelto}[3][black]{{\color{#1}\cancelto{\color{black}#2}{\color{black}#3}}}
+%
+%======================================
+%
+%---   espace vertical
+%
+%======================================
+%
+\newcommand\Vrule[1]{\rule[-#1\dp\strutbox]{0pt}{#1\normalbaselineskip}}%
+%
+\newcommand\extravsep{\vspace*{2pt}}%
+%
+\newcommand*\espvert[1][1ex]{\vspace*{#1}}%
+%
+%==============================%
+%
+%     Pas de coupure après le premier item dans une liste ???
+%
+%==============================%
+%
+%     https://tex.stackexchange.com/questions/165418/prevent-page-break-after-first-line-of-example
+%
+\ifdefined \nolistbreak \else
+\newcommand{\nolistbreak}{%
+  \let\oldpar\par\def\par{\oldpar\nobreak}% Any \par issues a \nobreak
+  \@nobreaktrue% Don't break with first \item
+}%
+\fi
+%
+%======================================
+%
+%     Pivote un bloc de texte
+%
+%======================================
+%
+\newcommand\tourne[2][180]{\rotatebox[origin={t}]{#1}{\parbox[t]{\linewidth}{#2}}}%
+%
+%######################################
+%######################################
+%
+                \endinput
+%
+%######################################
+%######################################

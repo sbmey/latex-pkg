@@ -1,0 +1,248 @@
+%
+%####################################################
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%
+%  Declaration package
+%
+%+++++++++++++
+%#############
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+  {pagenoneval-titre}%
+  [2016/08/18 v0.0 to do the job]%
+%
+%####################################################
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%
+%  Packages nécessaires
+%
+%+++++++++++++
+%#############
+%
+%
+\@ifpackageloaded{mys-code-tool}%
+    {\typeout{Essai de chargement multiple du package mys-code-tool.}}%
+    {\RequirePackage{mys-code-tool}}%
+\@ifpackageloaded{pagenoneval-titre-graphisme}%
+    {\typeout{Essai de chargement multiple du package pagenoneval-titre-graphisme.}}%
+    {\RequirePackage{pagenoneval-titre-graphisme}}%
+\@ifpackageloaded{titleps}%
+    {\typeout{Essai de chargement multiple du package titleps.}}%
+    {\RequirePackage{titleps}}%
+\@ifpackageloaded{tikz}%
+    {\typeout{Essai de chargement multiple du package tikz.}}%
+    {\RequirePackage{tikz}}%
+\@ifpackageloaded{pgffor}%
+    {\typeout{Essai de chargement multiple du package pgffor.}}%
+    {\RequirePackage{pgffor}}%
+\@ifpackageloaded{tikzpagenodes}%
+    {\typeout{Essai de chargement multiple du package tikzpagenodes.}}%
+    {\RequirePackage{tikzpagenodes}}%
+%
+\usetikzlibrary{calc,decorations.text}%
+\usetikzlibrary{positioning}%
+%
+%\endlinechar \m@ne% to ignore the extra spaces introduced by newlines
+%
+%----------%----------%----------%----------%----------%----------%----------%----------%----------%----------%----------%
+%
+%----------% Redéfinition de \maketitle
+%
+\let\maketitleOLD\maketitle
+%
+\if@titlepage
+    % A ENLEVER : ce cas ne devrait jamais arriver (n'est-ce pas ?)
+    \renewcommand\maketitle
+    {%
+    \mys@titleformat[60\p@][3em][1.5em]
+    \begin{titlepage}%
+        \let\footnotesize\small
+        \let\footnoterule\relax
+        \let\footnote \thanks
+        \null
+        \@maketitle
+        \null
+    \end{titlepage}%
+    \setcounter{footnote}{0}%
+    \global\let\thanks\relax
+    \global\let\maketitle\relax
+    \global\let\@thanks\@empty
+    \global\let\@author\@empty
+    \global\let\@date\@empty
+    \global\let\@title\@empty
+    \global\let\title\relax
+    \global\let\author\relax
+    \global\let\date\relax
+    \global\let\and\relax
+    }
+\else
+    \renewcommand\maketitle
+        {%
+        \mys@titleformat[0em][0em][0em]%  \mys@titleformat[2em][1.5em][1.5em]
+        \par
+        \begingroup
+        \renewcommand\thefootnote{\@fnsymbol\c@footnote}%
+        \def\@makefnmark{\rlap{\@textsuperscript{\normalfont\@thefnmark}}}%
+        \long\def\@makefntext##1{%
+            \parindent 1em\noindent
+            \hb@xt@1.8em{\hss\@textsuperscript{\normalfont\@thefnmark}}%
+            ##1
+        }%
+    \if@twocolumn
+        \ifnum \col@number=\@ne
+            \@maketitle
+        \else
+            \twocolumn[\@maketitle]%
+        \fi
+    \else
+        \newpage
+        \global\@topnum\z@   % Prevents figures from going at top of page.
+        \@maketitle%
+    \fi
+    \thispagestyle{empty}%
+    \@thanks
+    \endgroup
+    \setcounter{footnote}{0}%
+    \global\let\thanks\relax
+    \global\let\@remaketitle\@maketitle
+    \global\let\maketitle\relax
+    \global\let\@maketitle\relax
+    \global\let\@thanks\@empty
+    \global\let\@author\@empty
+    \global\let\@date\@empty
+%    \global\let\@title\@empty
+    \global\let\title\relax
+    \global\let\author\relax
+    \global\let\date\relax
+    \global\let\and\relax
+    }
+\fi
+%
+%----------% Définition de \remaketitle
+%
+\def\remaketitle{%
+    \@remaketitle%
+    \setcounter{page}{1}
+    \setcounter{exr}{0}
+    \setcounter{act}{0}
+    \setcounter{mth}{0}
+    \thispagestyle{empty}%
+}%
+%
+%----------%----------%----------%----------%----------%----------%----------%----------%----------%----------%----------%
+%
+%----------%
+%
+\def\mys@titleformat{%
+   \@ifnextchar[%
+     {\mys@titleformat@i}
+     {\mys@titleformat@i[0]}%
+}%
+%
+%
+%
+\def\mys@titleformat@i[#1]{%
+   \@ifnextchar[%
+     {\mys@titleformat@ii{#1}}
+     {\mys@titleformat@ii{#1}[0]}%
+}%
+%
+%
+%
+\def\mys@titleformat@ii#1[#2][#3]{%
+% #1 = espace vertical avant le titre
+% #2 = espace vertical après le titre et avant l'auteur
+% #3 = espace vertical après l'auteur et avant la date
+    \if@titlepage
+    \def\@maketitle{%
+        \vfil%
+        \vskip #1% 60 \p@
+        \begin{center}%
+            {\LARGE\@title \par}%
+            \vskip #2%3em
+            {\large%
+            \lineskip .75em%
+            \begin{tabular}[t]{c}%
+                \@author%
+                \end{tabular}\par}%
+                \vskip #3%1.5em%
+                {\large \@date \par}%       % Set date in \large size.
+            \end{center}\par%
+        \@thanks%
+        \vfil
+    }
+    \else
+        \long\gdef\@maketitle
+            {%
+            \newpage%
+            \null%
+        \vskip #1%2 em
+                {%
+                \let \footnote \thanks%
+                \titleshape\@annee\@classe\mys@objet@matiere\the@num@part\mys@objet@partie\the@num@chap\@title\mys@objet@genre\mys@objet@sousgenre%
+                }%
+                \par%
+        \vskip \dimexpr\hauteurtete+#3\relax%1.5em
+            }%
+    \fi
+}
+%
+%----------%----------%----------%----------%----------%----------%----------%----------%----------%----------%----------%
+%
+%----------% Header et Footer
+%
+\newcommand\SetHeaderL[1]{\gdef\mys@set@header@l{#1}}
+%
+\SetHeaderL{\mypartname{} \the@num@part{} - \chaptername{} \the@num@chap}
+%
+%
+\newcommand\SetHeaderC[1]{\gdef\mys@set@header@c{#1}}
+%
+\SetHeaderC{\mys@objet@matiere}
+%
+%
+\newcommand\SetHeaderR[1]{\gdef\mys@set@header@r{#1}}
+%
+\ExplSyntaxOn
+    \cs_generate_variant:Nn\str_lowercase:n{V}
+    \expandafter\ifblank\expandafter{\@cours@sousgenre}{\SetHeaderR{\mys@objet@genre}}{\SetHeaderR{\mys@objet@genre{}\ :\ \str_lowercase:V\mys@objet@sousgenre\expandafter\ifblank\expandafter{\mys@objet@soussousgenre}{}{\ (\str_lowercase:V\mys@objet@soussousgenre)}}}
+% 
+\ExplSyntaxOff
+%
+%
+\newcommand\SetFooterL[1]{\gdef\mys@set@footer@l{#1}}
+%
+\SetFooterL{\@classe}
+%
+%
+\newcommand\SetFooterC[1]{\gdef\mys@set@footer@c{#1}}
+%
+\SetFooterC{}
+%
+%
+\newcommand\SetFooterR[1]{\gdef\mys@set@footer@r{#1}}
+%
+\SetFooterR{Page \thepage}
+%
+%----------%----------%----------%----------%----------%----------%----------%----------%----------%----------%----------%
+%
+%----------% Page style
+%
+% Définition
+%
+\newpagestyle{main}[\small]{%
+    \sethead%
+            {\mys@set@header@l}%     odd-left
+            {\mys@set@header@c}%     odd-center
+            {\mys@set@header@r}%     odd-right
+     \setfoot%
+        {\mys@set@footer@l}%
+        {\mys@set@footer@c}%
+        {\mys@set@footer@r}%
+  }
+%
+% Utilisation
+%
+\pagestyle{main}%

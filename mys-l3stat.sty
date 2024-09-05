@@ -1,0 +1,6163 @@
+% Impossible de faire \calculer{\statuselistitem{2}{fcc}{5}}
+% Arrondir les fcc en pourcentage
+% saisie de la forme \moyenneredac{2/3,4/1,5/22}
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\ProvidesExplPackage%
+	{mys-l3stat}%
+	{2015/02/13}%
+	{0.0}%
+	{stats}%
+%
+% TODO: 2var
+%		gestion des calculs: ne faire que les calculs demandés
+%		variance et ecarttype
+%	Graphiques: bar, circ,hist,cecc,cecd,cfcd,cfcc,nuage
+%	Corriger les rdac
+%
+%\RequirePackage{mslf-notation-math}%fp
+%
+%####################################################
+%
+\@ifpackageloaded{expl3}{}{\RequirePackage{expl3}}
+\@ifpackageloaded{xparse}{}{\RequirePackage{xparse}}
+\@ifpackageloaded{l3keys2e}{}{\RequirePackage{l3keys2e}}
+\@ifpackageloaded{mys-calcul}{}{\RequirePackage{mys-calcul}}% pour \__mslf_round:nn
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+\cs_new_protected:Npn \mysort_reversed: { \sort_return_swapped: }
+\cs_new_protected:Npn \mysort_ordered: { \sort_return_same: }
+%
+%####################################################
+%
+% Test
+%
+%####################################################
+%
+\def\indicposition#1
+  {
+  \textbf{Les~indicateurs~de~position:}
+  \begin{itemize}
+    \item \statprintredac{#1}{mode}
+    \item \statprintredac{#1}{moy}
+    \item \statprintredac{#1}{med}
+    \item \statprintredac{#1}{q1}
+    \item \statprintredac{#1}{q3}
+  \end{itemize}
+  }
+%
+\def\indicdispersion#1
+  {%
+  \textbf{Les~indicateurs~de~dispersion:}
+  \begin{itemize}
+  \item \statprintredac{#1}{etendue}
+  \item \statprintredac{#1}{ecartiq}
+  \end{itemize}
+  }
+%
+\keys_define:nn{stat/redacall}
+  {
+  env  .tl_set:N = \__mys_stat_redacall_env_tl,
+  env .initial:n = {itemize},
+  position .clist_set:N = \__mys_stat_redacall_position_clist,
+  position .default:n = {mode,moy,med,q1,q3},
+  position .initial:n = {},
+  dispersion .clist_set:N = \__mys_stat_redacall_dispersion_clist,
+  dispersion .default:n = {etendue,ecartiq},
+  dispersion .initial:n = {}, 
+  2 .meta:n={position={mode,moy,med,q1,q3},dispersion={etendue,ecartiq}},
+  1s-full .meta:n={position={mode,moy,med,q1,q3},dispersion={etendue,ecartiq,ecarttype}},
+  1s-full  .value_forbidden:n=true,
+  1s .meta:n={position={moy},dispersion={ecarttype}},
+  before-indic  .tl_set:N=\__mys_stat_redacall_bindic_tl,
+  before-indic .initial:n = {\item},
+  before-pos  .tl_set:N=\__mys_stat_redacall_bpos_tl,
+  before-pos .initial:n = {\textbf{Les~indicateurs~de~position~:}},
+  before-disp  .tl_set:N=\__mys_stat_redacall_bdisp_tl,
+  before-disp .initial:n = {\textbf{Les~indicateurs~de~dispersion~:}},
+  moustache_choix  .bool_set:N = \__mys_stat_redacall_moustache_bool,
+  moustache_choix  .default:n = {false},
+  moustache_opt  .tl_set:N=\__mys_stat_redacall_moustopt_tl,
+  moustache .meta:n = {moustache_choix={true},moustache_opt={#1}},
+  before-disp .initial:n = {\textbf{Les~indicateurs~de~dispersion~:}},
+  }
+%
+\NewDocumentCommand{\RedacStatIndic}{O{}m}
+% #2 = one stat id
+  {
+  \keys_set:nn{stat/redacall}{#1}
+  \clist_if_empty:NF\__mys_stat_redacall_position_clist
+    {
+    \tl_use:N\__mys_stat_redacall_bpos_tl
+    \exp_args:Nx\begin{\tl_use:N\__mys_stat_redacall_env_tl}
+    \clist_map_inline:Nn\__mys_stat_redacall_position_clist
+      {
+      \tl_use:N\__mys_stat_redacall_bindic_tl \statprintredac{#2}{##1}
+      }
+    \exp_args:Nx\end{\tl_use:N\__mys_stat_redacall_env_tl}
+    }
+  \clist_if_empty:NF\__mys_stat_redacall_dispersion_clist
+    {
+    \tl_use:N\__mys_stat_redacall_bdisp_tl
+    \exp_args:Nx\begin{\tl_use:N\__mys_stat_redacall_env_tl}
+    \clist_map_inline:Nn\__mys_stat_redacall_dispersion_clist
+      {
+      \item \statprintredac{#2}{##1}
+      }
+    \exp_args:Nx\end{\tl_use:N\__mys_stat_redacall_env_tl}
+    }
+  \bool_if:NT\__mys_stat_redacall_moustache_bool
+    {
+    
+    \cs_set:Npx\__mys_tmp:{\exp_not:N\dessinboitemoustache[\tl_use:N\__mys_stat_redacall_moustopt_tl]}
+    \__mys_tmp:{#2}}
+  }
+%
+\def\teststat#1
+  {
+  \begin{itemize}
+  \item 
+    \begin{itemize}
+    \item \statprint{#1}{orig}
+    \item \statprintlist{#1}{orig}
+    \item \statliste{#1}{orig}
+    \item \statserieorig{#1}
+    \end{itemize}
+  \item 
+    \begin{itemize}
+    \item \statprint{#1}{sort}
+    \item \statprintlist{#1}{sort}
+    \item \statliste{#1}{sort}
+    \item \statserieord{#1}
+    \end{itemize}
+  \item
+    \begin{itemize}
+    \item \statprint{#1}{mode}
+    \item \statprintlist{#1}{mode}
+    \item \statliste{#1}{mode}
+    \item\statprintredac{#1}{mode}
+%    \item \statprintval{#1}{mode}
+%    \item \statuseval{#1}{mode}
+    \end{itemize}
+  \item
+    \begin{itemize}
+    \item \statprint{#1}{val}
+    \item \statprintlist{#1}{val}
+    \item \statliste{#1}{val}
+%    \item \statprintval{#1}{val}
+%    \item \statuseval{#1}{val}
+    \end{itemize}
+  \item
+    \begin{itemize}
+    \item \statprint{#1}{eff}
+    \item \statprintlist{#1}{eff}
+    \item \statliste{#1}{eff}
+%    \item \statprintval{#1}{eff}
+%    \item \statuseval{#1}{eff}
+    \end{itemize}
+  \item 
+    \begin{itemize}
+    \item \statprint{#1}{freq}
+    \item \statprintlist{#1}{freq}
+    \item \statliste{#1}{freq}
+%    \item \statprintval{#1}{freq}
+%    \item \statuseval{#1}{freq}
+    \end{itemize}
+  \item 
+    \begin{itemize}
+    \item \statprint{#1}{ecc}
+    \item \statprintlist{#1}{ecc}
+    \item \statliste{#1}{ecc}
+%    \item \statprintval{#1}{ecc}
+%    \item \statuseval{#1}{ecc}
+    \end{itemize}
+  \item 
+    \begin{itemize}
+    \item \statprint{#1}{ecd}
+    \item \statprintlist{#1}{ecd}
+    \item \statliste{#1}{ecd}
+%    \item \statprintval{#1}{ecd}
+%    \item \statuseval{#1}{ecd}
+    \end{itemize}
+  \item 
+    \begin{itemize}
+    \item \statprint{#1}{fcc}
+    \item \statprintlist{#1}{fcc}
+    \item \statliste{#1}{fcc}
+%    \item \statprintval{#1}{fcc}
+%    \item \statuseval{#1}{fcc}
+    \end{itemize}
+  \item 
+    \begin{itemize}
+    \item \statprint{#1}{fcd}
+    \item \statprintlist{#1}{fcd}
+    \item \statliste{#1}{fcd}
+%    \item \statprintval{#1}{fcd}
+%    \item \statuseval{#1}{fcd}
+    \end{itemize}
+%  \item \statprint{#1}{trucmachinchose}% pb
+%  \item \statprint{#1}{class}% pb si les classes n'existent pas
+  \item
+    \begin{itemize}
+    \item \statprint{#1}{moy}
+    \item \statprintval{#1}{moy}
+    \item \statuseval{#1}{moy}
+    \item\statmoy{#1}
+    \item\statprintredac{#1}{moy}
+    \end{itemize}
+  \item 
+    \begin{itemize}
+    \item \statprint{#1}{efftotal}
+    \item \statprintval{#1}{efftotal}
+    \item \statuseval{#1}{efftotal}
+    \item \statefftot{#1}
+    \end{itemize}
+  \item 
+    \begin{itemize}
+    \item \statprint{#1}{etendue}
+    \item \statprintval{#1}{etendue}
+    \item \statuseval{#1}{etendue}
+    \item \statetendue{#1}
+    \item\statprintredac{#1}{etendue}
+    \end{itemize}
+  \item 
+    \begin{itemize}
+    \item \statprint{#1}{med}
+    \item \statprintval{#1}{med}
+    \item \statuseval{#1}{med}
+    \item \statmed{#1}
+    \item\statprintredac{#1}{med}
+    \end{itemize}
+  \item 
+    \begin{itemize}
+    \item \statprint{#1}{q1}
+    \item \statprintval{#1}{q1}
+    \item \statuseval{#1}{q1}
+    \item \statqi{#1}
+    \item\statprintredac{#1}{q1}
+    \end{itemize}
+  \item 
+    \begin{itemize}
+    \item \statprint{#1}{q3}
+    \item \statprintval{#1}{q3}
+    \item \statuseval{#1}{q3}
+    \item \statqiii{#1}
+    \item\statprintredac{#1}{q3}
+    \end{itemize}
+  \item 
+    \begin{itemize}
+    \item \statprint{#1}{ecartiq}
+    \item \statprintval{#1}{ecartiq}
+    \item \statuseval{#1}{ecartiq}
+    \item \statecartiq{#1}
+    \item\statprintredac{#1}{ecartiq}
+    \end{itemize}
+  \item 
+    \begin{itemize}
+    \item \statprint{#1}{nbrvaldiff}
+    \item \statprintval{#1}{nbrvaldiff}
+    \item \statuseval{#1}{nbrvaldiff}
+    \item \statnbrvaldiff{#1}
+    \end{itemize}
+  \item 
+    \begin{itemize}
+    \item \statprint{#1}{rgmed}
+    \item \statprintval{#1}{rgmed}
+    \item \statuseval{#1}{rgmed}
+    \item \statrgmed{#1}
+    \end{itemize}
+  \end{itemize}
+  }
+%
+%####################################################
+%
+% Initialisations
+%
+%####################################################
+%
+\bool_new:N \l_mslf_stat_onevar_bool
+% true= stat à 1 var ; false = stat à 2 var
+%
+\bool_new:N \l_mslf_stat_onevar_raw_bool
+%
+\bool_new:N \l_mslf_stat_onevar_eff_bool
+% true = données = valeurs + effectifs
+%
+\bool_new:N \l_mslf_stat_onevar_freq_bool
+% true = valeurs + frequences
+%
+\bool_new:N \l_mslf_stat_onevar_distreff_bool
+% true = distribution d'effectifs
+%
+\bool_new:N \l_mslf_stat_onevar_distrfreq_bool
+% true = distribution de frequences
+%
+\bool_new:N \l_mslf_stat_onevar_classeff_bool
+% true = valeurs en classes + effectifs
+%
+\bool_new:N \l_mslf_stat_onevar_classfreq_bool
+% true = valeurs en classes + frequences
+%
+\bool_new:N \l_mslf_stat_onevar_effforfreq_bool
+% true = calcul d'effectifs à partir d'une distr de freq
+%
+\bool_new:N \l_mslf_stat_onevar_freq_round_bool
+\bool_new:N \l_mslf_stat_onevar_exact_bool
+\bool_new:N \l_mslf_stat_onevar_moy_fromroundedfreq_bool
+%
+\int_new:N 	\l_mslf_stat_onevar_freqformat_int
+% format des frequences: en nbres decimaux (si 1), en pourcentages (si 100), ...
+%
+\int_new:N 	\l_mslf_stat_onevar_effforfreq_int
+%
+\clist_new:N \l_mslf_stat_onevar_kind_clist
+% liste des identifiants du genre de données
+\clist_set:Nn
+  \l_mslf_stat_onevar_kind_clist
+  {raw,distreff,distrfreq,classeff,classfreq}
+%
+\tl_new:N\l_mslf_stat_onevar_kind_id_tl
+% enregistre l'identifiant du genre de données (raw, distreff, ...) 
+%
+\tl_new:N 	\l_mslf_stat_id_tl
+% enregistre l'identifiant de la serie de données
+%
+\tl_new:N 	\l_mslf_stat_onevar_boxplot_label_tl
+\tl_new:N 	\l_mslf_stat_onevar_classformat_tl
+\tl_new:N 	\l_mslf_stat_onevar_lastclassformat_tl
+\tl_new:N 	\l_mslf_stat_onevar_moyenne_label_tl
+\tl_new:N 	\l_mslf_stat_onevar_mediane_label_tl
+\tl_new:N 	\l_mslf_stat_onevar_qi_label_tl
+\tl_new:N 	\l_mslf_stat_onevar_qiii_label_tl
+\tl_new:N 	\l_mslf_stat_onevar_etendue_label_tl
+\tl_new:N 	\l_mslf_stat_onevar_variance_label_tl
+\tl_new:N 	\l_mslf_stat_onevar_ecarttype_label_tl
+\int_new:N 	\l_mslf_stat_onevar_freq_precision_int
+\int_new:N 	\l_mslf_stat_onevar_moy_precision_int
+\int_new:N 	\l_mslf_stat_onevar_variancerounded_int
+\int_new:N 	\l_mslf_stat_onevar_var_precision_int%
+\int_new:N 	\l_mslf_stat_onevar_ecarttype_precision_int
+\int_new:N 	\l_mslf_stat_onevar_mediane_precision_int
+\int_new:N 	\l_mslf_stat_onevar_qi_precision_int
+\int_new:N 	\l_mslf_stat_onevar_qiii_precision_int
+%
+%####################################################
+%
+% Définition des clés
+%
+%####################################################
+%
+\keys_define:nn {stat}
+  {
+% sélection stat à 1 var ou à 2 var
+  1var					.bool_set:N =
+   	\l_mslf_stat_data_onevar_bool,
+  1var					.initial:n = {true},
+  1var					.groups:n = {un},
+  % 2var est la version pour fainéant de 1var = false
+  2var	 				.code:n =
+    {\bool_set_false:N\l_mslf_stat_data_onevar_bool},
+  2var					.groups:n = {un},
+% genre de données: \l_mslf_stat_onevar_kind_clist = raw,distreff,distrfreq,classeff,classfreq 
+  kind					.choices:Vn	=
+    \l_mslf_stat_onevar_kind_clist
+    {
+    % tous les booléens sont faux
+    \clist_map_inline:Nn
+      \l_mslf_stat_onevar_kind_clist
+      {\bool_set_false:c{l_mslf_stat_onevar_##1_bool}}
+    % sauf celui correspondant au genre choisi
+    \bool_set_true:c{l_mslf_stat_onevar_#1_bool}
+    % l'id du genre choisi est enregistré
+    \tl_set:Nn\l_mslf_stat_onevar_kind_id_tl{#1}
+    },
+%  genre par défaut: distribution d'effectifs
+%  kind					.initial:n 	= 	{distreff},
+% genre des pondérations: freq ou eff
+% exact : calculs avec des fractions mais pi (par exemple) est interdit en entrée
+    exact					.bool_set:N =
+      \l_mslf_stat_onevar_exact_bool,
+    exact					.initial:n = {true},
+    % effectifs
+    eff/is					.bool_set:N =
+      \l_mslf_stat_onevar_eff_bool,
+    eff/is					.initial:n = {false},
+    % frequences
+    freq/is					.bool_set:N =
+      \l_mslf_stat_onevar_freq_bool,
+    freq/is					.initial:n = {false},
+% format d'écriture des fréquences par défaut:  entier
+	% 1=nbre décimal, 100=pourcentage, 1000=pour mille
+    freq/format				.int_set:N =
+      \l_mslf_stat_onevar_freqformat_int,
+    % format des fréquences par défaut: nbres décimaux
+    freq/format				.initial:n = {1},
+% pour une distribution de freq, l'effectif total permet de clculer les effectifs correspondants aux freqs:  entier
+    freq/eff				.code:n = 
+      {
+      \int_set:Nn\l_mslf_stat_onevar_effforfreq_int{#1}
+      \bool_set_true:N\l_mslf_stat_onevar_effforfreq_bool
+      },
+	% identifiant de la serie statistique
+    id						.tl_set:N = 
+      \l_mslf_stat_id_tl,
+    id						.initial:n = {@},
+    compute					.clist_set:N =
+      \l_mslf_stat_compute_clist,
+    freq/round				.bool_set:N 	=
+      \l_mslf_stat_onevar_freq_round_bool,
+    freq/round				.initial:n = {false},
+    freq/precision			.int_set:N =
+      \l_mslf_stat_onevar_freq_precision_int,
+    freq/precision			.initial:n = {2},
+    moyenne/precision		.int_set:N =
+      \l_mslf_stat_onevar_moy_precision_int,
+    moyenne/precision		.initial:n = {2},
+    moyenne/freqrounded		.bool_set:N =
+      \l_mslf_stat_onevar_moy_fromroundedfreq_bool,% si true, roundfreq doit être true aussi
+    moyenne/freqrounded		.initial:n = {false},
+    mediane/precision		.int_set:N =
+      \l_mslf_stat_onevar_mediane_precision_int,
+    mediane/precision		.initial:n = {1},
+    q1/precision			.int_set:N =
+      \l_mslf_stat_onevar_qi_precision_int,
+    q1/precision			.initial:n = {1},
+    q3/precision			.int_set:N =
+      \l_mslf_stat_onevar_qiii_precision_int,
+    q3/precision			.initial:n = {1},
+    d1/precision			.int_set:N =
+      \l_mslf_stat_onevar_di_precision_int,
+    d1/precision			.initial:n = {1},
+    d9/precision			.int_set:N =
+      \l_mslf_stat_onevar_dix_precision_int,
+    d9/precision			.initial:n = {1},
+    variance/precision		.int_set:N =
+      \l_mslf_stat_onevar_var_precision_int,
+    variance/precision		.initial:n = {2},
+    ecarttype/precision		.int_set:N =
+      \l_mslf_stat_onevar_ecarttype_precision_int,
+    ecarttype/precision		.initial:n = {2},
+    boxplot/label			.tl_set:N =
+      \l_mslf_stat_onevar_boxplot_label_tl,
+    boxplot/label			.initial:V =
+      \l_mslf_stat_id_tl,% ne pas donner avant la clé id
+    class/format			.code:n 	=
+      {
+      \seq_set_split:Nnn\l_tmpa_seq{,}{#1}
+      \tl_set:Nf\l_mslf_stat_onevar_firstclassformat_tl
+        {\seq_item:Nn\l_tmpa_seq{1}}
+      \tl_set:Nf\l_mslf_stat_onevar_classformat_tl
+        {\seq_item:Nn\l_tmpa_seq{2}}
+      \tl_set:Nf\l_mslf_stat_onevar_lastclassformat_tl
+        {\seq_item:Nn\l_tmpa_seq{3}}
+      \tl_if_blank:VT
+        \l_mslf_stat_onevar_firstclassformat_tl
+        {
+        \tl_set_eq:NN
+        \l_mslf_stat_onevar_firstclassformat_tl
+        \l_mslf_stat_onevar_classformat_tl
+        }
+      \tl_if_blank:VT
+        \l_mslf_stat_onevar_lastclassformat_tl
+        {
+        \tl_set_eq:NN
+          \l_mslf_stat_onevar_lastclassformat_tl
+          \l_mslf_stat_onevar_classformat_tl
+        }
+      },
+    class/format			.initial:n = {~,fo,f},
+    moyenne/label			.tl_set:N =
+      \l_mslf_stat_onevar_moyenne_label_tl,	
+    moyenne/label			.initial:n = {\overline{x}},	
+    mediane/label			.tl_set:N =
+      \l_mslf_stat_onevar_mediane_label_tl,	
+    mediane/label			.initial:n = {\text{Me}},	
+    ecartiq/label			.tl_set:N =
+      \l_mslf_stat_onevar_ecartiq_label_tl,	
+    ecartiq/label			.initial:n = {\text{I}},	
+    q1/label				.tl_set:N =
+      \l_mslf_stat_onevar_qi_label_tl,	
+    q1/label				.initial:n = 
+      {\text{Q}\c_math_subscript_token1},	
+    q3/label				.tl_set:N =
+      \l_mslf_stat_onevar_qiii_label_tl,	
+    q3/label				.initial:n =
+      {\text{Q}\c_math_subscript_token3},
+    d1/label				.tl_set:N =
+      \l_mslf_stat_onevar_di_label_tl,	
+    d1/label				.initial:n = 
+      {\text{D}\c_math_subscript_token1},	
+    d9/label				.tl_set:N =
+      \l_mslf_stat_onevar_dix_label_tl,	
+    d9/label				.initial:n =
+      {\text{D}\c_math_subscript_token9},
+    etendue/label			.tl_set:N =
+      \l_mslf_stat_onevar_etendue_label_tl,
+    etendue/label			.initial:n = {x},
+    variance/label			.tl_set:N =
+      \l_mslf_stat_onevar_variance_label_tl,	
+    variance/label			.initial:n = {\text{V}(x)},
+    ecarttype/label			.tl_set:N =
+      \l_mslf_stat_onevar_ecarttype_label_tl,	
+    ecarttype/label			.initial:n = {\sigma(x)},
+    }
+%
+%####################################################
+%
+% Création d'une série statistique
+%
+%####################################################
+%
+% \setstatdata
+%
+% User macro: definir les valeurs, les pondérations (eff ou freq) et les résultats de base
+%
+\seq_new:N\l_mslf_stat_datasorted_seq
+%
+\cs_generate_variant:Nn\clist_set:Nn{Nf}
+%
+\NewDocumentCommand{\setstatdata}{O{}m}%
+% #1: clés-valeurs
+% #2: données 
+  % 1var:
+  % raw: liste de nombres (ordonnée ou non)
+  % distr: <val>/<pond>,<val>/<pond>,<val>/<pond>,<val>/<pond>, ... avec <pond>=effectif ou frequence 
+  % class: <borne1>/<borne2>/<pond1>,<borne3>/<pond2>,<borne4>/<pond3>, pour définir les classes [<borne1>/<borne2>[,[<borne2>/<borne3>[,[<borne3>/<borne4>[, ... et les pondérations associées <pond1>, <pond2>, <pond3>, ...
+  % ATTENTION: pour une distribution ou une répartition en classe de fréquence (passées dans #1) les frequences doivent impérativement être en nombres décimaux. utiliser la clé freqformat pour corriger l'affichage
+  % ATTENTION: pour une répartition en classe, un triplet doit être la première valeur de l'argument, ce triplet doit avoir pour ses deux premieres valeurs les borne (dans l'ordre) de la première classe
+  % 2var
+  % ?
+  {
+  \group_begin:
+%  passage des options
+  \keys_set_groups:nnn{stat}{un}{#1}	
+  \keys_set_filter:nnnN{stat}{un}{#1}
+    \l_mslf_keys_filtered_tl
+  \prop_clear_new:c
+    {g_stat_ \tl_use:N\l_mslf_stat_id_tl _prop}
+%  sauvegarde dans une property list
+  \prop_gclear_new:c{g_stat_ \l_mslf_stat_id_tl _prop}
+%  #2 = données explicites ou stockées dans une macro
+  \clist_set:Nf\l_tmpa_clist{#2}
+  \seq_set_from_clist:NN\l_mslf_stat_data_seq\l_tmpa_clist% pas besoin de déclarer \l_mslf_stat_data_seq: normal ?
+% sauve csv d'origine (i.e. l'expansion de #2)
+  \prop_gput:cnV
+    {g_stat_ \tl_use:N\l_mslf_stat_id_tl _prop}
+    {listorig}
+    \l_mslf_stat_data_seq
+% stat à 1 var ou 2 var ?
+  \bool_if:NTF
+    \l_mslf_stat_data_onevar_bool
+    {
+% stats à 1 variable,  détermination du type des données (distrib, brutes, classes, effectifs ou frequences)
+    \_mslf_stat_onevar_data_set:N\l_mslf_stat_data_seq
+% sauve serie ordonnée et fusionnee
+    \prop_gput:cnV
+      {g_stat_ \tl_use:N\l_mslf_stat_id_tl _prop}
+      {listsort}
+      \l_mslf_stat_datasorted_seq
+    }
+% stats à 2 variables, quels test sur les valeurs passées ?
+    {\_mslf_stat_onevar_data_set:N\l_mslf_stat_data_seq}
+  \use:c
+    {
+    _mslf_stat_onevar_compute_
+      \l_mslf_stat_onevar_kind_id_tl :N
+    }
+    \l_mslf_stat_data_toprocess_seq
+  \clist_gset_from_seq:cN
+    {mslfstatlisteff\l_mslf_stat_id_tl}
+    \l_mslf_stat_onevar_vectoreff_seq
+  \bool_if:nTF
+    {
+    \use:c{l_mslf_stat_onevar_classeff_bool}
+      ||
+      \use:c{l_mslf_stat_onevar_classfreq_bool}
+    }
+    {
+    \clist_gset_from_seq:cN
+      {mslfstatlistmidpoint\l_mslf_stat_id_tl}
+      \l_mslf_stat_onevar_vectorvalmp_seq
+    }
+    {
+    \clist_gset_from_seq:cN
+      {mslfstatlistval\l_mslf_stat_id_tl}
+      \l_mslf_stat_onevar_vectorval_seq
+    }
+  \bool_if:nTF
+    {
+    \use:c{l_mslf_stat_onevar_classeff_bool}
+      ||\use:c{l_mslf_stat_onevar_classfreq_bool}
+    }
+    {
+    \clist_gset_from_seq:cN
+      {mslfstatlistmidpoint\l_mslf_stat_id_tl}
+      \l_mslf_stat_onevar_vectorvalmp_seq
+    }
+    {
+    \clist_gset_from_seq:cN
+      {mslfstatlistval\l_mslf_stat_id_tl}
+      \l_mslf_stat_onevar_vectorval_seq
+    }
+  \group_end:
+  }
+%
+%####################################################
+%
+% Accés aux paramètres (indicateurs, valeurs, liste des valeurs, autres) d'une série
+%
+%####################################################
+%
+\cs_new:Npn
+  \mslfstatitemlist#1#2#3
+  {\clist_item:cn{mslfstatlist#2#1}{#3}}
+%
+%
+%
+\cs_new:Npn\_mslf_stat_get_value:nnN#1#2#3
+% #1: identifiant de la série
+% #2: identifiant de la valeur
+% #3: macro de sauvegarde
+  {\prop_get:cnN{g_stat_ #1 _prop}{#2}#3}
+%
+% NON UTILISE :
+%
+\cs_new:Npn\_mslf_stat_use_value:nn#1#2
+% #1: identifiant de la série
+% #2: identifiant de la valeur
+  {
+  \prop_get:cnN{g_stat_ #1 _prop}{#2}\l_tmpa_fp
+  \fp_eval:n{\l_tmpa_fp}
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_stat_expandableuse_value:nn#1#2
+% #1: identifiant de la série
+% #2: identifiant de la valeur
+  {\prop_item:cn{g_stat_ #1 _prop}{#2}}
+%
+%
+%
+\cs_new:Npn\_mslf_stat_get_prettyvalue:nnnN#1#2#3#4
+% #1: options pour \num
+% #2: identifiant de la série
+% #3: identifiant de la valeur
+% #4: macro de sauvegarde
+  {
+  \tl_if_in:nnTF{#3}{exact}
+    {
+    \_mslf_stat_get_value:nnN{#2}{#3}
+      \l_tmpb_tl
+    \tl_set:Nx#4{\tl_use:N\l_tmpb_tl}
+    }
+    {
+    \_mslf_stat_get_value:nnN{#2}{#3}\l_tmpb_tl
+    \tl_set:Nx#4
+      {\num[#1]{\fp_eval:n{\tl_use:N\l_tmpb_tl}}}
+    }
+  }
+%
+%
+%
+\tl_new:N\l__mslf_output_digits_tl
+\tl_new:N\l__mslf_output_letters_tl
+%
+\cs_new_protected:Npn
+  \mslf_string_digitletter_process:nn #1 #2
+% #1 = preprocess macro
+% #3 = string
+  {
+  \tl_clear:N \l__mslf_output_digits_tl
+  \tl_clear:N \l__mslf_output_letters_tl 
+  \tl_set:Nn \l__mslf_input_string_tl { #2 }
+  \tl_map_inline:Nn \l__mslf_input_string_tl
+    { #1 { ##1 } }
+  }
+%
+%
+%
+\cs_new_protected:Npn \_mslf_split_digitletter:n #1
+  {
+  \bool_if:nTF
+    {
+    \int_compare_p:n{`#1 >=`0}&&\int_compare_p:n{`#1<=`9}
+    }
+    {\tl_put_right:Nn\l__mslf_output_digits_tl{#1}}
+    {\tl_put_right:Nn\l__mslf_output_letters_tl{#1}}
+  }
+%
+\cs_generate_variant:Nn\tl_if_in:nnTF{nVTF}
+%
+% User Macro
+%
+\NewDocumentCommand{\statprint}{O{}mm}
+  {%
+  \mslf_string_digitletter_process:nn 
+    \_mslf_split_digitletter:n{#3}
+  \seq_set_split:Nnn\l_resultislist_seq{,}
+    {
+    mode,
+    eff,
+    val,
+    freq,
+    ecc,
+    ecd,
+    fcc,
+    fcd,
+    class,
+    orig,
+    sort,
+    roundedfreq,
+    bornesup,
+    borneinf
+    }
+  \seq_if_in:NVTF
+    \l_resultislist_seq\l__mslf_output_letters_tl
+    {
+    \tl_if_blank:VTF\l__mslf_output_digits_tl
+      {\statprintlist[#1]{#2}{#3}}
+      {
+      \statprintlistitem[#1]{#2}
+        \l__mslf_output_letters_tl
+        \l__mslf_output_digits_tl}
+    }
+    {\statprintval[#1]{#2}{#3}}
+  }
+%
+% Pour les nombres isolés :
+%
+%
+% Résultat formaté
+%
+\NewDocumentCommand{\statprintval}{O{}mm}
+  {%
+  \_mslf_stat_get_prettyvalue:nnnN{#1}{#2}{#3}\l_tmpa_tl
+  \tl_use:N\l_tmpa_tl
+  }
+%
+% Résultat non formaté
+%
+\DeclareExpandableDocumentCommand{\statuseval}{mm}
+  {\fp_eval:n{\prop_item:cn{g_stat_ #1 _prop}{#2}}}
+%
+% Pour les listes de nombres :
+%
+\cs_new_protected:Npn\_mslf_stat_get_list:nnN#1#2#3
+% #1: identifiant de la série
+% #2: identifiant de la liste
+%		orig, sort, 
+% #3: macro de sauvegarde
+  {\prop_get:cnN{g_stat_ #1 _prop}{list#2}#3}
+%
+%
+%
+\NewDocumentCommand{\statgetlist}{mmm}
+  {\_mslf_stat_get_list:nnN{#1}{#2}#3}
+%
+% User macro: Accès à la série des effectifs, ecc, frequences, ... Les nombres étant non formatés
+%
+\NewDocumentCommand{\statliste}{mm}
+  {
+  \_mslf_stat_get_list:nnN{#1}{#2}\l_tmpa_tl
+  \seq_use:Nnnn\l_tmpa_tl{,~}{,~}{~et~}
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_stat_get_prettylist:nnnN#1#2#3#4
+% #1: options pour \num
+% #2: identifiant de la série
+% #3: identifiant de la valeur
+% #4: macro de sauvegarde
+  {
+  \seq_clear:N\l_tmpb_seq
+  \_mslf_stat_get_list:nnN{#2}{#3}\l_tmpa_seq
+  \seq_map_inline:Nn\l_tmpa_seq
+    {\seq_put_right:Nx\l_tmpb_seq{\num[#1]{##1}}}
+  \seq_set_eq:NN#4\l_tmpb_seq
+  }
+%
+% User macro: Accès à la série des effectifs, ecc, frequences, ... Les nombres étant formatés
+%
+\NewDocumentCommand{\statprintlist}{O{}mm}
+  {%
+  \_mslf_stat_get_prettylist:nnnN{#1}{#2}{#3}\l_tmpa_seq
+  \seq_use:Nnnn\l_tmpa_seq{,~}{,~}{~et~}
+  }
+%
+\cs_generate_variant:Nn\_mslf_stat_get_list:nnN{nVN}
+%
+%
+%
+\cs_new:Npn\_mslf_stat_get_prettylistitem:nnNNN#1#2#3#4#5
+% #1: options pour \num
+% #2: identifiant de la série
+% #3: identifiant de la valeur
+% #4: macro de sauvegarde
+  {
+  \_mslf_stat_get_list:nVN{#2}#3\l_tmpa_seq
+  \int_set:Nn\l_tmpa_int{\tl_use:N#4}
+  \fp_set:Nn\l_tmpa_fp
+    {\seq_item:Nn\l_tmpa_seq{\int_use:N\l_tmpa_int}}
+  \tl_set:Nx#5{\num[#1]{\fp_use:N\l_tmpa_fp}}
+  }
+%
+%
+%
+\NewDocumentCommand{\statprintlistitem}{O{}mmm}
+  {
+  \_mslf_stat_get_prettylistitem:nnNNN
+    {#1}{#2}#3#4\l_tmpa_tl
+  \tl_use:N\l_tmpa_tl
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_stat_get_uselistitem:nnn#1#2#3
+% #1: identifiant de la série
+% #2: identifiant de la valeur
+% #3: numero de l'item
+  {%
+  \_mslf_stat_get_list:nnN{#1}{#2}\l_tmpa_seq%
+  \seq_item:Nn\l_tmpa_seq{#3}%
+  }
+%
+%
+%
+%\NewDocumentCommand{\statuselistitem}{mmm}
+%  {
+%  \exp_last_unbraced:Nf\seq_item:Nn\prop_item:cn{g_stat_ #1 _prop}{list#2}{#3}
+%  \_mslf_stat_get_uselistitem:nnn{#1}{#2}{#3}
+%  }
+%\RenewDocumentCommand{\statuselistitem}{mmm}
+%  {
+%   \tl_set:Nf\l_tmpa_tl{\prop_item:cn{g_stat_ #1 _prop}{list#2}}
+%   \seq_item:Nn\l_tmpa_tl{#3}
+%  }
+%
+%
+%
+\NewExpandableDocumentCommand{\statuselistitem}{mmm}% Not working
+  {%a
+    \clist_item:cn{g_stat_ #1list#2_clist}{#3}%
+  }
+%
+% Obtenir un nombre
+%
+\NewDocumentCommand{\statgetnum}{mmm}
+  {\prop_get:cnN{g_stat_ #2 _prop}{#1}#3}
+%
+% User macro: nbre de valeurs différentes 
+%
+\NewDocumentCommand{\statnbrvaldiff}{m}
+  {
+  \prop_get:cnN{g_stat_ #1 _prop}{nbrvaldiff}\l_tmpa_tl
+  \tl_use:N\l_tmpa_tl% \l_tmpa_int contient 4, erreur avec \int_use:N, bon avec \int_to_arabic:n\l_tmpa_int
+  }
+%
+% User macro: effectif total
+%
+\NewDocumentCommand{\statefftot}{m}
+  {
+  \prop_get:cnN{g_stat_ #1 _prop}{efftotal}\l_tmpa_fp
+  \fp_use:N\l_tmpa_fp% \l_tmpa_int contient 4, erreur avec \int_use:N, bon avec \int_to_arabic:n\l_tmpa_int
+  }
+%
+%
+%
+\NewDocumentCommand{\statmoy}{m}
+  {	
+  \prop_get:cnN{g_stat_ #1 _prop}{moy}\l_tmpa_fp
+  \fp_use:N\l_tmpa_fp
+  }
+%
+%
+%
+\NewDocumentCommand{\statetendue}{m}
+  {	
+  \prop_get:cnN{g_stat_ #1 _prop}{etendue}\l_tmpa_fp
+  \fp_use:N\l_tmpa_fp
+  }
+%
+%
+%
+\NewDocumentCommand{\statecartiq}{m}
+  {	
+  \prop_get:cnN{g_stat_ #1 _prop}{ecartiq}\l_tmpa_fp
+  \fp_use:N\l_tmpa_fp
+  }
+%
+%
+%
+\NewDocumentCommand{\statrgmed}{m}
+  {	
+  \prop_get:cnN{g_stat_ #1 _prop}{rgmed}\l_tmpa_tl
+  \tl_use:N\l_tmpa_tl
+  }
+%
+%
+%
+\NewDocumentCommand{\statmed}{m}
+  {	
+  \prop_get:cnN{g_stat_ #1 _prop}{med}\l_tmpa_fp
+  \fp_use:N\l_tmpa_fp
+  }
+%
+%
+%
+\NewDocumentCommand{\statdi}{m}
+  {	
+  \prop_get:cnN{g_stat_ #1 _prop}{d1}\l_tmpa_fp
+  \fp_use:N\l_tmpa_fp
+  }
+%
+%
+%
+\NewDocumentCommand{\statdix}{m}
+  {	
+  \prop_get:cnN{g_stat_ #1 _prop}{d9}\l_tmpa_fp
+  \fp_use:N\l_tmpa_fp
+  }
+%
+%
+%
+\NewDocumentCommand{\statqi}{m}
+  {	
+  \prop_get:cnN{g_stat_ #1 _prop}{q1}\l_tmpa_fp
+  \fp_use:N\l_tmpa_fp
+  }
+%
+%
+%
+\NewDocumentCommand{\statqiii}{m}
+  {	
+  \prop_get:cnN{g_stat_ #1 _prop}{q3}\l_tmpa_fp
+  \fp_use:N\l_tmpa_fp
+  }
+%
+% User macro: Accès aux données telles que passées en argument de \setstatdata 
+%
+\NewDocumentCommand{\statserieorig}{m}
+  {
+  \prop_get:cnN{g_stat_ #1 _prop}{listorig}\l_tmpa_tl
+  \seq_use:Nnnn\l_tmpa_tl{,~}{,~}{~et~}%serie d'origine: 
+  }
+%
+% User macro: Accès à la série ordonnée et fusionnée 
+%
+\NewDocumentCommand{\statserieord}{m}
+  {
+  \prop_get:cnN{g_stat_ #1 _prop}{listsort}\l_tmpa_tl
+  \seq_use:Nnnn\l_tmpa_tl{,~}{,~}{~et~}%serie ordonnée:
+  }
+%
+%####################################################
+%
+% Les rédactions
+%
+%####################################################
+%
+\cs_new:Npn\_mslf_stat_get_redac:nnN#1#2#3
+% #1: identifiant de la série
+% #2: identifiant de la redac
+% #3: macro de sauvegarde
+  {\prop_get:cnN{g_stat_ #1 _prop}{#2redac}#3}
+%
+%
+%
+\NewDocumentCommand{\statgetredac}{mmm}
+% #1: identifiant de la série
+% #2: identifiant de la liste
+% #3: macro storing the wanted redac
+  {\_mslf_stat_get_redac:nnN{#1}{#2}#3}
+%
+%
+%
+\NewDocumentCommand{\statprintredac}{mm}
+  {
+  \_mslf_stat_get_redac:nnN{#1}{#2}\l_tmpa_tl
+  \tl_use:N\l_tmpa_tl
+  }
+%
+%####################################################
+%####################################################
+%
+% stat à 1 variable
+%
+%####################################################
+%####################################################
+%
+%####################################################
+%
+% conditionals
+%
+%####################################################
+%
+% Teste si une serie statistique (sous la forme d'une comma list) est brute (<nbr>,<nbr>,...) ou non 
+%
+\prg_set_conditional:Npnn 
+  \mslf_stat_onevar_if_raw:N #1 { p , T , TF }
+% #1 = premier élément de la série
+  {
+  \tl_if_in:NnTF\l_tmpa_tl{/}
+    {\prg_return_false:}
+    {\prg_return_true:}	
+  }
+%
+%####################################################
+%
+% ordonne et fusionne la serie, trouve le genre, quelques tests
+%
+%####################################################
+%
+\msg_new:nnn {stat}
+  {nbrevaleurselementserreur}
+  {\msg_error_text:n{#1}~pour~la~serie~stat~d'id~#2:~
+  trop~de~valeurs~dans~chaque~element~de~la~liste~passee~
+  en~argument~de~\detokenize{\setstatdata}.
+  } 				
+%
+\cs_new:Npn\_mslf_stat_onevar_data_set:N#1
+  {
+  \seq_get_left:NN#1\l_tmpa_tl
+  \mslf_stat_onevar_if_raw:NTF\l_tmpa_tl
+    {
+    \bool_set_true:N\l_mslf_stat_onevar_raw_bool
+    \_mslf_stat_onevar_data_raw:NN#1\l__mslf_stat_dataraw_seq
+    \seq_set_eq:NN\l_mslf_stat_data_toprocess_seq\l_mslf_stat_datasorted_distrfromraw_seq
+    }
+    {% teste si on a une distr ou une class en admettant que la première valeur de l'argument définit bien le type de la série (par le nbre d'éléments séparés par /)
+    \bool_set_false:N\l_mslf_stat_onevar_raw_bool 
+    \seq_set_split:NnV\l_tmpa_seq{/}\l_tmpa_tl
+    \int_case:nnTF{\seq_count:N\l_tmpa_seq}
+      {
+      {2}% distribution
+        {\_mslf_stat_onevar_data_distr:N#1}
+      {3}% repartition en classe
+        {\_mslf_stat_onevar_data_class:N#1}
+      }
+      {
+      \seq_set_eq:NN
+        \l_mslf_stat_data_toprocess_seq
+        \l_mslf_stat_datasorted_seq
+      }
+      {
+      \msg_error:nnxx {stat}{nbrevaleurselementserreur} 
+        {\msg_line_context:}
+        {\tl_use:N\l_mslf_stat_id_tl}
+      }
+    }
+  }
+%
+% Lorsque la série est brute
+%
+\cs_new:Npn\_mslf_stat_onevar_data_raw:NN#1#2
+  {
+  \_mslf_stat_save_result:Nnn
+    \l_mslf_stat_id_tl{raw}{datakind}
+% definir le genre
+  \keys_set:nn{stat}{kind=raw}
+% sauvegarder la série non ordonnée
+  \seq_gset_eq:NN#2#1
+% ordonner la serie
+  \_mslf_stat_onevar_datasort_raw:N#1
+% fusionner: les poids d'une même valeur présente plusieurs fois sont additionnés
+  \_mslf_stat_onevar_data_rawtodistrib:N
+    \l_mslf_stat_datasorted_seq
+  }
+%
+% construit la distribution d'une serie brute
+%
+\seq_new:N\l_mslf_stat_datasorted_distrfromraw_seq
+\cs_new:Npn\_mslf_stat_onevar_data_rawtodistrib:N#1
+  {
+  \seq_clear:N\l_mslf_stat_datasorted_distrfromraw_seq
+  \seq_map_inline:Nn#1
+    {
+    \seq_put_right:Nn
+      \l_mslf_stat_datasorted_distrfromraw_seq{##1/1}
+    }
+  \_mslf_stat_onevar_datafusion_distr:N
+    \l_mslf_stat_datasorted_distrfromraw_seq
+  }
+%
+% Lorsque la série est une distribution
+%
+\cs_new:Npn\_mslf_stat_onevar_data_distr:N#1
+  {
+  \_mslf_stat_onevar_datasort_distr:N#1
+% fusionne les valeurs en double (pour  une même valeur répétée, additionne les poids correspondants)
+  \_mslf_stat_onevar_datafusion_distr:N
+    \l_mslf_stat_datasorted_seq
+% quelques tests: 
+  \_mslf_stat_onevar_data_distrcheck:N
+    \l_mslf_stat_datasorted_seq
+% effectifs ou frequences (à revoir si freq en pourcent ou pour mille ?)
+  \seq_get_left:NN\l_mslf_stat_datasorted_seq\l_tmpa_tl
+  \seq_set_split:NnV\l_tmpa_seq{/}\l_tmpa_tl
+  \_mslf_stat_onevar_datakind_distr:N\l_tmpa_seq
+  }
+%
+% Lorsque la série est une repartition en classe
+%
+\cs_new:Npn\_mslf_stat_onevar_data_class:N#1
+  {
+  \_mslf_stat_onevar_datasort_class:N#1
+% fusionne
+  \_mslf_stat_onevar_datafusion_class:N
+    \l_mslf_stat_datasorted_seq
+% quelques tests
+  \_mslf_stat_onevar_data_classcheck:N
+    \l_mslf_stat_datasorted_seq
+% effectifs ou frequences (à revoir si freq en pourcent ou pour mille ?)
+  \seq_get_left:NN\l_mslf_stat_datasorted_seq\l_tmpa_tl
+  \seq_set_split:NnV\l_tmpa_seq{/}\l_tmpa_tl
+  \_mslf_stat_onevar_datakind_class:N\l_tmpa_seq
+  }
+%
+% Ordonne la série
+%
+% pour des données brutes (liste de valeurs)
+%
+\cs_new:Npn\_mslf_stat_onevar_datasort_raw:N#1
+  {
+  \seq_set_eq:NN
+    \l_mslf_stat_datasorted_seq
+    \l_mslf_stat_data_seq
+  \seq_sort:Nn\l_mslf_stat_datasorted_seq
+    {
+    \fp_compare:nNnTF { ##1 } > { ##2 }%int_compare?
+      { \mysort_reversed: }
+      { \mysort_ordered: }
+    }
+  }
+%
+% pour des données pondérées (par des effectifs ou des fréquences)
+%
+\cs_new:Npn\_mslf_stat_onevar_datasort_distr:N#1
+  {
+  \seq_set_eq:NN\l_mslf_stat_datasorted_seq
+    \l_mslf_stat_data_seq
+  \seq_sort:Nn\l_mslf_stat_datasorted_seq
+    {
+    \seq_set_split:Nnn\l_tmpa_seq{/}{##1}
+    \seq_set_split:Nnn\l_tmpb_seq{/}{##2}
+    \fp_compare:nNnTF
+      { \seq_item:Nn\l_tmpa_seq{1} }
+      >
+      { \seq_item:Nn\l_tmpb_seq{1} }
+      { \mysort_reversed: }
+      { \mysort_ordered: }
+    }
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_datasort_class:N#1
+  {
+  \seq_set_eq:NN
+    \l_mslf_stat_datasorted_seq
+    \l_mslf_stat_data_seq
+  \seq_sort:Nn\l_mslf_stat_datasorted_seq
+    {
+    \seq_set_split:Nnn\l_tmpa_seq{/}{##1}
+    \seq_set_split:Nnn\l_tmpb_seq{/}{##2}
+    \bool_if:nTF 
+      {
+      \fp_compare_p:n
+        {\seq_count:N\l_tmpa_seq<\seq_count:N\l_tmpb_seq}
+      ||
+      \fp_compare_p:n
+        {
+        \seq_item:Nn{\l_tmpa_seq{1}}
+          >\seq_item:Nn\l_tmpb_seq{1}
+        }
+      }
+      { \mysort_reversed: }
+      { \mysort_ordered: }
+    }
+  }
+%
+% fusionne la série
+%
+%
+% pour une distribution
+%
+\cs_generate_variant:Nn\tl_if_eq:nnTF{ffTF}
+\cs_generate_variant:Nn\tl_put_right:Nn{Nf}
+%
+\cs_new:Npn\_mslf_stat_onevar_datafusion_distr:N#1
+  {
+  \tl_clear_new:N\l_tmpd_tl
+  \tl_clear_new:N\l_tmpc_tl
+  \seq_clear_new:N\l_tmpc_seq% resultat
+  \seq_set_eq:NN\l_tmpa_seq#1% copie de #1 sur laquelle le travail se fait
+  \seq_pop_left:NN\l_tmpa_seq\l_tmpa_tl% element de gauche de #1, \l_tmpa_seq=#1 privé de son premier élément
+  \seq_put_right:NV\l_tmpc_seq\l_tmpa_tl% premier element de #1 va dans \l_tmpc_seq
+  \seq_map_inline:Nn\l_tmpa_seq
+    {
+    \seq_set_split:Nnn\l_tmpb_seq{/}{##1}% l'élément suivant de #1 est splitté aux /
+    \seq_pop_right:NN\l_tmpc_seq\l_tmpb_tl% le dernier élément du résultat en cours va dans \l_tmpb_tl
+    \seq_set_split:NnV\l_tmpd_seq{/}\l_tmpb_tl% on le splitte -> \l_tmpd_seq
+    \tl_set:Nf\l_tmpe_tl{\seq_item:Nn\l_tmpb_seq{1}/}
+    \tl_set:Nf\l_tmpf_tl{\seq_item:Nn\l_tmpd_seq{1}/}
+    \tl_if_eq:NNTF\l_tmpe_tl\l_tmpf_tl
+      {
+      \tl_clear:N\l_tmpc_tl
+      \tl_put_right:NV\l_tmpc_tl\l_tmpe_tl
+      \tl_put_right:Nf\l_tmpc_tl
+        {
+        \fp_eval:n
+          {
+          \seq_item:Nn\l_tmpb_seq{2}
+            +\seq_item:Nn\l_tmpd_seq{2}
+          }
+        }
+      \seq_put_right:NV\l_tmpc_seq\l_tmpc_tl
+      }
+      {
+      \seq_put_right:NV\l_tmpc_seq\l_tmpb_tl
+      \seq_put_right:Nn\l_tmpc_seq{##1}
+      }		
+    }
+  \seq_set_eq:NN#1\l_tmpc_seq
+  }
+%
+% pour une repartition en classe
+%
+\msg_new:nnnn {stat}
+  {tripletserror}
+  {\msg_error_text:n{#1}~pour~la~serie~stat~d'id~#2:~
+  La~série~passée~en~argument~contient~au~moins~deux~
+  entrées~de~la~forme~nbre/nbre/nbre~avec~les~deux~
+  premiers~nombres~qui~ne~sont~pas~identiques.~C'est~
+  interdit~car~ces~nbres~définissent~la~première~classe
+  } 				
+  {Pour~chaque~triplet~les~deux~premiers~nombres~sont~
+  identiques:~corriger~dans~ce~but~ou~supprimer~les~
+  triplets~de~trop
+  }
+%
+\cs_new:Npn\_mslf_stat_onevar_datafusion_class:N#1
+  {
+  \bool_set_true:N\l_tmpa_bool
+  \tl_clear_new:N\l_tmpd_tl
+  \tl_clear_new:N\l_tmpc_tl% resultat
+  \seq_clear_new:N\l_tmpc_seq
+  \seq_set_eq:NN\l_tmpa_seq#1% copie de #1 sur laquelle le travail se fait
+  \seq_pop_left:NN\l_tmpa_seq\l_tmpa_tl% element de gauche de #1, \l_tmpa_seq=#1 privé de son premier élément
+  \seq_put_right:NV\l_tmpc_seq\l_tmpa_tl% premier element de #1 va dans \l_tmpc_seq
+  \seq_map_inline:Nn\l_tmpa_seq
+    {
+    \bool_if:NTF\l_tmpa_bool
+      {
+      \seq_set_split:Nnn\l_tmpb_seq{/}{##1}% l'élément suivant de #1 est splitté aux /
+      \fp_compare:nTF
+        {3=\seq_count:N\l_tmpb_seq}
+        {
+        \seq_pop_right:NN\l_tmpc_seq\l_tmpb_tl% le dernier élément du résultat en cours va dans \l_tmpb_tl
+        \seq_set_split:NnV\l_tmpd_seq{/}\l_tmpb_tl% on le splitte -> \l_tmpd_seq
+        \tl_set:Nf\l_tmpe_tl{\seq_item:Nn\l_tmpb_seq{1}/}% 
+        \tl_set:Nf\l_tmpf_tl{\seq_item:Nn\l_tmpd_seq{1}/}
+        \tl_set:Nf\l_tmpg_tl{\seq_item:Nn\l_tmpb_seq{2}/}% 
+        \tl_set:Nf\l_tmph_tl{\seq_item:Nn\l_tmpd_seq{2}/}
+        \bool_if:nTF
+          {
+          \tl_if_eq_p:NN\l_tmpe_tl\l_tmpf_tl
+            && \tl_if_eq_p:NN\l_tmpg_tl\l_tmph_tl
+          }
+          {
+          \tl_clear:N\l_tmpc_tl
+          \tl_put_right:NV\l_tmpc_tl\l_tmpe_tl
+          \tl_put_right:NV\l_tmpc_tl\l_tmpg_tl
+          \tl_put_right:Nf
+            \l_tmpc_tl
+            {
+            \fp_eval:n
+              {
+              \seq_item:Nn\l_tmpb_seq{3}
+                +\seq_item:Nn\l_tmpd_seq{3}
+              }
+            }
+        \seq_put_right:NV\l_tmpc_seq\l_tmpc_tl
+          }
+          {
+          \msg_error:nnxx {stat}{tripletserror} 
+            {\msg_line_context:}
+            {\tl_use:N\l_mslf_stat_id_tl}
+          }
+        }
+        {
+        \seq_put_right:Nn\l_tmpc_seq{##1}
+        \bool_set_false:N\l_tmpa_bool
+        }
+      }
+      {
+      \seq_set_split:Nnn\l_tmpb_seq{/}{##1}% l'élément suivant de #1 est splitté aux /
+      \seq_pop_right:NN\l_tmpc_seq\l_tmpb_tl% le dernier élément du résultat en cours va dans \l_tmpb_tl
+      \seq_set_split:NnV\l_tmpd_seq{/}\l_tmpb_tl% on le splitte -> \l_tmpd_seq
+      \tl_set:Nf\l_tmpe_tl{\seq_item:Nn\l_tmpb_seq{1}/}% 
+      \tl_set:Nf\l_tmpf_tl{\seq_item:Nn\l_tmpd_seq{1}/}
+      \tl_if_eq:NNTF\l_tmpe_tl\l_tmpf_tl
+        {
+        \tl_clear:N\l_tmpc_tl
+        \tl_put_right:NV\l_tmpc_tl\l_tmpe_tl
+        \tl_put_right:Nx\l_tmpc_tl
+          {
+          \fp_eval:n
+            {
+            \seq_item:Nn\l_tmpb_seq{2}
+              +\seq_item:Nn\l_tmpd_seq{2}
+            }
+          }
+        \seq_put_right:NV\l_tmpc_seq\l_tmpc_tl
+        }
+        {
+        \seq_put_right:NV\l_tmpc_seq\l_tmpb_tl
+        \seq_put_right:Nn\l_tmpc_seq{##1}
+        }
+      }
+    }
+  \seq_set_eq:NN#1\l_tmpc_seq
+  }
+%
+% Coherence des pondérations
+%
+%
+% pour une distribution
+%
+\msg_new:nnn {stat}
+  {ponderationerror}
+  {\msg_error_text:n{#1}~pour~la~serie~stat~d'id~#2:~
+  stopper~tout~de~suite,~une~distribution~n'est~pas~
+  cohérente~au~niveau~des~pondérations~(somme<1~ou~
+  somme>=1)~ou~encore~il~n'y~a~que~deux~valeurs~dont~
+  une~est~pondérée~par~0~et~l'autre~par~1~par~contre~pas~
+  d'erreur~renvoyée~si~la~somme~des~frequences~ne~vaut~
+  pas~1~(ce~qui~est~un~problème).
+  } 				
+%
+\cs_new:Npn\_mslf_stat_onevar_data_distrcheck:N#1
+  {
+  \bool_set_false:N\l_tmpa_bool% true if ponderation < 1 (freq)
+  \bool_set_false:N\l_tmpb_bool% true if ponderation >=1 (eff)
+  \seq_map_inline:Nn#1
+    {
+    \seq_set_split:Nnn\l_tmpa_seq{/}{##1}
+    \fp_compare:nTF
+      {\seq_item:Nn\l_tmpa_seq{2}<1}
+      {\bool_set_true:N\l_tmpa_bool}
+      {\bool_set_true:N\l_tmpb_bool}
+    \bool_if:nF
+      {\bool_xor_p:nn\l_tmpa_bool\l_tmpb_bool}
+      {
+      \msg_error:nnxx {stat}{ponderationerror} 
+        {\msg_line_context:}
+        {\tl_use:N\l_mslf_stat_id_tl}
+      \seq_map_break:
+      }
+    }
+  }
+%
+% pour une repartition en classe
+% une seule donnée doit comporter 3 nombres (.../.../...) et ce doit etre celle dont le premier nbre est le plus petit, les autres deux
+%
+\cs_new:Npn\_mslf_stat_onevar_data_classcheck:N#1
+  {
+  \bool_set_false:N\l_tmpa_bool% true if ponderation < 1 (freq)
+  \bool_set_false:N\l_tmpb_bool% true if ponderation >=1 (eff)
+  \seq_set_eq:NN\l_tmpb_seq#1
+  \seq_pop_left:NN\l_tmpb_seq\l_tmpa_tl
+  \seq_set_split:NnV\l_tmpc_seq{/}\l_tmpa_tl
+  \fp_compare:nTF
+    {\seq_item:Nn\l_tmpc_seq{3}<1}
+    {\bool_set_true:N\l_tmpa_bool}
+    {\bool_set_true:N\l_tmpb_bool}
+  \seq_map_inline:Nn\l_tmpb_seq
+    {
+    \seq_set_split:Nnn\l_tmpc_seq{/}{##1}
+    \fp_compare:nTF
+      {\seq_item:Nn\l_tmpc_seq{2}<1}
+      {\bool_set_true:N\l_tmpa_bool}
+      {\bool_set_true:N\l_tmpb_bool}
+    \bool_if:nF{\bool_xor_p:nn\l_tmpa_bool\l_tmpb_bool}
+      {
+      \msg_error:nnxx {stat}{ponderationerror} 
+        {\msg_line_context:}
+        {\tl_use:N\l_mslf_stat_id_tl}
+      \seq_map_break:
+      }
+    }
+  }
+%
+% effectifs ou fréquences: passage de la bonne valeur pour la clé ``kind''
+%
+% distribution
+%
+\cs_new:Npn\_mslf_stat_onevar_datakind_distr:N#1
+  {
+  \_mslf_stat_save_result:Nnn
+    \l_mslf_stat_id_tl{distr}{datakind}
+  \fp_compare:nTF
+    {\seq_item:Nn#1{2}<1}
+    {\keys_set:nn{stat}{kind=distrfreq}}
+    {\keys_set:nn{stat}{kind=distreff}}
+  }
+%
+% répartition en classe
+%
+\cs_new:Npn\_mslf_stat_onevar_datakind_class:N#1
+  {
+  \_mslf_stat_save_result:Nnn
+    \l_mslf_stat_id_tl
+    {class}
+    {datakind}
+  \fp_compare:nTF
+    {\seq_item:Nn#1{3}<1}
+    {\keys_set:nn{stat}{kind=classfreq}}
+    {\keys_set:nn{stat}{kind=classeff}}
+  }
+%
+%####################################################
+%
+% Tableau de distribution
+%
+%####################################################
+%
+\int_new:N\l_mslf_stat_onevar_table_freq_prec_int
+\int_new:N\l_mslf_stat_onevar_table_eff_prec_int
+\int_new:N\l_mslf_stat_onevar_table_val_prec_int
+\bool_new:N\l_mslf_stat_onevar_table_roundval_bool
+\bool_new:N\l_mslf_stat_onevar_table_roundfreq_bool
+\bool_new:N\l_mslf_stat_onevar_table_roundeff_bool
+%
+% Options
+%
+\keys_define:nn {stat/tabletabu}
+  {
+  to              .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_to_tl,
+  to              .initial:n = {spread 0pt },
+  extravspace     .dim_set:N =
+    \l_mslf_stat_onevar_distrtable_extravspace_dim,
+  extravspace     .initial:n = {1cm},
+  extravspace     .default:n = {1cm},
+  vide            .clist_set:N =
+    \l_mslf_stat_onevar_distrtable_vide_clist,
+  vide            .initial:n = {},
+  head/val        .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_headval_tl,
+  head/val        .initial:n = 
+    {Valeurs~$x\c_math_subscript_token i$},
+  head/class      .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_headclass_tl,
+  head/class      .initial:n = {Classes},
+  head/eff        .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_headeff_tl,
+  head/eff        .initial:n = 
+    {Effectifs~:~$n\c_math_subscript_token i$},
+  head/exactfreq	  .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_headexactfreq_tl,
+  head/exactfreq	  .initial:n = {Fréquences},
+  head/freq       .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_headfreq_tl,
+  head/freq       .initial:n = {Fréquences},
+  head/ecc        .tl_set:N = 
+    \l_mslf_stat_onevar_distrtable_headecc_tl,
+  head/ecc        .initial:n = {Eff.~cum.~croiss.},
+  head/ecd        .tl_set:N = 
+    \l_mslf_stat_onevar_distrtable_headecd_tl,
+  head/ecd        .initial:n = {Eff.~cum.~décr.},
+  head/fcc        .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_headfcc_tl,
+  head/fcc        .initial:n = {Fréq.~cum.~croiss.},
+  head/fcd        .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_headfcd_tl,
+  head/fcd        .initial:n = {Fréq.~cum.~décr.},
+  freq/precision	  .int_set:N =
+    \l_mslf_stat_onevar_table_freq_prec_int,
+  freq/precision  .initial:n = 2,
+  eff/precision   .int_set:N =
+    \l_mslf_stat_onevar_table_eff_prec_int,
+  eff/precision   .initial:n = 0,
+  val/precision   .int_set:N =
+    \l_mslf_stat_onevar_table_val_prec_int,
+  val/precision   .initial:n = 2,
+  round           .code:n = 
+    {
+    	\clist_map_inline:nn{#1}
+    	  {
+    	  \bool_set_true:c
+    	    {l_mslf_stat_onevar_table_round##1_bool}
+      }
+    },
+  }
+%
+%
+%
+\NewDocumentCommand{\stattabletabu}{O{}mm}
+% #1: options
+% #2: identifiant de la serie
+% #3: liste des lignes
+  {
+  \group_begin:
+  \keys_set:nn{stat/tabletabu}{#1}
+  \clist_set:Nn\l_tmpa_clist{#3}
+  \_mslf_stat_onevar_table_tabu:NnNN
+    \l_tmpa_clist
+    {#2}
+    \l_mslf_stat_onevar_table_preamble_tl
+    \l_mslf_stat_onevar_table_body_tl
+  \use:x
+    {
+    \exp_not:N\begin{tabu}
+      \tl_use:N\l_mslf_stat_onevar_distrtable_to_tl
+      {\tl_use:N\l_mslf_stat_onevar_table_preamble_tl}
+    }
+  \tl_use:N\l_mslf_stat_onevar_table_body_tl
+  \end{tabu}
+%
+  \group_end:
+  }
+%
+%
+%
+\keys_define:nn {stat/tabletabu}
+  {
+  table-opt              .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_tableopt_tl,
+  table-opt              .initial:n = {},
+  vide            .clist_set:N =
+    \l_mslf_stat_onevar_distrtable_vide_clist,
+  vide            .initial:n = {},
+  head/val        .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_headval_tl,
+  head/val        .initial:n = 
+    {Valeurs~$x\c_math_subscript_token i$},
+  head/class      .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_headclass_tl,
+  head/class      .initial:n = {Classes},
+  head/eff        .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_headeff_tl,
+  head/eff        .initial:n = 
+    {Effectifs~:~$n\c_math_subscript_token i$},
+  head/exactfreq	  .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_headexactfreq_tl,
+  head/exactfreq	  .initial:n = {Fréquences},
+  head/freq       .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_headfreq_tl,
+  head/freq       .initial:n = {Fréquences},
+  head/ecc        .tl_set:N = 
+    \l_mslf_stat_onevar_distrtable_headecc_tl,
+  head/ecc        .initial:n = {Eff.~cum.~croiss.},
+  head/ecd        .tl_set:N = 
+    \l_mslf_stat_onevar_distrtable_headecd_tl,
+  head/ecd        .initial:n = {Eff.~cum.~décr.},
+  head/fcc        .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_headfcc_tl,
+  head/fcc        .initial:n = {Fréq.~cum.~croiss.},
+  head/fcd        .tl_set:N =
+    \l_mslf_stat_onevar_distrtable_headfcd_tl,
+  head/fcd        .initial:n = {Fréq.~cum.~décr.},
+  freq/precision	  .int_set:N =
+    \l_mslf_stat_onevar_table_freq_prec_int,
+  freq/precision  .initial:n = 2,
+  eff/precision   .int_set:N =
+    \l_mslf_stat_onevar_table_eff_prec_int,
+  eff/precision   .initial:n = 0,
+  val/precision   .int_set:N =
+    \l_mslf_stat_onevar_table_val_prec_int,
+  val/precision   .initial:n = 2,
+  round           .code:n = 
+    {
+    	\clist_map_inline:nn{#1}
+    	  {
+    	  \bool_set_true:c
+    	    {l_mslf_stat_onevar_table_round##1_bool}
+      }
+    },
+  }
+%
+%
+%
+\NewDocumentCommand{\stattable}{O{}mm}
+% #1: options
+% #2: identifiant de la serie
+% #3: liste des lignes
+  {
+  \group_begin:
+  \keys_set:nn{stat/table}{#1}
+  \clist_set:Nn\l_tmpa_clist{#3}
+  \_mslf_stat_onevar_table:NnNN
+    \l_tmpa_clist
+    {#2}
+    \l_mslf_stat_onevar_table_preamble_tl
+    \l_mslf_stat_onevar_table_body_tl
+  \begin{tblr}[expand=\l_mslf_stat_onevar_table_body_tl]{hlines,\tl_use:N\l_mslf_stat_onevar_table_preamble_tl,\l_mslf_stat_onevar_distrtable_tableopt_tl}%
+    \l_mslf_stat_onevar_table_body_tl
+  \end{tblr}
+  \group_end:
+  }
+%
+%
+%
+\NewDocumentCommand{\Test}{m}
+  {\_mslf_table_get_linename_auxi:w#1\q_nil\q_stop}
+%
+%
+%
+\cs_new:Npn\_mslf_table_get_linename:nN#1#2
+  {
+  \clist_clear:N#2
+  \clist_map_inline:Nn#1	
+    {
+    \clist_put_right:Nx#2
+      {\_mslf_table_get_linename_aux:n{##1}}
+    }
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_table_get_linename_aux:n#1
+  {\_mslf_table_get_linename_auxi:w#1\q_nil\q_stop}
+%
+%
+%
+\cs_new:Npn\_mslf_table_get_linename_auxi:w#1#2\q_stop
+  {
+  \peek_meaning:NTF [
+    {\_mslf_table_get_linename_auxi_ii:w}
+    {\_mslf_table_get_linename_auxi_i:w}
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_table_get_linename_auxi_i:w#1#2\q_stop
+  {
+  \tl_set:Nn\l_tmpa_tl{#1#2}
+  \quark_if_nil:NF#1
+    {#1\_mslf_table_get_linename_auxi:w}
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_table_get_linename_auxi_ii:w[#1]{#1}
+%
+%
+%
+\cs_new:Npn\_mslf_table_gobble:w#1#2\q_stop{#2\q_stop}
+%
+%
+%
+\cs_new:Npn\_mslf_replace_list:N#1{}
+%
+%
+%
+\tl_new:N\l_mslf_stat_onevar_valeur_tl
+\tl_set:Nn\l_mslf_stat_onevar_valeur_tl{val}
+%
+\tl_new:N\l_mslf_stat_onevar_classe_tl
+\tl_set:Nn\l_mslf_stat_onevar_classe_tl{class}
+%
+\tl_new:N\l_mslf_stat_onevar_effectif_tl
+\tl_set:Nn\l_mslf_stat_onevar_effectif_tl{eff}
+%
+\tl_new:N\l_mslf_stat_onevar_effectifcumulecroissant_tl
+\tl_set:Nn\l_mslf_stat_onevar_effectifcumulecroissant_tl
+  {ecc}
+%
+\tl_new:N\l_mslf_stat_onevar_effectifcumuledecroissant_tl
+\tl_set:Nn\l_mslf_stat_onevar_effectifcumuledecroissant_tl
+  {ecd}
+%
+\tl_new:N\l_mslf_stat_onevar_frequence_tl
+\tl_set:Nn\l_mslf_stat_onevar_frequence_tl{freq}
+%
+\tl_new:N\l_mslf_stat_onevar_exactfrequence_tl
+\tl_set:Nn\l_mslf_stat_onevar_exactfrequence_tl{exactfreq}
+%
+\tl_new:N\l_mslf_stat_onevar_frequencecumulecroissant_tl
+\tl_set:Nn\l_mslf_stat_onevar_frequencecumulecroissant_tl
+  {fcc}
+%%
+\tl_new:N\l_mslf_stat_onevar_frequencecumuledecroissant_tl
+\tl_set:Nn\l_mslf_stat_onevar_frequencecumuledecroissant_tl
+  {fcd}
+%
+%
+%
+\msg_new:nnn {stat}
+  {keywordundefined}
+  {\msg_error_text:n{#1}~pour~la~serie~stat~d'id~#2:~
+  keyword~not~defined~(good~ids:~eff,~freq,~ecc,~fcc,~
+  ecd,~fcd,~exactfreq).
+  }
+%
+\cs_new:Npn\_mslf_stat_onevar_table_tabu:NnNN#1#2#3#4%
+% #1: liste des lignes
+% #2: identifiant de la série
+% #3: macro stockant le preambule du tableau
+% #4: macro stockant le corps du tableau
+  {% preambule
+  \_mslf_stat_get_value:nnN{#2}{nbrvaldiff}\l_tmpa_tl
+  \int_set:Nx\l_tmpa_int{\l_tmpa_tl}%+1
+  \int_set_eq:NN\l_tmpb_int\l_tmpa_int
+   \tl_set:Nx#3{|c||*{\int_use:N\l_tmpa_int}{X[c,1,$]|} }
+% corps du tableau
+  \tl_set:Nx\l_tmpb_tl{\exp_not:N\hline}
+  \clist_map_inline:Nn#1%
+    {
+    \tl_put_right:Nf\l_tmpb_tl
+      {\tl_use:c{l_mslf_stat_onevar_distrtable_head##1_tl}}
+    \_mslf_stat_get_list:nnN{#2}{##1}\l_tmpa_seq
+    \bool_set_false:N\l_tmpa_bool
+    \tl_set:Nn\l_tmpa_tl{##1}
+    \tl_case:NnTF\l_tmpa_tl
+      {
+      \l_mslf_stat_onevar_effectif_tl
+        {
+        \int_set_eq:NN
+          \l_tmpa_int
+          \l_mslf_stat_onevar_table_eff_prec_int
+        \bool_set_eq:NN
+          \l_tmpa_bool
+          \l_mslf_stat_onevar_table_roundeff_bool
+        }
+      \l_mslf_stat_onevar_effectifcumulecroissant_tl 
+        {
+        \int_set_eq:NN
+          \l_tmpa_int
+          \l_mslf_stat_onevar_table_eff_prec_int
+        \bool_set_eq:NN
+          \l_tmpa_bool
+          \l_mslf_stat_onevar_table_roundeff_bool
+        }
+      \l_mslf_stat_onevar_effectifcumuledecroissant_tl
+        {
+        \int_set_eq:NN
+          \l_tmpa_int
+          \l_mslf_stat_onevar_table_eff_prec_int
+        \bool_set_eq:NN
+          \l_tmpa_bool
+          \l_mslf_stat_onevar_table_roundeff_bool
+        }
+      \l_mslf_stat_onevar_frequence_tl
+        {
+        \int_set_eq:NN
+          \l_tmpa_int
+          \l_mslf_stat_onevar_table_freq_prec_int
+        \bool_set_eq:NN
+          \l_tmpa_bool
+          \l_mslf_stat_onevar_table_roundfreq_bool
+        }
+      \l_mslf_stat_onevar_exactfrequence_tl
+        {}
+      \l_mslf_stat_onevar_frequencecumulecroissant_tl 
+        {
+        \int_set_eq:NN
+          \l_tmpa_int
+          \l_mslf_stat_onevar_table_freq_prec_int
+        \bool_set_eq:NN
+          \l_tmpa_bool
+          \l_mslf_stat_onevar_table_roundfreq_bool
+        }
+      \l_mslf_stat_onevar_frequencecumuledecroissant_tl
+        {
+        \int_set_eq:NN
+          \l_tmpa_int
+          \l_mslf_stat_onevar_table_freq_prec_int
+        \bool_set_eq:NN
+          \l_tmpa_bool
+          \l_mslf_stat_onevar_table_roundfreq_bool
+        }
+      \l_mslf_stat_onevar_valeur_tl
+        {
+        \int_set_eq:NN
+          \l_tmpa_int
+          \l_mslf_stat_onevar_table_val_prec_int
+        \bool_set_eq:NN
+          \l_tmpa_bool
+          \l_mslf_stat_onevar_table_roundval_bool
+        }
+      }
+      {
+      \bool_if:NTF\l_tmpa_bool
+        {
+        \seq_map_inline:Nn\l_tmpa_seq
+          {
+          \tl_put_right:Nx\l_tmpb_tl
+            {
+            &
+            \num
+              [
+              round-mode=places,
+              round-precision=\int_use:N\l_tmpa_int
+              ]
+              {\fp_eval:n{####1}}
+            }
+          }
+        }
+        {
+        \tl_if_in:NnTF\l_tmpa_tl{exact}
+          {
+          \seq_map_inline:Nn\l_tmpa_seq
+            {\tl_put_right:Nx\l_tmpb_tl{&$####1$}}
+          }
+          {
+          \seq_map_inline:Nn\l_tmpa_seq
+            {
+            \tl_put_right:Nx\l_tmpb_tl
+              {&\num{\fp_eval:n{####1}}}
+            }
+          }
+        }
+      }
+      {
+      \tl_if_eq:NNTF
+        \l_tmpa_tl\l_mslf_stat_onevar_classe_tl
+        {
+        \tl_put_right:Nx\l_tmpb_tl
+          {&\seq_use:Nn\l_tmpa_seq{&}}
+        }
+        {
+        \msg_error:nnxx{stat}{keywordundefined} 
+          {\msg_line_context:}
+          {\tl_use:N\l_mslf_stat_id_tl}
+        }
+      }
+    \tl_put_right:Nx\l_tmpb_tl
+      {\exp_not:N\\\exp_not:N\hline}
+    }
+  \clist_if_empty:NF
+    \l_mslf_stat_onevar_distrtable_vide_clist
+    {
+    \clist_map_inline:Nn
+      \l_mslf_stat_onevar_distrtable_vide_clist
+      {
+      \int_set:Nn\l_tmpa_int{\l_tmpb_int-1}
+      \tl_put_right:Nn\l_tmpb_tl{##1}%
+      \int_until_do:nn
+        {\l_tmpa_int=0}
+        {
+        \tl_put_right:Nn\l_tmpb_tl{&}
+        \int_decr:N\l_tmpa_int
+        }
+      \tl_put_right:Nx\l_tmpb_tl
+        {\exp_not:N\\\exp_not:N\hline}%
+      }
+    }
+  \tl_set:Nn#4{\tl_use:N\l_tmpb_tl}%		
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_table:NnNN#1#2#3#4%
+% #1: liste des lignes
+% #2: identifiant de la série
+% #3: macro stockant le preambule du tableau
+% #4: macro stockant le corps du tableau
+  {
+% preambule
+  \_mslf_stat_get_value:nnN{#2}{nbrvaldiff}\l_tmpa_tl
+  \int_set:Nx\l_tmpa_int{\l_tmpa_tl}%+1
+  \int_set_eq:NN\l_tmpb_int\l_tmpa_int
+  \tl_set:Nx#3{|c||*{\int_use:N\l_tmpa_int}{X[c,1,$]|} }
+% corps du tableau
+  \tl_set:Nx\l_tmpb_tl{}
+  \clist_map_inline:Nn#1%
+    {
+    \tl_put_right:Nf\l_tmpb_tl
+      {\tl_use:c{l_mslf_stat_onevar_distrtable_head##1_tl}}
+    \_mslf_stat_get_list:nnN{#2}{##1}\l_tmpa_seq
+    \bool_set_false:N\l_tmpa_bool
+    \tl_set:Nn\l_tmpa_tl{##1}
+    \tl_case:NnTF\l_tmpa_tl
+      {
+      \l_mslf_stat_onevar_effectif_tl
+        {
+        \int_set_eq:NN
+          \l_tmpa_int
+          \l_mslf_stat_onevar_table_eff_prec_int
+        \bool_set_eq:NN
+          \l_tmpa_bool
+          \l_mslf_stat_onevar_table_roundeff_bool
+        }
+      \l_mslf_stat_onevar_effectifcumulecroissant_tl 
+        {
+        \int_set_eq:NN
+          \l_tmpa_int
+          \l_mslf_stat_onevar_table_eff_prec_int
+        \bool_set_eq:NN
+          \l_tmpa_bool
+          \l_mslf_stat_onevar_table_roundeff_bool
+        }
+      \l_mslf_stat_onevar_effectifcumuledecroissant_tl
+        {
+        \int_set_eq:NN
+          \l_tmpa_int
+          \l_mslf_stat_onevar_table_eff_prec_int
+        \bool_set_eq:NN
+          \l_tmpa_bool
+          \l_mslf_stat_onevar_table_roundeff_bool
+        }
+      \l_mslf_stat_onevar_frequence_tl
+        {
+        \int_set_eq:NN
+          \l_tmpa_int
+          \l_mslf_stat_onevar_table_freq_prec_int
+        \bool_set_eq:NN
+          \l_tmpa_bool
+          \l_mslf_stat_onevar_table_roundfreq_bool
+        }
+      \l_mslf_stat_onevar_exactfrequence_tl
+        {}
+      \l_mslf_stat_onevar_frequencecumulecroissant_tl 
+        {
+        \int_set_eq:NN
+          \l_tmpa_int
+          \l_mslf_stat_onevar_table_freq_prec_int
+        \bool_set_eq:NN
+          \l_tmpa_bool
+          \l_mslf_stat_onevar_table_roundfreq_bool
+        }
+      \l_mslf_stat_onevar_frequencecumuledecroissant_tl
+        {
+        \int_set_eq:NN
+          \l_tmpa_int
+          \l_mslf_stat_onevar_table_freq_prec_int
+        \bool_set_eq:NN
+          \l_tmpa_bool
+          \l_mslf_stat_onevar_table_roundfreq_bool
+        }
+      \l_mslf_stat_onevar_valeur_tl
+        {
+        \int_set_eq:NN
+          \l_tmpa_int
+          \l_mslf_stat_onevar_table_val_prec_int
+        \bool_set_eq:NN
+          \l_tmpa_bool
+          \l_mslf_stat_onevar_table_roundval_bool
+        }
+      }
+      {
+      \bool_if:NTF\l_tmpa_bool
+        {
+        \seq_map_inline:Nn\l_tmpa_seq
+          {
+          \tl_put_right:Nn\l_tmpb_tl
+            {
+            &
+            \num
+              [
+              round-mode=places,
+              round-precision=\int_use:N\l_tmpa_int
+              ]
+              {\fp_eval:n{####1}}
+            }
+          }
+        }
+        {
+        \tl_if_in:NnTF\l_tmpa_tl{exact}
+          {
+          \seq_map_inline:Nn\l_tmpa_seq
+            {\tl_put_right:Nn\l_tmpb_tl{&$####1$}}
+          }
+          {
+          \seq_map_inline:Nn\l_tmpa_seq
+            {
+            \tl_put_right:Nn\l_tmpb_tl
+              {&\num{\fp_eval:n{####1}}}
+            }
+          }
+        }
+      }
+      {
+      \tl_if_eq:NNTF
+        \l_tmpa_tl\l_mslf_stat_onevar_classe_tl
+        {
+        \tl_put_right:Nnf\l_tmpb_tl
+          {&\seq_use:Nn\l_tmpa_seq{&}}
+        }
+        {
+        \msg_error:nnxx{stat}{keywordundefined} 
+          {\msg_line_context:}
+          {\tl_use:N\l_mslf_stat_id_tl}
+        }
+      }
+    \tl_put_right:Nn\l_tmpb_tl
+      {\\}%
+    }
+  \clist_if_empty:NF
+    \l_mslf_stat_onevar_distrtable_vide_clist
+    {
+    \clist_map_inline:Nn
+      \l_mslf_stat_onevar_distrtable_vide_clist
+      {
+      \int_set:Nn\l_tmpa_int{\l_tmpb_int-1}
+      \tl_put_right:Nn\l_tmpb_tl{##1}%
+      \int_until_do:nn
+        {\l_tmpa_int=0}
+        {
+        \tl_put_right:Nn\l_tmpb_tl{&}
+        \int_decr:N\l_tmpa_int
+        }
+      \tl_put_right:Nn\l_tmpb_tl
+        {\\}%
+      }
+    }
+  \tl_set:Nf#4{\tl_use:N\l_tmpb_tl}%		
+  }
+%
+%
+%
+\NewDocumentCommand{\stattableline}{mm}
+  {
+  \_mslf_stat_get_list:nnN{#1}{#2}\l_tmpa_seq
+  \seq_put_left:Nx\l_tmpa_seq
+    {\tl_use:c{l_mslf_stat_onevar_distrtable_head#2_tl}}
+  \seq_use:Nn\l_tmpa_seq{&}
+  }
+%
+%####################################################
+%
+% calcule les freq, ecc, ecd, fcc, fcd
+%
+%####################################################
+%
+\cs_new:Npn\_mslf_stat_save_result:NNn#1#2#3
+% #1: statistical serie's id
+% #2: result to save
+% #3: property list key's name
+  {\prop_gput:cnV{g_stat_ \tl_use:N#1 _prop}{#3}#2}
+%
+\cs_new:Npn\_mslf_stat_save_resultclist:NNn#1#2#3
+% #1: statistical serie's id
+% #2: result to save
+% #3: property list key's name
+  {\clist_gset_from_seq:cN{g_stat_ \tl_use:N#1 #3_clist}#2}
+%
+%
+%
+\cs_new:Npn\_mslf_stat_save_result:Nnn#1#2#3
+% #1: statistical serie's id
+% #2: result to save
+% #3: property list key's name
+  {\prop_gput:cnx{g_stat_ \tl_use:N#1 _prop}{#3}{#2}}
+%
+%
+%
+%\cs_generate_variant:Nn\prop_gput:cnn{cnN}
+%%
+%\cs_new:Npn\_mslf_stat_save_result_notexpanded:NNn#1#2#3
+%% #1: statistical serie's id
+%% #2: result to save
+%% #3: property list key's name
+%  {\prop_gput:cnN{g_stat_ \tl_use:N#1 _prop}{#3}#2}
+%
+% nbre de valeurs différentes
+%
+\cs_new:Npn\_mslf_stat_onevar_length:NN#1#2
+% #1: liste
+% #2: macro de sauvegarde du résultat
+  {
+  \int_set:Nn#2{\seq_count:N#1}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #2
+    {nbrvaldiff}
+  }
+%
+% nbre de valeurs différentes
+%
+\cs_new:Npn\_mslf_stat_onevar_boxplot_label:N#1
+% #1: macro de sauvegarde du résultat
+  {
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #1
+    {boxplotlabel}
+  }
+%
+% listes des valeurs et des effectifs
+%
+\cs_generate_variant:Nn\seq_put_right:Nn{Nf}
+%
+\cs_new:Npn\_mslf_stat_onevar_distr_vectors:NNNn#1#2#3#4
+% #1: liste
+% #2: macro de sauvegarde de la liste des premiers nombres (valeurs)
+% #3: macro de sauvegarde de la liste des seconds nombres (effectifs ou freq)
+% #4: eff ou freq
+  {
+  \seq_clear:N#2
+  \seq_clear:N#3
+  \tl_if_eq:nnTF{#4}{freq}
+    {
+    \int_compare:nTF
+      {\l_mslf_stat_onevar_freqformat_int=1}
+      {
+      \seq_map_inline:Nn#1
+        {
+        \seq_set_split:Nnn\l_tmpa_seq{/}{##1}
+        \seq_put_right:Nf#2{\seq_item:Nn\l_tmpa_seq{1}}
+        \seq_put_right:Nf#3{\seq_item:Nn\l_tmpa_seq{2}}
+        }
+      \_mslf_stat_save_result:NNn
+        \l_mslf_stat_id_tl
+        #2
+        {listval}
+      \_mslf_stat_save_result:NNn
+        \l_mslf_stat_id_tl
+        #3
+        {listfreq}
+      }
+      {
+      \seq_map_inline:Nn#1
+        {
+        \seq_set_split:Nnn\l_tmpa_seq{/}{##1}
+        \seq_put_right:Nf#2{\seq_item:Nn\l_tmpa_seq{1}}
+        \seq_put_right:Nf#3
+          {
+          \fp_eval:n
+            {
+            \l_mslf_stat_onevar_freqformat_int
+              *(\seq_item:Nn\l_tmpa_seq{2})
+            }
+          }
+        }
+      \_mslf_stat_save_result:NNn
+        \l_mslf_stat_id_tl
+        #2
+        {listval}
+      \_mslf_stat_save_result:NNn
+        \l_mslf_stat_id_tl
+        #3
+        {listfreq}
+      }
+    }
+    {
+    \seq_map_inline:Nn#1
+      {
+      \seq_set_split:Nnn\l_tmpa_seq{/}{##1}
+      \seq_put_right:Nf#2{\seq_item:Nn\l_tmpa_seq{1}}
+      \seq_put_right:Nf#3{\seq_item:Nn\l_tmpa_seq{2}}
+      }
+    \_mslf_stat_save_result:NNn
+      \l_mslf_stat_id_tl
+      #2
+      {listval}
+    \_mslf_stat_save_result:NNn
+      \l_mslf_stat_id_tl
+      #3
+      {listeff}
+    \_mslf_stat_save_resultclist:NNn% workaround pour pouvoir recuperer de manière expandable les éléments des ecc dans \statuselistitem
+      \l_mslf_stat_id_tl
+      #3
+      {listeff}
+    }
+  }
+%
+% liste des frequences arrondies: 
+% UTILISATION DE FP: A REVOIR	(la fct round de latex3 arrondie au dernier chiffre pair si le dernier chiffre est 5)
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_distr_vectorroundedfreq:NNN#1#2#3
+% #1: liste des freq
+% #2: precision d'arrondi des freq
+% #3: macro de sauvegarde de la liste des freq arrondies
+  {
+  \seq_clear:N#3
+  \seq_map_inline:Nn#1
+    {
+    \fp_set:Nx\l_tmpa_fp
+      {\fp_eval:n{\__mslf_round:nN{##1}#2}}
+    \seq_put_right:Nx#3{\l_tmpa_fp}
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #3
+    {listroundedfreq}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_class_vectors:NNNNn#1#2#3#4#5
+% #1: liste
+% #2: macro de sauvegarde de la liste des bornes inf des classes
+% #3: macro de sauvegarde de la liste des bornes sup des classes
+% #4: macro de sauvegarde de la liste des eff ou des freq
+% #5: eff ou freq
+  {
+  \seq_clear:N#2
+  \seq_clear:N#3
+  \seq_clear:N#4
+  \bool_set_true:N\l_tmpa_bool
+  \tl_if_eq:nnTF{#5}{freq}
+    {
+    \int_compare:nTF
+      {\l_mslf_stat_onevar_freqformat_int=1}
+      {
+      \seq_map_inline:Nn#1
+        {
+        \seq_set_split:Nnn\l_tmpa_seq{/}{##1}
+        \int_incr:N\l_tmpa_int
+        \bool_if:NTF\l_tmpa_bool
+          {
+          \seq_put_right:Nf#2{\seq_item:Nn\l_tmpa_seq{1}}
+          \tl_set:Nf\l_tmpa_tl{\seq_item:Nn\l_tmpa_seq{2}}
+          \seq_put_right:Nf#3{\seq_item:Nn\l_tmpa_seq{2}}
+          \seq_put_right:Nf#4{\seq_item:Nn\l_tmpa_seq{3}}
+          \bool_set_false:N\l_tmpa_bool
+          }
+          {
+          \seq_put_right:Nf#2{\tl_use:N\l_tmpa_tl}
+          \seq_put_right:Nf#3{\seq_item:Nn\l_tmpa_seq{1}}
+          \tl_set:Nf\l_tmpa_tl{\seq_item:Nn\l_tmpa_seq{1}}
+          \seq_put_right:Nf#4{\seq_item:Nn\l_tmpa_seq{2}}
+          }
+        }
+      \_mslf_stat_save_result:NNn
+        \l_mslf_stat_id_tl
+        #2
+        {listborneinf}
+      \_mslf_stat_save_result:NNn
+        \l_mslf_stat_id_tl
+        #3
+        {listbornesup}
+      \_mslf_stat_save_result:NNn
+        \l_mslf_stat_id_tl
+        #4
+        {listfreq}
+      }
+      {
+      \seq_map_inline:Nn#1
+        {
+        \seq_set_split:Nnn\l_tmpa_seq{/}{##1}
+        \int_incr:N\l_tmpa_int
+        \bool_if:NTF\l_tmpa_bool
+          {
+          \seq_put_right:Nf#2
+            {\seq_item:Nn\l_tmpa_seq{1}}
+          \tl_set:Nf\l_tmpa_tl
+            {\seq_item:Nn\l_tmpa_seq{2}}
+          \seq_put_right:Nf#3
+            {\seq_item:Nn\l_tmpa_seq{2}}
+          \seq_put_right:Nf#4
+            {
+            \fp_eval:n
+              {
+              \l_mslf_stat_onevar_freqformat_int
+                *(\seq_item:Nn\l_tmpa_seq{3})
+              }
+            }
+          \bool_set_false:N\l_tmpa_bool
+          }
+          {
+          \seq_put_right:Nf#2{\tl_use:N\l_tmpa_tl}
+          \seq_put_right:Nf#3
+            {\seq_item:Nn\l_tmpa_seq{1}}
+          \tl_set:Nf\l_tmpa_tl
+            {\seq_item:Nn\l_tmpa_seq{1}}
+          \seq_put_right:Nf#4
+            {
+            \fp_eval:n
+              {
+              \l_mslf_stat_onevar_freqformat_int
+                *(\seq_item:Nn\l_tmpa_seq{2})
+              }
+            }
+          }
+        }
+      \_mslf_stat_save_result:NNn
+        \l_mslf_stat_id_tl
+        #2
+        {listborneinf}
+      \_mslf_stat_save_result:NNn
+        \l_mslf_stat_id_tl
+        #3
+        {listbornesup}
+      \_mslf_stat_save_result:NNn
+        \l_mslf_stat_id_tl
+        #4
+        {listfreq}
+      }
+    }
+    {
+    \seq_map_inline:Nn#1
+      {
+      \seq_set_split:Nnn\l_tmpa_seq{/}{##1}
+      \int_incr:N\l_tmpa_int
+      \bool_if:NTF\l_tmpa_bool
+        {
+        \seq_put_right:Nf#2{\seq_item:Nn\l_tmpa_seq{1}}
+        \tl_set:Nf\l_tmpa_tl{\seq_item:Nn\l_tmpa_seq{2}}
+        \seq_put_right:Nf#3{\seq_item:Nn\l_tmpa_seq{2}}
+        \seq_put_right:Nf#4{\seq_item:Nn\l_tmpa_seq{3}}
+        \bool_set_false:N\l_tmpa_bool
+        }
+        {
+        \seq_put_right:Nf#2{\tl_use:N\l_tmpa_tl}
+        \seq_put_right:Nf#3{\seq_item:Nn\l_tmpa_seq{1}}
+        \tl_set:Nf\l_tmpa_tl{\seq_item:Nn\l_tmpa_seq{1}}
+        \seq_put_right:Nf#4{\seq_item:Nn\l_tmpa_seq{2}}
+        }
+      }
+    \_mslf_stat_save_result:NNn
+      \l_mslf_stat_id_tl
+      #2
+      {listborneinf}
+    \_mslf_stat_save_result:NNn
+      \l_mslf_stat_id_tl
+      #3
+      {listbornesup}
+    \_mslf_stat_save_result:NNn
+      \l_mslf_stat_id_tl
+      #4
+      {listeff}
+    \_mslf_stat_save_resultclist:NNn% workaround pour pouvoir recuperer de manière expandable les éléments des ecc dans \statuselistitem
+      \l_mslf_stat_id_tl
+      #4
+      {listeff}
+    }
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_class_vectorclass:NNNNNN#1#2#3#4#5#6
+% #1: macro de sauvegarde de la liste des bornes inf des classes
+% #2: macro de sauvegarde de la liste des bornes sup des classes
+% #3: style de la premiere classe (fo=fermé-ouvert,of,ff,oo)
+% #4: style des classes (fo=fermé-ouvert,of,ff,oo) autres que la dernière
+% #5: style de la dernière classe
+% #6: macro de sauvegarde de la liste des classes
+  {
+  \seq_clear:N#6
+  \seq_set_eq:NN\l_tmpa_seq#1
+  \seq_set_eq:NN\l_tmpb_seq#2
+  \seq_pop_left:NN\l_tmpa_seq\l_tmpa_tl
+  \seq_pop_left:NN\l_tmpb_seq\l_tmpb_tl
+  \seq_put_right:Nx#6
+    {
+    $\use:c{intervalle#3}
+      {\num{\tl_use:N\l_tmpa_tl}}
+      {\num{\tl_use:N\l_tmpb_tl}}
+    $
+    }
+  \seq_pop_left:NN\l_tmpa_seq\l_tmpa_tl
+  \seq_pop_left:NN\l_tmpb_seq\l_tmpb_tl
+  \seq_map_inline:Nn\l_tmpa_seq
+    {
+    \seq_put_right:Nx#6
+      {
+      $
+      \use:c{intervalle#4}
+        {\num{\tl_use:N\l_tmpa_tl}}
+        {\num{\tl_use:N\l_tmpb_tl}}
+      $
+      }
+    \seq_pop_left:NN\l_tmpa_seq\l_tmpa_tl
+    \seq_pop_left:NN\l_tmpb_seq\l_tmpb_tl
+    }
+  \seq_put_right:Nx#6
+    {
+    $
+    \use:c{intervalle#5}
+      {\num{\tl_use:N\l_tmpa_tl}}
+      {\num{\tl_use:N\l_tmpb_tl}}
+    $
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #6
+    {listclass}
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_distr_etendue:NNNN#1#2#3#4
+% #1: liste des valeurs
+% #2: macro de sauvegarde de l'etendue
+  {
+  \seq_get_right:NN#1\l_tmpa_tl
+  \fp_set:Nx#4{\fp_eval:n{\l_tmpa_tl}}
+  \seq_get_left:NN#1\l_tmpb_tl
+  \fp_set:Nx#3{\fp_eval:n{\l_tmpb_tl}}
+  \fp_set:Nn#2{\fp_eval:n{\l_tmpa_tl-(\l_tmpb_tl)}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#3{xmin}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#4{xmax}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#2{etendue}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_class_etendue:NNNNN#1#2#3#4#5
+% #1: liste des bornes inf
+% #2: liste des bornes sup
+% #3: macro de sauvegarde de l'etendue
+% #4: macro sauvant xmin
+% #5: macro sauvant xmax
+  {
+  \seq_get_right:NN#2\l_tmpa_tl
+  \fp_set:Nx#5{\fp_eval:n{\l_tmpa_tl}}
+  \seq_get_left:NN#1\l_tmpb_tl
+  \fp_set:Nx#4{\fp_eval:n{\l_tmpb_tl}}
+  \fp_set:Nx#3{\fp_eval:n{\l_tmpa_tl-(\l_tmpb_tl)}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#3{etendue}
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_redac_etendue:nNNN#1#2#3#4
+% #1: le nom de la série -> x, y, ...
+% #2: la valeur de xmin
+% #3: la valeur de xmax
+% #4: l'étendue
+  {
+  \tl_set:Nx\l_tmpa_tl
+    {
+    L'étendue~est~
+    $#1\c_math_subscript_token{\exp_not:N\text{max}}
+      -#1\c_math_subscript_token {\exp_not:N\text{min}}
+      =\num{\fp_use:N#3}-\num{\fp_use:N#2}
+      =\num{\fp_use:N#4}$
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {etendueredac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_etendue_test:nNNN#1#2#3#4
+% #1: le nom de la série -> x, y, ...
+% #2: la valeur de xmin
+% #3: la valeur de xmax
+% #4: l'étendue
+  {
+  \tl_set:Nx\l_tmpa_tl
+    {
+    L'étendue~est~
+    $#1\c_math_subscript_token{\exp_not:N\text{max}}
+      -#1\c_math_subscript_token {\exp_not:N\text{min}}
+      =\num{\fp_use:N#3}-\num{\fp_use:N#2}
+      =\num{\fp_use:N#4}$
+    }
+  }
+%
+% cumuls croissants + total des valeurs + cumuls decroissants si demandé ?
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_vector_pondcum_int:NNNN#1#2#3#4
+% #1: liste (?/?,?/?,...) à cumuler
+% #2: macro de sauvegarde pour le cumul total
+% #3: macro de sauvegarde pour les cumuls croissants
+% #4: macro de sauvegarde pour les cumuls décroissants
+  {
+  \seq_clear:N#3
+  \int_zero:N#2
+  \seq_map_inline:Nn#1
+    {
+    \int_add:Nn#2{##1}
+    \seq_put_right:NV#3#2
+    }
+  \fp_set:Nx\l_tmpa_fp{\int_eval:n{#2}}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_fp
+    {efftotal}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#3{listecc}
+  \_mslf_stat_onevar_vector_pondcumdec_int:NNN#1#2#4
+  }
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_vector_pondcum_fp:NNNNN#1#2#3#4#5
+% #1: liste (?/?,?/?,...) à cumuler
+% #2: macro de sauvegarde pour le cumul total pour verif)
+% #3: macro contenant le cumul voulu (1,100,...)
+% #4: macro de sauvegarde pour les cumuls croissants
+% #5: macro de sauvegarde pour les cumuls décroissants
+  {
+  \seq_clear:N#4
+  \fp_zero:N#2
+  \seq_map_inline:Nn#1
+    {
+    \fp_add:Nn#2{##1}
+    \seq_put_right:Nx#4{\fp_eval:n{#2}}
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #2
+    {freqtotal}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#4{listfcc}
+  \_mslf_stat_onevar_vector_pondcumdec_fp:NNN#1#3#5
+  }
+%
+% cumuls decroissants
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_vector_pondcumdec_int:NNN#1#2#3
+% #1: liste (?/?,?/?,...) à cumuler
+% #2: macro contenant le cumul total
+% #3: macro de sauvegarde pour les cumuls decroissants
+  {
+  \seq_clear:N#3
+  \int_set_eq:NN\l_tmpa_int#2
+  \seq_map_inline:Nn#1
+    {
+    \seq_put_right:NV#3\l_tmpa_int
+    \int_sub:Nn\l_tmpa_int{##1}
+    }
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#3{listecd}
+  }
+%
+% cumuls decroissants
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_vector_pondcumdec_fp:NNN#1#2#3
+% #1: liste (?/?,?/?,...) à cumuler
+% #2: macro contenant le cumul total
+% #3: macro de sauvegarde pour les cumuls decroissants
+  {
+  \seq_clear:N#3
+  \fp_set_eq:NN\l_tmpa_fp#2
+  \seq_map_inline:Nn#1
+    {
+    \seq_put_right:Nx#3{\fp_eval:n{\l_tmpa_fp}}
+    \fp_sub:Nn\l_tmpa_fp{##1}
+    }
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#3{listfcd}
+  }
+%
+% listes des frequences
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_distreff_vectorfreq:NNNN#1#2#3#4
+%	#1: liste des effectifs
+%	#2: effectif total
+%	#3: format des frequences
+% 	#4: macro de sauvegarde pour les cumuls decroissants
+  {
+  \seq_clear:N#4
+  \seq_map_inline:Nn#1
+    {\seq_put_right:Nf#4{\fp_eval:n{((##1))/(#2)*#3}}}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #4
+    {listfreq}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_distreff_vectorexactfreq:NNNN#1#2#3#4
+%	#1: liste des freq
+%	#2: effectif total
+%	#3: macro de sauvegarde pour les frequences exactes (fractions) pour calculs
+%	#4: macro de sauvegarde pour les frequences exactes (fractions) pour affichage
+  {
+  \seq_clear:N#3
+  \seq_clear:N#4
+  \seq_map_inline:Nn#1
+    {
+    \tl_set:Nx\l_tmpa_tl{\xintIrr {(##1)/(#2)}}
+    \seq_put_right:NV#3\l_tmpa_tl
+    \seq_put_right:Nx#4{$\exp_not:N\xintFrac{\l_tmpa_tl}$}
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #3
+    {listexactfreqforcalc}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #4
+    {listexactfreq}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_distrfreq_vector_exactfreq_fp:NNNN
+  #1#2#3#4
+%	#1: liste des freq
+%	#2: freq total
+%	#3: macro de sauvegarde pour les frequences exactes (fractions) pour calculs
+%	#4: macro de sauvegarde pour les frequences exactes (fractions) pour affichage
+  {
+  \seq_clear:N#3
+  \seq_clear:N#4
+  \seq_map_inline:Nn#1
+    {
+    \tl_set:Nx\l_tmpa_tl{\xinttheexpr(##1)/(#2)\relax}
+    \seq_put_right:NV#3\l_tmpa_tl
+    \seq_put_right:Nx#4
+      {$\exp_not:N\xintFrac{\xintIrr {\l_tmpa_tl}}$}
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #3
+    {listexactfreqforcalc}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #4
+    {listexactfreq}
+  }
+%
+%
+%
+\msg_new:nnnn {stat}{effbyfreq}
+  {\msg_error_text:n{#1}~pour~la~serie~stat~d'id~#2:~
+  Au~moins~un~effectif~calculé~à~partir~d'une~
+  distribution~de~fréquences~n'est~pas~entier.~
+  Si~vous~continuez~les~effectifs~concernés~seront~
+  arrondis.
+  }
+  {Revoir~la~valeur~de~la~clé~effforfreq.}
+%
+\msg_new:nnnn {stat}{effbyfreq-rounderror}
+  {\msg_error_text:n{#1}~pour~la~serie~stat~d'id~#2:~
+  Au~moins~un~effectif~calculé~à~partir~d'une~
+  distribution~de~fréquences~n'est~pas~entier.~
+  Vous~avez~continué,~ce~qui~a~entraîné~une~erreur~sur~
+  l'effectif~total~qui~n'est~pas~celui~passé~à~la~clé~
+  effforfreq.
+  }
+  {Revoir~la~valeur~de~la~clé~effforfreq.~Si~vous~
+  continuez~les~effectifs~concernés~seront~arrondis
+  }
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_distrfreq_vectoreff:NNNN#1#2#3#4
+%	#1: liste des freq
+%	#2: eff total
+% 	#3: format freq
+% 	#4: macro de sauvegarde pour la distrib des eff
+  {
+  \seq_clear:N#4
+  \seq_map_inline:Nn#1
+    {
+    \fp_set:Nn\l_tmpa_fp{((#2)*(##1)/(#3))}
+    \fp_compare:nT
+      {trunc(\l_tmpa_fp)!=\l_tmpa_fp}
+      {
+      \msg_error:nnxx {stat}{effbyfreq}
+        {\msg_line_context:}
+        {\tl_use:N\l_mslf_stat_id_tl}
+      \fp_set:Nx\l_tmpa_fp
+        {\fp_eval:n{\__mslf_round:nn{\l_tmpa_fp}{0}}}
+      }
+    \seq_put_right:Nf#4{\fp_eval:n{\l_tmpa_fp}}
+    }
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#4{listeff}
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_distr_mode:NNNN#1#2#3#4
+  {
+  \int_zero:N\l_tmpa_int
+  \fp_zero:N#3
+  \seq_clear:N#4
+  \seq_map_inline:Nn#2
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_compare:nTF{##1>#3}
+      {
+      \fp_set:Nn#3{##1}
+      \seq_clear:N#4
+      \seq_put_right:Nx#4{\seq_item:Nn#1{\l_tmpa_int}}
+      }
+      {
+      \fp_compare:nT{##1=#3}
+        {\seq_put_right:Nx#4{\seq_item:Nn#1{\l_tmpa_int}}}
+      }
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #4
+    {listmode}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_mode_distreff:nNN#1#2#3
+  {
+  \tl_set:Nx\l_tmpa_tl
+    {
+    \int_compare:nTF{\seq_count:N#3>1}
+      {
+      L'effectif~maximal~est~\fp_use:N#2,~les~modes~sont~
+      les~valeurs~correspondantes~:~
+      \seq_use:Nnnn#3{,~}{,~}{~et~}.
+      }
+      {
+      L'effectif~maximal~est~\fp_use:N#2,~le~mode~est~la~
+      valeur~correspondante~:~\seq_use:Nn#3{}.
+      }
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {moderedac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_mode_distrfreq:nNN#1#2#3
+  {
+  \tl_set:Nx\l_tmpa_tl
+    {
+    \int_compare:nTF{\seq_count:N#3>1}
+      {
+      La~fréquence~maximale~est~\fp_use:N#2,~les~modes~
+      sont~les~valeurs~correspondantes~:~
+      \seq_use:Nnnn#3{,~}{,~}{~et~}.
+      }
+      {
+      La~fréquence~maximale~est~\fp_use:N#2,~le~mode~est~
+      la~valeur~correspondante~:~\seq_use:Nn#3{}.
+      }
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {moderedac}
+  }
+%
+%
+%
+\cs_generate_variant:Nn\fp_set:Nn{Nx}
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_distreff_moyenne:NNNNNN#1#2#3#4#5#6
+% #1: série stat sous forme de distrib d'eff
+% #2: macro contenant l'effectif total
+% #3: la somme des nixi
+% #4: macro de sauvegarde pour la moyenne
+% #5: precision de l'arrondi sur la moyenne pour la redaction ou l'affichage
+% #6: macro de sauvegarde pour la moyenne arrondie
+  {
+  \fp_zero:N#3
+  \seq_map_inline:Nn#1
+    {
+    \seq_set_split:Nnn\l_tma_seq{/}{##1}
+    \fp_set:Nx#3
+      {
+      \fp_eval:n
+        {
+        (#3)
+          +(\seq_item:Nn\l_tma_seq{1})
+            *(\seq_item:Nn\l_tma_seq{2})
+        }
+      }
+    }
+  \fp_set:Nx#4{\fp_eval:n{(#3)/(#2)}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#4{moy}
+  \fp_set:Nx#6
+    {\fp_eval:n{\__mslf_round:nN{\fp_use:N#4}#5}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#3{sumnixi}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #6
+    {roundedmoy}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_distrfreq_moyenne:NNNNNNN
+  #1#2#3#4#5#6#7
+% #1: série de val
+% #2: serie de freq
+% #3: format freq
+% #4: somme des nixi
+% #5: macro de sauvegarde pour la moyenne
+% #6: precision
+% #7: moy arr
+  {
+  \fp_zero:N#4
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_set:Nx#4
+      {
+      \fp_eval:n
+        {
+        (#4)
+          +(\seq_item:Nn#1{\l_tmpa_int})
+            *(\seq_item:Nn#2{\l_tmpa_int})
+              /(#3)
+        }
+      }
+    }
+  \fp_set_eq:NN#5#4
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#5{moy}
+  \fp_set:Nx#7
+    {\fp_eval:n{\__mslf_round:nN{\fp_use:N#5}#6}}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #7
+    {roundedmoy}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_distrfreq_exactmoyenne:NNNN#1#2#3#4
+% #1: série de val
+% #2: serie de freq exactes (fractions)
+% #3: macro de sauvegarde pour la moyenne pour calculs
+% #4: macro de sauvegarde pour la moyenne pour affichage
+  {
+  \tl_set:Nn#3{0}
+  \tl_clear:N#4
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \int_incr:N\l_tmpa_int
+    \tl_set:Nx#3
+      {
+      \xinttheexpr(#3)
+        +(\seq_item:Nn#1{\l_tmpa_int})
+          *(\seq_item:Nn#2{\l_tmpa_int})\relax
+      }
+    }
+  \tl_set:Nx#3{\xintRawWithZeros{#3}}
+  \tl_set:Nx#4{$\exp_not:N\xintFrac{\xintIrr{#3}}$}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #3
+    {exactmoyforcalc}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #4
+    {exactmoy}
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_class_midpoint:NNN#1#2#3
+% #1: liste des bornes inf
+% #2: liste des bornes sup
+% #3: macro de sauvegarde de la liste des valeurs centrales
+  {
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \int_incr:N\l_tmpa_int
+    \seq_put_right:Nf#3
+      {
+      \fp_eval:n
+        {
+        ((\seq_item:Nn#1{\l_tmpa_int})
+          +(\seq_item:Nn#2{\l_tmpa_int}))/2
+        }
+      }
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #3
+    {listmidpoint}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_classeff_moyenne:NNNNNNN
+  #1#2#3#4#5#6#7
+% #1: liste des valeurs centrales
+% #2: liste des eff
+% #3: macro contenant l'effectif total
+% #4: la somme des nixi
+% #5: macro de sauvegarde pour la moyenne
+% #6: precisio,
+% #7: moy arrondie
+  {
+  \fp_zero:N#4
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_set:Nx#4
+      {
+      \fp_eval:n
+        {
+        (#4)
+          +(\seq_item:Nn#1{\l_tmpa_int})
+            *(\seq_item:Nn#2{\l_tmpa_int})
+        }
+      }
+    }
+  \fp_set:Nx#5{\fp_eval:n{(#4)/(#3)}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#5{moy}
+  \fp_set:Nx#7
+    {\fp_eval:n{\__mslf_round:nN{\fp_use:N#5}#6}}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #7
+    {roundedmoy}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_classfreq_moyenne:NNNNNNN
+  #1#2#3#4#5#6#7
+% #1: liste des valeurs centrales
+% #2: liste des freq
+% #3: macro contenant la frequence totale
+% #4: la somme des nixi
+% #5: macro de sauvegarde pour la moyenne
+% #6
+% #7
+  {
+  \fp_zero:N#4
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_set:Nx#4
+      {
+      \fp_eval:n
+        {
+        (#4)
+          +(\seq_item:Nn#1{\l_tmpa_int})
+            *(\seq_item:Nn#2{\l_tmpa_int})
+        }
+      }
+    }
+  \fp_set:Nx#5{\fp_eval:n{(#4)/(#3)}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#5{moy}
+  \fp_set:Nx#7
+    {\fp_eval:n{\__mslf_round:nN{\fp_use:N#5}#6}}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #7
+    {roundedmoy}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_moyenne_distrraw:nNNNNN#1#2#3#4#5#6
+% #1: le nom de la série -> x, y, ...
+% #2: liste des données brutes
+% #3: eff tot
+% #4: somme des nixi
+% #5:moyenne
+% #6: moyenne arrondie
+  {
+%  \seq_get_right:NN#2\l_tmpb_tl
+%  \tl_set:Nx\l_tmpa_tl{$#1=\fp_use:N#5$}
+%  \_mslf_stat_save_result:NNn
+%    \l_mslf_stat_id_tl
+%    \l_tmpa_tl
+%    {moyredac}
+%    
+  \int_compare:nTF{#3<7}
+    {
+    \tl_set:Nn\l_tmpb_tl{}
+    \int_zero:N\l_tmpa_int
+    \seq_map_inline:Nn#2
+      {
+      \int_incr:N\l_tmpa_int
+      \tl_set:Nx\l_tmpb_tl
+        {
+        \l_tmpb_tl
+        \int_compare:nF{\l_tmpa_int=1}{+}
+        \num{##1}
+        }
+      }
+    \tl_set:Nx\l_tmpa_tl
+      {
+      $#1
+      =\frac{\tl_use:N\l_tmpa_tl}{\num{\int_use:N#3}}
+      =\frac{\num{\fp_use:N#4}}{\num{\int_use:N#3}}
+      \_mslf_eq_or_simeq:NN#5#6
+      \num{\fp_use:N#6}$
+      }	
+    }
+    {
+    \seq_get_right:NN#2\l_tmpa_tl
+    \tl_set:Nx\l_tmpa_tl
+      {
+      $#1
+      =\frac
+        {
+        \num{\seq_item:Nn#2{1}}
+        +
+        \num{\seq_item:Nn#2{2}}
+        +
+        \num{\seq_item:Nn#2{3}}
+        +
+        \exp_not:N\dots
+        +
+        \tl_use:N\l_tmpa_tl
+        }
+        {\num{\int_use:N#3}}
+      =\frac{\num{\fp_use:N#4}}{\num{\int_use:N#3}}
+      \_mslf_eq_or_simeq:NN#5#6
+      \num{\fp_use:N#6}$
+      }
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {moyredac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_moyenne_distreff:nNNNNNNN
+  #1#2#3#4#5#6#7#8
+% #1: le nom de la série -> x, y, ...
+% #2: liste val
+% #3: liste eff ou freq
+% #4: eff tot
+% #5: nbre val diff
+% #6: somme des nixi
+% #7: moyenne
+% #8: moyenne arrondie
+  {
+  \int_compare:nTF{#5<7}
+    {
+    \tl_set:Nn\l_tmpb_tl{}
+    \int_zero:N\l_tmpa_int
+    \seq_map_inline:Nn#3
+      {
+      \int_incr:N\l_tmpa_int
+      \tl_set:Nx\l_tmpb_tl
+        {
+        \l_tmpb_tl
+        \int_compare:nF{\l_tmpa_int=1}{+}
+        \num{##1}\times\num{\seq_item:Nn#2{\l_tmpa_int}}
+        }
+      }
+    \tl_set:Nx\l_tmpa_tl
+      {
+      $#1
+      =\frac{\tl_use:N\l_tmpb_tl}{\num{\int_use:N#4}}
+      =\frac{\num{\fp_use:N#6}}{\num{\int_use:N#4}}
+      \_mslf_eq_or_simeq:NN#7#8
+      \num{\fp_use:N#8}$
+      }	
+    }
+    {
+    \seq_get_right:NN#2\l_tmpa_tl
+    \seq_get_right:NN#3\l_tmpb_tl
+    \tl_set:Nx\l_tmpa_tl
+      {
+      $#1
+      =\frac
+        {
+        \num{\seq_item:Nn#3{1}}
+          \times\num{\seq_item:Nn#2{1}}
+        +
+        \num{\seq_item:Nn#3{2}}
+          \times\num{\seq_item:Nn#2{2}}
+        +
+        \num{\seq_item:Nn#3{3}}
+          \times\num{\seq_item:Nn#2{3}}
+        +
+        \exp_not:N\dots
+        +
+        \tl_use:N\l_tmpb_tl\times\tl_use:N\l_tmpa_tl
+        }
+        {\num{\int_use:N#4}}
+      =\frac{\num{\fp_use:N#6}}{\num{\int_use:N#4}}
+      \_mslf_eq_or_simeq:NN#7#8
+      \num{\fp_use:N#8}$
+      }
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {moyredac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_exactmoyenne_distrfreq:nNNNNNNn
+  #1#2#3#4#5#6#7#8
+% #1: le nom de la série -> x, y, ...
+% #2: liste val
+% #3: liste freq exactes
+% #4: eff tot
+% #5: nbre val diff
+% #6: moyenne exacte
+% #7: moy arrondie
+% #8: id pour la property list
+%%% CORR
+% si les nbres sont décimaux avec peu de chiffres ne pas les transformer
+  {
+  \int_compare:nTF{#5<7}
+    {
+    \tl_set:Nn\l_tmpb_tl{}
+    \int_zero:N\l_tmpa_int
+    \int_compare:nTF{#4=1}
+      {
+      \seq_map_inline:Nn#3
+        {
+        \int_incr:N\l_tmpa_int
+        \tl_set:Nx\l_tmpb_tl
+          {
+          \l_tmpb_tl
+          \int_compare:nF{\l_tmpa_int=1}{+}
+          \xintSignedFrac{\xintRawWithZeros{##1}}
+            \times\num{\seq_item:Nn#2{\l_tmpa_int}}
+          }
+        }
+      }
+      {
+      \seq_map_inline:Nn#3
+        {
+        \int_incr:N\l_tmpa_int
+        \tl_set:Nx\l_tmpb_tl
+          {
+          \l_tmpb_tl
+          \int_compare:nF{\l_tmpa_int=1}{+}
+          \xintSignedFrac{\xintRawWithZeros{##1}}
+            \times\num{\seq_item:Nn#2{\l_tmpa_int}}
+          }
+        }
+      }
+    \tl_set:Nx\l_tmpa_tl
+      {
+      $#1
+      =\tl_use:N\l_tmpb_tl
+      =\xintSignedFrac{#6}
+      \xintifEq
+        {\xintNumerator{#6}}
+        {\xintNumerator{\xintIrr{#6}}}
+        {}
+        {=\xintSignedFrac{\xintIrr{#6}}}
+      \_mslf_eq_or_simeq:NN#7#6
+      \num{\fp_use:N#7}$
+      }	
+    }
+    {
+    \seq_get_right:NN#2\l_tmpa_tl
+    \seq_get_right:NN#3\l_tmpb_tl
+    \tl_set:Nx\l_tmpa_tl
+      {
+      $#1
+      =\num{\seq_item:Nn#2{1}}
+        \times\num{\seq_item:Nn#3{1}}
+        +
+        \num{\seq_item:Nn#2{2}}
+          \times\num{\seq_item:Nn#3{2}}
+        +
+        \num{\seq_item:Nn#2{3}}
+          \times\num{\seq_item:Nn#3{3}}
+        +
+        \exp_not:N\dots
+        +
+        \tl_use:N\l_tmpa_tl\times\tl_use:N\l_tmpb_tl
+      \_mslf_eq_or_simeq:NN#7#6
+      \num{\fp_use:N#7}$
+      }
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {#8redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_moyenne_distrfreq:nNNNNNNn
+  #1#2#3#4#5#6#7#8
+% #1: le nom de la série -> x, y, ...
+% #2: liste val
+% #3: liste eff ou freq
+% #4: eff tot
+% #5: nbre val diff
+% #6: moyenne
+% #7: moy arrondie
+% #8: id pour la property list
+  {
+  \int_compare:nTF{#5<7}
+    {
+    \tl_set:Nn\l_tmpb_tl{}
+    \int_zero:N\l_tmpa_int
+    \int_compare:nTF{#4=1}
+      {
+      \seq_map_inline:Nn#3
+        {
+        \int_incr:N\l_tmpa_int
+        \tl_set:Nx\l_tmpb_tl
+          {
+          \l_tmpb_tl
+          \int_compare:nF{\l_tmpa_int=1}{+}
+          \num{##1}\times\num{\seq_item:Nn#2{\l_tmpa_int}}
+          }
+        }
+      }
+      {
+      \seq_map_inline:Nn#3
+        {
+        \int_incr:N\l_tmpa_int
+        \tl_set:Nx\l_tmpb_tl
+          {
+          \l_tmpb_tl
+          \int_compare:nF{\l_tmpa_int=1}{+}
+          \num{\fp_eval:n{##1/#4}}
+            \times\num{\seq_item:Nn#2{\l_tmpa_int}}
+          }
+        }
+      }
+    \tl_set:Nx\l_tmpa_tl
+      {
+      $#1
+      =\tl_use:N\l_tmpb_tl
+      \_mslf_eq_or_simeq:NN#7#6
+      \num{\fp_use:N#7}$
+      }	
+    }
+    {
+    \seq_get_right:NN#2\l_tmpa_tl
+    \seq_get_right:NN#3\l_tmpb_tl
+    \tl_set:Nx\l_tmpa_tl
+      {
+      $#1
+      =\num{\seq_item:Nn#2{1}}
+        \times\num{\seq_item:Nn#3{1}}
+        +
+        \num{\seq_item:Nn#2{2}}
+          \times\num{\seq_item:Nn#3{2}}
+        +
+        \num{\seq_item:Nn#2{3}}
+          \times\num{\seq_item:Nn#3{3}}
+        +
+        \exp_not:N\dots{}
+        +
+        \num{\tl_use:N\l_tmpa_tl}
+          \times\num{\tl_use:N\l_tmpb_tl}
+        \_mslf_eq_or_simeq:NN#7#6
+        \num{\fp_use:N#7}$
+      }
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {#8redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_moyenne_classeff:nNNNNNNN
+  #1#2#3#4#5#6#7#8
+% #1: le nom de la série -> x, y, ...
+% #2: liste midpoint
+% #3: liste eff ou freq
+% #4: eff tot
+% #5: nbre val diff
+% #6: somme des nixi
+% #7: moyenne
+% #8: arrondie
+  {
+  \tl_set:Nn\l_tmpa_tl{}%    {Une~estimation~de~la~moyenne~est~:~}
+  \int_compare:nTF{#5<7}
+    {
+    \tl_set:Nn\l_tmpb_tl{}
+    \int_zero:N\l_tmpa_int
+    \seq_map_inline:Nn#3
+      {
+      \int_incr:N\l_tmpa_int
+      \tl_set:Nx\l_tmpb_tl
+        {
+        \l_tmpb_tl
+        \int_compare:nF{\l_tmpa_int=1}{+}
+        \num{##1}\times\num{\seq_item:Nn#2{\l_tmpa_int}}
+        }
+      }
+    \tl_set:Nx\l_tmpa_tl
+      {
+      \l_tmpa_tl
+      $#1
+      \simeq
+      \frac{\tl_use:N\l_tmpb_tl}{\num{\int_use:N#4}}
+      =
+      \frac{\num{\fp_use:N#6}}{\num{\int_use:N#4}}
+      \_mslf_eq_or_simeq:VV#7#8\num{\fp_use:N#8}$
+      }
+    }
+    {
+    \tl_set:Nx\l_tmpa_tl
+      {
+      \l_tmpa_tl
+      $#1
+      \simeq
+      \frac
+        {
+        \num{\seq_item:Nn#2{1}}
+          \times\num{\seq_item:Nn#3{1}}
+        +
+        \num{\seq_item:Nn#2{2}}
+          \times\num{\seq_item:Nn#3{2}}
+        +
+        \num{\seq_item:Nn#2{3}}
+          \times\num{\seq_item:Nn#3{3}}
+        +
+        \exp_not:N\dots
+        +
+        \num{\seq_item:Nn#2{#5}}
+          \times\num{\seq_item:Nn#3{#5}}
+        }
+        {\num{\int_use:N#4}}
+      =\frac{\num{\fp_use:N#6}}{\num{\int_use:N#4}}
+      \_mslf_eq_or_simeq:NN#7#8\num{\fp_use:N#8}$
+      }
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {moyredac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_moyenne_classfreq:nNNNNNN
+  #1#2#3#4#5#6#7
+% #1: le nom de la série -> x, y, ...
+% #2: liste midpoint
+% #3: liste eff ou freq
+% #4: eff tot
+% #5: nbre val diff
+% #6:moyenne
+% #7: arrondie
+  {
+  \tl_set:Nn\l_tmpa_tl{} %    {Une~estimation~de~la~moyenne~est~:~}
+  \int_compare:nTF{#5<7}
+    {
+    \tl_set:Nn\l_tmpb_tl{}
+    \int_zero:N\l_tmpa_int
+    \int_compare:nTF{#4=1}
+      {
+      \seq_map_inline:Nn#3
+        {
+        \int_incr:N\l_tmpa_int
+        \tl_set:Nx\l_tmpb_tl
+          {
+          \l_tmpb_tl
+          \int_compare:nF{\l_tmpa_int=1}{+}\num{##1}
+            \times\num{\seq_item:Nn#2{\l_tmpa_int}}
+          }
+        }
+      }
+      {
+      \seq_map_inline:Nn#3
+        {
+        \int_incr:N\l_tmpa_int
+        \tl_set:Nx\l_tmpb_tl
+          {
+          \l_tmpb_tl
+          \int_compare:nF{\l_tmpa_int=1}{+}
+          \num{\fp_eval:n{##1/#4}}
+            \times\num{\seq_item:Nn#2{\l_tmpa_int}}
+          }
+        }
+      }
+    \tl_set:Nx\l_tmpa_tl
+      {
+      \l_tmpa_tl
+      $\overline{#1}
+      \simeq\tl_use:N\l_tmpb_tl
+      \_mslf_eq_or_simeq:NN#7#6\num{\fp_use:N#7}$
+      }
+    }
+    {
+    \tl_set:Nx\l_tmpa_tl
+      {
+      \l_tmpa_tl
+      $#1
+      \simeq
+      \num{\seq_item:Nn#2{1}}\times\num{\seq_item:Nn#3{1}}
+      +
+      \num{\seq_item:Nn#2{2}}\times\num{\seq_item:Nn#3{2}}
+      +
+      \num{\seq_item:Nn#2{3}}\times\num{\seq_item:Nn#3{3}}
+      +\exp_not:N\dots
+      +\num{\seq_item:Nn#2{#5}}
+        \times\num{\seq_item:Nn#3{#5}}
+      \_mslf_eq_or_simeq:NN#7#6\num{\fp_use:N#7}$
+      }
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {moyredac}
+  }
+%
+% Variance
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_distreff_variance:NNNNNNN
+  #1#2#3#4#5#6#7
+% #1: série stat sous forme de distrib d'eff
+% #2: macro contenant la moyenne
+% #3: macro contenant l'effectif total
+% #4: la somme des ni(xi-\bar{x})^2
+% #5: macro de sauvegarde pour la variance
+% #6: precision de l'arrondi sur la variance pour la redaction ou l'affichage
+% #7: macro de sauvegarde pour la variance arrondie
+  {
+  \fp_zero:N#4
+  \seq_map_inline:Nn#1
+    {
+    \seq_set_split:Nnn\l_tmpa_seq{/}{##1}
+    \fp_set:Nx#4
+      {
+      \fp_eval:n
+        {
+        (#4)
+        +(\seq_item:Nn\l_tmpa_seq{2})
+          *(\seq_item:Nn\l_tmpa_seq{1}-(\fp_use:N#2))^2
+        }
+      }
+    }
+  \fp_set:Nx#5{\fp_eval:n{(#4)/(#3)}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl #5{var}
+  \fp_set:Nx#7
+    {\fp_eval:n{\__mslf_round:nN{\fp_use:N#5}#6}}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #7
+    {roundedvar}
+  }
+%
+%
+%
+\cs_set:Npn
+  \_mslf_stat_onevar_distreff_variance:NNNNNNN
+  #1#2#3#4#5#6#7
+% #1: série stat sous forme de distrib d'eff
+% #2: macro contenant la moyenne
+% #3: macro contenant l'effectif total
+% #4: la somme des ni(xi)^2
+% #5: macro de sauvegarde pour la variance
+% #6: precision de l'arrondi sur la variance pour la redaction ou l'affichage
+% #7: macro de sauvegarde pour la variance arrondie
+  {
+  \fp_zero:N#4
+  \seq_map_inline:Nn#1
+    {
+    \seq_set_split:Nnn\l_tmpa_seq{/}{##1}
+    \fp_set:Nx#4
+      {
+      \fp_eval:n
+        {
+        (#4)
+        +(\seq_item:Nn\l_tmpa_seq{2})
+          *(\seq_item:Nn\l_tmpa_seq{1})^2
+        }
+      }
+    }
+  \fp_set:Nx#5{\fp_eval:n{(#4)/(#3)-(\fp_use:N#2)^2}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl #5{var}
+  \fp_set:Nx#7
+    {\fp_eval:n{\__mslf_round:nN{\fp_use:N#5}#6}}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #7
+    {roundedvar}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_variance_distreff:nnNNNNNNN
+  #1#2#3#4#5#6#7#8#9
+% #1: le nom de la variance
+% #2: le nom de la moyenne
+% #3: liste val
+% #4: liste eff ou freq
+% #5: eff tot
+% #6: nbre val diff
+% #7: somme des nixi^2
+% #8 : variance
+% #9: variance arrondie
+  {
+  \int_compare:nTF{#6<7}
+    {
+    \tl_set:Nn\l_tmpb_tl{}
+    \int_zero:N\l_tmpa_int
+    \seq_map_inline:Nn#4
+      {
+      \int_incr:N\l_tmpa_int
+      \tl_set:Nx\l_tmpb_tl
+        {
+        \l_tmpb_tl
+        \int_compare:nF{\l_tmpa_int=1}{+}
+        \num{##1}\times\num{\seq_item:Nn#3{\l_tmpa_int}^2}
+        }
+      }
+    \tl_set:Nx\l_tmpa_tl
+      {
+      $#1
+      =\frac{\tl_use:N\l_tmpb_tl}{\num{\int_use:N#5}}-#2^2
+      =\frac{\num{\fp_use:N#7}}{\num{\int_use:N#5}}-#2^2
+      \_mslf_eq_or_simeq:NN#8#9
+      \num{\fp_use:N#9}$
+      }	
+    }
+    {
+    \seq_get_right:NN#3\l_tmpa_tl
+    \seq_get_right:NN#4\l_tmpb_tl
+    \tl_set:Nx\l_tmpa_tl
+      {
+      $#1
+      =\frac
+        {
+        \num{\seq_item:Nn#4{1}}
+          \times\num{\seq_item:Nn#3{1}}^2
+        +
+        \num{\seq_item:Nn#4{2}}
+          \times\num{\seq_item:Nn#3{2}}^2
+        +
+        \num{\seq_item:Nn#4{3}}
+          \times\num{\seq_item:Nn#3{3}}^2
+        +
+        \exp_not:N\dots
+        +
+        \tl_use:N\l_tmpb_tl\times\tl_use:N\l_tmpa_tl^2
+        }
+        {\num{\int_use:N#5}}-#2^2
+      =\frac{\num{\fp_use:N#7}}{\num{\int_use:N#5}}-#2^2
+      \_mslf_eq_or_simeq:NN#8#9
+      \num{\fp_use:N#9}$
+      }
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {varredac}
+  }
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_distrfreq_variance:NNNNNNNN
+  #1#2#3#4#5#6#7#8
+% #1: série de val
+% #2: serie de freq
+% #3: macro contenant la moyenne
+% #4: format freq
+% #5: somme des ni(xi-\bar{x})^2
+% #6: macro de sauvegarde pour la variance
+% #7: precision
+% #8: macro de sauvegarde pour la variance arrondie
+  {
+  \fp_zero:N#5
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_set:Nx#5
+      {
+      \fp_eval:n
+        {
+        (#5)
+        +(\seq_item:Nn#2{\l_tmpa_int})
+          *((\seq_item:Nn#1{\l_tmpa_int})
+            -(\fp_use:N#3))^2/(#4)
+        }
+      }
+    }
+  \fp_set_eq:NN#6#5
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#6{var}
+  \fp_set:Nx#8
+    {\fp_eval:n{\__mslf_round:nN{\fp_use:N#6}#7}}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #8
+    {roundedvar}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_classeff_variance:NNNNNNNN
+  #1#2#3#4#5#6#7#8
+% #1: liste des valeurs centrales
+% #2: liste des eff
+% #3: macro contenant l'effectif total
+% #4: macro contenant la moyenne
+% #5: la somme des ni(xi-\bar{x})^2
+% #6: macro de sauvegarde pour la var
+% #7: precisio,
+% #8: var arrondie
+  {
+  \fp_zero:N#5
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_set:Nx#5
+      {
+      \fp_eval:n
+        {
+        (#5)
+        +
+        (\seq_item:Nn#2{\l_tmpa_int})
+          *(\seq_item:Nn#1{\l_tmpa_int}-\fp_use:N#4)^2
+        }
+      }
+    }
+  \fp_set:Nx#6{\fp_eval:n{(#5)/(#3)}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#6{var}
+  \fp_set:Nx#8
+    {\fp_eval:n{\__mslf_round:nN{\fp_use:N#6}#7}}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #8
+    {roundedvar}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_classfreq_variance:NNNNNNNN
+  #1#2#3#4#5#6#7#8
+% #1: liste des valeurs centrales
+% #2: liste des freq
+% #3: macro contenant la frequence totale
+% #4: macro contenant la moyenne
+% #5: la somme des ni(xi-\bar{x})^2
+% #6: macro de sauvegarde pour la var
+% #7: precisio,
+% #8: var arrondie
+  {
+  \fp_zero:N#5
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_set:Nx#5
+      {
+      \fp_eval:n
+        {
+        (#5)
+        +(\seq_item:Nn#2{\l_tmpa_int})
+          *((\seq_item:Nn#1{\l_tmpa_int})-(\fp_use:N#4))^2
+        }
+      }
+    }
+  \fp_set:Nx#6{\fp_eval:n{(#5)/(#3)}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#6{moy}
+  \fp_set:Nx#8
+    {\fp_eval:n{\__mslf_round:nN{\fp_use:N#6}#7}}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #8
+    {roundedmoy}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_variance_distrfreq:nNNNNNNn
+  #1#2#3#4#5#6#7#8
+% #1: le nom de la série -> x, y, ...
+% #2: liste val
+% #3: liste eff ou freq
+% #4: eff tot
+% #5: nbre val diff
+% #6: moyenne
+% #7: var
+% #8: var arrondie
+% #9: id pour la property list
+  {
+  \int_compare:nTF{#5<7}
+    {
+    \tl_set:Nn\l_tmpb_tl{}
+    \int_zero:N\l_tmpa_int
+    \int_compare:nTF{#4=1}
+      {
+      \seq_map_inline:Nn#3
+        {
+        \int_incr:N\l_tmpa_int
+        \tl_set:Nx\l_tmpb_tl
+          {
+          \l_tmpb_tl
+          \int_compare:nF{\l_tmpa_int=1}{+}\num{##1}
+            \times\num{\seq_item:Nn#2{\l_tmpa_int}^2}
+          }
+        }
+      }
+      {
+      \seq_map_inline:Nn#3
+        {
+        \int_incr:N\l_tmpa_int
+        \tl_set:Nx\l_tmpb_tl
+          {
+          \l_tmpb_tl
+          \int_compare:nF{\l_tmpa_int=1}{+}
+          \num{\fp_eval:n{##1/#4}}
+            \times\num{(\seq_item:Nn#2{\l_tmpa_int})^2}
+          }
+        }
+      }
+    \tl_set:Nx\l_tmpa_tl
+      {
+      $#1
+      =\tl_use:N\l_tmpb_tl
+      \_mslf_eq_or_simeq:NN#7#6
+      \num{\fp_use:N#7}$
+      }	
+    }
+    {
+    \seq_get_right:NN#2\l_tmpa_tl
+    \seq_get_right:NN#3\l_tmpb_tl
+    \tl_set:Nx\l_tmpa_tl
+      {
+      $#1
+      =
+      \num{\seq_item:Nn#2{1}}\times\num{\seq_item:Nn#3{1}}
+      +
+      \num{\seq_item:Nn#2{2}}\times\num{\seq_item:Nn#3{2}}
+      +
+      \num{\seq_item:Nn#2{3}}\times\num{\seq_item:Nn#3{3}}
+      +
+      \exp_not:N\dots{}
+      +
+      \num{\tl_use:N\l_tmpa_tl}
+        \times\num{\tl_use:N\l_tmpb_tl}
+      \_mslf_eq_or_simeq:NN#7#6
+      \num{\fp_use:N#7}$
+      }
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {#8redac}
+  }
+%
+% Ecart-type
+%
+\cs_new:Npn\_mslf_stat_onevar_ecarttype:NNNN#1#2#3#4
+% #1: macro contenant la variance
+% #2: macro de sauvegarde pour l'écart-type
+% #3: precision de l'arrondi sur l'écart-type pour la redaction ou l'affichage
+% #4: macro de sauvegarde pour l'écart-type arrondi
+  {
+  \fp_set:Nx#2{sqrt(#1)}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #2
+    {ecarttype}
+  \fp_set:Nx#4
+    {\fp_eval:n{\__mslf_round:nN{\fp_use:N#2}#3}}
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    #4
+    {roundedecarttype}
+  }
+%
+\cs_new:Npn\_mslf_stat_onevar_redac_ecarttype_distreff:nnNN
+  #1#2#3#4
+% #1: le nom de la série -> x, y, ...
+% #2 : nom de la variance
+% #3 : ecart type
+% #4: ecart type arrondi
+  {%
+      \prop_get:cnN{g_stat_ \tl_use:N\l_mslf_stat_id_tl _prop}{varredac}\l_tmpa_tl
+    \tl_put_right:Nx\l_tmpa_tl
+      {~donc~$#1
+      =\noexpand\sqrt{#2}
+      \_mslf_eq_or_simeq:NN#3#4
+      \num{\fp_use:N#4}$
+      }	
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {ecarttyperedac}
+  }
+%
+%
+%
+%
+% Médiane
+%
+\cs_generate_variant:Nn\int_set:Nn{Nx}
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_distreff_mediane:NNNNNN#1#2#3#4#5#6
+% #1: liste des ecc
+% #2: liste des val
+% #3: macro contenant l'effectif total
+% #4: macro de sauvegarde pour le rang de la mediane
+% #5: macro de sauvegarde por les valeurs centrales
+% #6: macro de sauvegarde pour la mediane
+  {
+  \fp_zero:N#6
+  \clist_clear:N#5
+  \int_if_even:nTF{#3}
+    {
+    \int_set:Nx#4{\int_eval:n{(#3)/2}}
+    \int_zero:N\l_tmpa_int
+    \int_zero:N\l_tmpb_int
+    \seq_map_inline:Nn#1
+      {
+      \int_compare:nTF{##1<#4}
+        {\int_incr:N\l_tmpa_int}
+        {
+        \int_incr:N\l_tmpa_int
+        \int_compare:nTF{##1>=#4+1}
+          {\int_set_eq:NN\l_tmpb_int\l_tmpa_int}
+          {\int_set:Nx\l_tmpb_int{\l_tmpa_int+1}}
+        \seq_map_break:
+        }
+      }
+    \clist_set:Nx#5
+      {
+      \seq_item:Nn#2{\l_tmpa_int},
+      \seq_item:Nn#2{\l_tmpb_int}
+      }
+    \fp_set:Nx#6
+      {
+      \fp_eval:n
+        {
+        ((\seq_item:Nn#2{\l_tmpa_int})
+        +(\seq_item:Nn#2{\l_tmpb_int}))/2
+        }
+      }
+    }
+    {
+    \int_set:Nx#4{\int_eval:n{(#3+1)/2}}
+    \int_zero:N\l_tmpa_int
+    \seq_map_inline:Nn#1
+      {
+      \int_compare:nTF{##1<#4}
+        {\int_incr:N\l_tmpa_int}
+        {
+        \int_incr:N\l_tmpa_int
+        \seq_map_break:
+        }
+      }
+    \clist_set:Nx#5{\seq_item:Nn#2{\l_tmpa_int}}
+    \fp_set:Nx#6{\fp_eval:n{\seq_item:Nn#2{\l_tmpa_int}}}
+    }
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#4{rgmed}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#6{med}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_distrfreq_mediane:NNNN#1#2#3#4
+% #1: liste des ecc
+% #2: liste des val
+% #3: macro contenant l'effectif total
+% #4: macro de sauvegarde pour la mediane
+  {
+  \fp_zero:N#4
+  \int_set:Nn\l_tmpa_int{1}
+  \seq_map_inline:Nn#1
+    {
+    \fp_compare:nTF{##1<0.5*#3}
+      {\int_incr:N\l_tmpa_int}
+      {\seq_map_break:}
+    }
+  \fp_set:Nx#4{\fp_eval:n{\seq_item:Nn#2{\l_tmpa_int}}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#4{med}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_class_mediane:NNNNNNN#1#2#3#4#5#6#7
+% #1: liste des ecc
+% #2: liste des bi
+% #3: liste des bs
+% #4: macro contenant l'effectif total
+% #5: macro de sauvegarde pour la mediane
+% #6 : precision
+% #7: macro de sauvegarde pour la mediane arrondie
+  {
+  \fp_zero:N#5
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_compare:nF{##1<(#4)/2}{\seq_map_break:}
+    }
+  \int_compare:nTF{\l_tmpa_int=1}
+    {\int_set:Nn\l_tmpb_int{0}}
+    {
+    \int_set:Nn\l_tmpb_int{\seq_item:Nn#1{\l_tmpa_int-1}}
+    }
+  \fp_set:Nx#5
+    {
+    \fp_eval:n
+      {
+      \seq_item:Nn#3{\l_tmpa_int}
+      -
+      (\seq_item:Nn#1{\l_tmpa_int}-#4/2)
+        *(\seq_item:Nn#3{\l_tmpa_int}
+          -\seq_item:Nn#2{\l_tmpa_int})
+        /(\seq_item:Nn#1{\l_tmpa_int}-\l_tmpb_int)
+      }
+    }
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#5{med}
+    \fp_set:Nx#7{\fp_eval:n{\__mslf_round:nN{\fp_use:N#5}#6}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#7{roundedmed}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_mediane_distreff:nNNNN
+  #1#2#3#4#5
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: rang med
+% #4: csv des valeurs centrales
+% #5: mediane
+  {
+  \int_if_even:nTF{#2}
+    {
+    \tl_set:Nx\l_tmpa_tl
+      {
+      L'effectif~total~est~
+      $
+      \num{\int_use:N#2}
+      =2\times \num{\int_use:N#3}
+      $~donc~la~médiane~est~la~moyenne~des~valeurs~de~
+      rangs~\num{\int_use:N#3}~et~\num{\int_eval:n{#3+1}}~
+      :~
+      \noexpand\begin{centered}
+      $
+      #1
+      =
+      \frac
+        {\num{\clist_item:Nn#4{1}}
+          +\num{\clist_item:Nn#4{2}}
+        }{2}
+      =\num{\fp_use:N#5}
+      $
+      \noexpand\end{centered}
+      }
+    }
+    {
+    \tl_set:Nx\l_tmpa_tl
+      {
+      L'effectif~total~est~
+      $
+      \num{\int_use:N#2}
+      =
+      2\times \num{\int_eval:n{#3-1}}+1
+      $~donc~la~médiane~est~la~valeur~de~rang~
+      \num{\int_use:N#3}~:~$#1=\num{\fp_use:N#5}$
+      }
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {medredac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_mediane_distrfreq:nNN#1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: mediane
+  {
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2/2}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    La~médiane~est~la~plus~petite~valeur~dont~la~
+    fréquence~cumulée~croissante~est~au~moins~
+    $\num{\fp_use:N \l_tmpa_fp}$
+    \int_compare:nTF{#2=100}
+      {~\%}
+      {\int_compare:nT{#2=100}{~\textperthousand}}~
+    :~$#1=\num{\fp_use:N#3}
+    $.
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {medredac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_mediane_classeff:nNN
+  #1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: mediane arrondie
+  {
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2/2}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    La~médiane~est~l'abscisse~du~point~du~polygone~des~
+    effectifs~cumulés~croissants~d'ordonnée~
+    $
+    \num{0,5}\times\int_use:N#2
+    =
+    \num{\fp_use:N \l_tmpa_fp}
+    $~:~
+    $#1\simeq\num{\fp_use:N#3}$
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {medredac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_mediane_classfreq:nNN#1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: mediane
+  {
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2/2}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    La~médiane~est~l'abscisse~du~point~du~polygone~des~
+    fréquences~cumulées~croissantes~d'ordonnée~
+    $\num{\fp_use:N \l_tmpa_fp}$~:~
+    $#1\simeq\num{\fp_use:N#3}$.
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {medredac}
+  }
+%
+% Déciles
+%
+\cs_new:Npn\_mslf_stat_onevar_distr_decilei:NNNN#1#2#3#4
+% #1: liste des ecc (ou  fcc)
+% #2: liste des val
+% #3: macro contenant l'effectif (ou la freq) total
+% #4: macro de sauvegarde pour le decile 1
+  {
+  \fp_zero:N#4
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_compare:nF{##1<(#3)*0.1}{\seq_map_break:}
+    }
+  \fp_set:Nx#4{\fp_eval:n{\seq_item:Nn#2{\l_tmpa_int}}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#4{d1}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_distr_decileix:NNNN#1#2#3#4
+% #1: liste des ecc (ou  fcc)
+% #2: liste des val
+% #3: macro contenant l'effectif (ou la freq) total
+% #4: macro de sauvegarde pour le quartile 1
+  {
+  \fp_zero:N#4
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \fp_compare:nTF{##1<#3*0.9}
+      {\int_incr:N\l_tmpa_int}
+      {
+      \int_incr:N\l_tmpa_int
+      \seq_map_break:
+      }
+    }
+  \fp_set:Nx#4{\fp_eval:n{\seq_item:Nn#2{\l_tmpa_int}}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#4{d9}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_class_decilei:NNNNN#1#2#3#4#5
+% #1: liste des ecc
+% #2: liste des bi
+% #3: liste des bs
+% #4: macro contenant l'effectif total
+% #5: macro de sauvegarde pour qi
+  {
+  \fp_zero:N#5
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_compare:nF{##1<(#4)*0.1}{\seq_map_break:}
+    }
+  \int_compare:nTF{\l_tmpa_int=1}
+    {\int_set:Nn\l_tmpb_int{0}}
+    {
+    \int_set:Nn\l_tmpb_int{\seq_item:Nn#1{\l_tmpa_int-1}}
+    }
+  \fp_set:Nx#5
+    {
+    \fp_eval:n
+      {
+      \seq_item:Nn#3{\l_tmpa_int}
+      -
+      (\seq_item:Nn#1{\l_tmpa_int}-#4*0.1)
+        *(\seq_item:Nn#3{\l_tmpa_int}
+          -\seq_item:Nn#2{\l_tmpa_int})
+        /(\seq_item:Nn#1{\l_tmpa_int}-\l_tmpb_int)
+      }
+    }
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#5{d1}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_class_decileix:NNNNN#1#2#3#4#5
+% #1: liste des ecc
+% #2: liste des bi
+% #3: liste des bs
+% #4: macro contenant l'effectif total
+% #5: macro de sauvegarde pour dix
+  {
+  \fp_zero:N#5
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_compare:nF{##1<(#4)*0.9}{\seq_map_break:}
+    }
+  \int_compare:nTF{\l_tmpa_int=1}
+    {\int_set:Nn\l_tmpb_int{0}}
+    {\int_set:Nn\l_tmpb_int
+      {\seq_item:Nn#1{\l_tmpa_int-1}}
+    }
+  \fp_set:Nx#5
+    {
+    \fp_eval:n
+      {
+      \seq_item:Nn#3{\l_tmpa_int}
+      -
+      (\seq_item:Nn#1{\l_tmpa_int}-(#4)*0.9)
+      *
+      (\seq_item:Nn#3{\l_tmpa_int}
+        -\seq_item:Nn#2{\l_tmpa_int})
+      /(\seq_item:Nn#1{\l_tmpa_int}-\l_tmpb_int)
+      }
+    }
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#5{d9}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_decilei_distreff:nNN#1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: mediane
+  {
+  \fp_set:Nn\l_tmpa_fp{\fp_eval:n{#2/10}}
+  \fp_set:Nn\l_tmpb_fp{\fp_eval:n{ceil(\l_tmpa_fp)}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    L'effectif~total~est~$\num{\int_use:N#2}$.~$
+    \frac{\int_use:N#2}{10}=\num{\fp_use:N\l_tmpa_fp}$~
+    donc~le~premier~décile~est~la~valeur~de~rang~
+    $\num{\fp_use:N\l_tmpb_fp}$~:~$#1=\num{\fp_use:N#3}$
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {d1redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_decileix_distreff:nNN#1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: mediane
+  {
+  \fp_set:Nn\l_tmpa_fp{\fp_eval:n{#2*0.9}}
+  \fp_set:Nn\l_tmpb_fp{\fp_eval:n{ceil(\l_tmpa_fp)}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    L'effectif~total~est~$\num{\int_use:N#2}$.~
+    $
+    \frac{9\times\int_use:N#2}{10}
+    =\num{\fp_use:N\l_tmpa_fp}
+    $~
+    donc~le~neuvième~décile~est~la~valeur~de~rang~
+    $\num{\fp_use:N\l_tmpb_fp}$~:~$#1=\num{\fp_use:N#3}$
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {d9redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_decilei_distrfreq:nNN#1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: decile
+  {
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2/10}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    Le~premier~décile~est~la~plus~petite~valeur~dont~
+    la~fréquence~cumulée~croissante~est~au~moins~
+    $\num{\fp_use:N\l_tmpa_fp}$
+    \int_compare:nTF{#2=100}
+      {~\%}
+      {\int_compare:nT{#2=100}{~\textperthousand}}~
+    :~$#1=\num{\fp_use:N#3}$.
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {d1redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_decileix_distrfreq:nNN#1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: mediane
+  {
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2*0.9}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    Le~neuvième~décile~est~la~plus~petite~valeur~dont~
+    la~fréquence~cumulée~croissante~est~au~moins~
+    \hbox
+      {
+      $\num{\fp_use:N\l_tmpa_fp}$
+      \int_compare:nTF{#2=100}
+        {~\%}
+        {\int_compare:nT{#2=100}{~\textperthousand}}
+      }
+    ~:~$#1=\num{\fp_use:N#3}$
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {d9redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_decilei_classeff:nNNNN
+  #1#2#3#4#5
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: q1
+% #4: precision
+% #5: q1 arrondie
+  {
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2/10}}
+  \fp_set:Nx#5
+    {\fp_eval:n{\__mslf_round:nN{\fp_use:N#3}#4}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    Le~premier~décile~est~l'abscisse~du~point~du~
+    polygone~des~effectifs~cumulés~croissants~d'ordonnée~
+    $\num{0,1}\times\int_use:N#2
+    =\num{\fp_use:N \l_tmpa_fp}$~
+    :~$#1\simeq\num{\fp_use:N#5}$.
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {d1redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_decileix_classeff:nNNNN
+  #1#2#3#4#5
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: q1
+% #4: precision
+% #5: q1 arrondie
+  {
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2*0.9}}
+  \fp_set:Nx#5
+    {\fp_eval:n{\__mslf_round:nN{\fp_use:N#3}#4}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    Le~neuvième~décile~est~l'abscisse~du~point~du~
+    polygone~des~effectifs~cumulés~croissants~d'ordonnée~
+    $\num{0,9}\times\int_use:N#2
+    =\num{\fp_use:N \l_tmpa_fp}$~
+    :~$#1\simeq\num{\fp_use:N#5}$.
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {d9redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_decilei_classfreq:nNN#1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: mediane
+  {
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2/10}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    Le~premier~décile~est~l'abscisse~du~point~du~
+    polygone~des~effectifs~cumulés~croissants~d'ordonnée~
+    $\num{\fp_use:N \l_tmpa_fp}$~:~
+    $#1\simeq\num{\fp_use:N#3}$.
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {d1redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_decileix_classfreq:nNN#1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: mediane
+  {
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2*0.9}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    Le~neuvième~décile~est~l'abscisse~du~point~du~
+    polygone~des~effectifs~cumulés~croissants~d'ordonnée~
+    $\num{\fp_use:N \l_tmpa_fp}$~:~
+    $#1\simeq\num{\fp_use:N#3}$.
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {d9redac}
+  }
+%
+% Quartiles
+%
+\cs_new:Npn\_mslf_stat_onevar_distr_quartilei:NNNN#1#2#3#4
+% #1: liste des ecc (ou  fcc)
+% #2: liste des val
+% #3: macro contenant l'effectif (ou la freq) total
+% #4: macro de sauvegarde pour le quartile 1
+  {
+  \fp_zero:N#4
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_compare:nF{##1<(#3)*0.25}{\seq_map_break:}
+    }
+  \fp_set:Nx#4{\fp_eval:n{\seq_item:Nn#2{\l_tmpa_int}}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#4{q1}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_distr_quartileiii:NNNN#1#2#3#4
+% #1: liste des ecc (ou  fcc)
+% #2: liste des val
+% #3: macro contenant l'effectif (ou la freq) total
+% #4: macro de sauvegarde pour le quartile 1
+  {
+  \fp_zero:N#4
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \fp_compare:nTF{##1<#3*0.75}
+      {\int_incr:N\l_tmpa_int}
+      {
+      \int_incr:N\l_tmpa_int
+      \seq_map_break:
+      }
+    }
+  \fp_set:Nx#4{\fp_eval:n{\seq_item:Nn#2{\l_tmpa_int}}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#4{q3}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_class_quartilei:NNNNNNN#1#2#3#4#5#6#7
+% #1: liste des ecc
+% #2: liste des bi
+% #3: liste des bs
+% #4: macro contenant l'effectif total
+% #5: macro de sauvegarde pour qi
+% #6 : precision
+% #7: macro de sauvegarde pour le qiii arrondi
+  {
+  \fp_zero:N#5
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_compare:nF{##1<(#4)*0.25}{\seq_map_break:}
+    }
+  \int_compare:nTF{\l_tmpa_int=1}
+    {\int_set:Nn\l_tmpb_int{0}}
+    {
+    \int_set:Nn\l_tmpb_int{\seq_item:Nn#1{\l_tmpa_int-1}}
+    }
+  \fp_set:Nx#5
+    {
+    \fp_eval:n
+      {
+      \seq_item:Nn#3{\l_tmpa_int}
+      -
+      (\seq_item:Nn#1{\l_tmpa_int}-#4*0.25)
+        *(\seq_item:Nn#3{\l_tmpa_int}
+          -\seq_item:Nn#2{\l_tmpa_int})
+        /(\seq_item:Nn#1{\l_tmpa_int}-\l_tmpb_int)
+      }
+    }
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#5{q1}
+    \fp_set:Nx#7{\fp_eval:n{\__mslf_round:nN{\fp_use:N#5}#6}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#7{roundedq1}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_class_quartileiii:NNNNNNN#1#2#3#4#5#6#7
+% #1: liste des ecc
+% #2: liste des bi
+% #3: liste des bs
+% #4: macro contenant l'effectif total
+% #5: macro de sauvegarde pour qiii
+% #6 : precision
+% #7: macro de sauvegarde pour le qiii arrondi
+  {
+  \fp_zero:N#5
+  \int_zero:N\l_tmpa_int
+  \seq_map_inline:Nn#1
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_compare:nF{##1<(#4)*0.75}{\seq_map_break:}
+    }
+  \int_compare:nTF{\l_tmpa_int=1}
+    {\int_set:Nn\l_tmpb_int{0}}
+    {\int_set:Nn\l_tmpb_int
+      {\seq_item:Nn#1{\l_tmpa_int-1}}
+    }
+  \fp_set:Nx#5
+    {
+    \fp_eval:n
+      {
+      \seq_item:Nn#3{\l_tmpa_int}
+      -
+      (\seq_item:Nn#1{\l_tmpa_int}-(#4)*0.75)
+      *
+      (\seq_item:Nn#3{\l_tmpa_int}
+        -\seq_item:Nn#2{\l_tmpa_int})
+      /(\seq_item:Nn#1{\l_tmpa_int}-\l_tmpb_int)
+      }
+    }
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#5{q3}
+    \fp_set:Nx#7{\fp_eval:n{\__mslf_round:nN{\fp_use:N#5}#6}}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#7{roundedq3}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_quartilei_distreff:nNN#1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: mediane
+  {
+  \fp_set:Nn\l_tmpa_fp{\fp_eval:n{#2/4}}
+  \fp_set:Nn\l_tmpb_fp{\fp_eval:n{ceil(\l_tmpa_fp)}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    L'effectif~total~est~$\num{\int_use:N#2}$.~$
+    \frac{\int_use:N#2}{4}=\num{\fp_use:N\l_tmpa_fp}$~
+    donc~le~premier~quartile~est~la~valeur~de~rang~
+    $\num{\fp_use:N\l_tmpb_fp}$~:~$#1=\num{\fp_use:N#3}$
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {q1redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_quartileiii_distreff:nNN#1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: mediane
+  {
+  \fp_set:Nn\l_tmpa_fp{\fp_eval:n{#2*0.75}}
+  \fp_set:Nn\l_tmpb_fp{\fp_eval:n{ceil(\l_tmpa_fp)}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    L'effectif~total~est~$\num{\int_use:N#2}$.~
+    $
+    \frac{3\times\int_use:N#2}{4}
+    =\num{\fp_use:N\l_tmpa_fp}
+    $~
+    donc~le~troisième~quartile~est~la~valeur~de~rang~
+    $\num{\fp_use:N\l_tmpb_fp}$~:~$#1=\num{\fp_use:N#3}$
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {q3redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_quartilei_distrfreq:nNN#1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: mediane
+  {
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2/4}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    Le~premier~quartile~est~la~plus~petite~valeur~dont~
+    la~fréquence~cumulée~croissante~est~au~moins~
+    $\num{\fp_use:N\l_tmpa_fp}$
+    \int_compare:nTF{#2=100}
+      {~\%}
+      {\int_compare:nT{#2=100}{~\textperthousand}}~
+    :~$#1=\num{\fp_use:N#3}$.
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {q1redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_quartileiii_distrfreq:nNN#1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: mediane
+  {
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2*0.75}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    Le~troisième~quartile~est~la~plus~petite~valeur~dont~
+    la~fréquence~cumulée~croissante~est~au~moins~
+    \hbox
+      {
+      $\num{\fp_use:N\l_tmpa_fp}$
+      \int_compare:nTF{#2=100}
+        {~\%}
+        {\int_compare:nT{#2=100}{~\textperthousand}}
+      }
+    ~:~$#1=\num{\fp_use:N#3}$
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {q3redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_quartilei_classeff:nNN
+  #1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: q1 arrondie
+  {
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2/4}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    Le~premier~quartile~est~l'abscisse~du~point~du~
+    polygone~des~effectifs~cumulés~croissants~d'ordonnée~
+    $\num{0,25}\times\int_use:N#2
+    =\num{\fp_use:N \l_tmpa_fp}$~
+    :~$#1\simeq\num{\fp_use:N#3}$.
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {q1redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_quartileiii_classeff:nNN
+  #1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: q1
+  {
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2*0.75}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    Le~troisième~quartile~est~l'abscisse~du~point~du~
+    polygone~des~effectifs~cumulés~croissants~d'ordonnée~
+    $\num{0,75}\times\int_use:N#2
+    =\num{\fp_use:N \l_tmpa_fp}$~
+    :~$#1\simeq\num{\fp_use:N#3}$.
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {q3redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_quartilei_classfreq:nNN#1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: mediane
+  {
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2/4}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    Le~premier~quartile~est~l'abscisse~du~point~du~
+    polygone~des~effectifs~cumulés~croissants~d'ordonnée~
+    $\num{\fp_use:N \l_tmpa_fp}$~:~
+    $#1\simeq\num{\fp_use:N#3}$.
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {q1redac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_quartileiii_classfreq:nNN#1#2#3
+% #1: le nom de la série -> x, y, ...
+% #2: eff tot
+% #3: mediane
+  {
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2*0.75}}
+  \tl_set:Nx\l_tmpa_tl
+    {
+    Le~troisième~quartile~est~l'abscisse~du~point~du~
+    polygone~des~effectifs~cumulés~croissants~d'ordonnée~
+    $\num{\fp_use:N \l_tmpa_fp}$~:~
+    $#1\simeq\num{\fp_use:N#3}$.
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {q3redac}
+  }
+%
+% ecart IQ
+%
+\cs_new:Npn\_mslf_stat_onevar_ecartiq:NNN#1#2#3
+% #1: macro stockant le quartile 1
+% #2: macro stockant le quartile 3
+% #3: macro de sauvegarde pour l'écart interquartile
+  {
+  \fp_set:Nn#3{#2-(#1)}
+  \_mslf_stat_save_result:NNn\l_mslf_stat_id_tl#3{ecartiq}	
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_ecartiq:nNNNNN#1#2#3#4#5#6
+% #1: nom serie
+% #2: macro stockant le quartile 1
+% #3: macro stockant le label du quartile 1
+% #4: macro stockant le quartile 3
+% #5: macro stockant le label du quartile 3
+% #6: macro de sauvegarde pour l'écart interquartile
+  {
+  \tl_set:Nx\l_tmpa_tl
+    {
+    	L'écart~inter~quartile~est~
+    	$#1
+    	  =\tl_use:N#5-\tl_use:N#3
+    	  =\num
+    	     [round-precision=
+    	       \l_mslf_stat_onevar_mediane_precision_int]
+    	     {\fp_use:N#4}
+    	   -
+    	   \num
+    	     [round-precision=
+    	       \l_mslf_stat_onevar_mediane_precision_int]
+         {\fp_use:N#2}=\num{\fp_use:N#6}$.
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {ecartiqredac}
+  }
+%
+%
+%
+\cs_new:Npn
+  \_mslf_stat_onevar_redac_class_ecartiq:nNNNNN
+  #1#2#3#4#5#6
+% #1: nom serie
+% #2: macro stockant le quartile 1
+% #3: macro stockant le label du quartile 1
+% #4: macro stockant le quartile 3
+% #5: macro stockant le label du quartile 3
+% #6: macro de sauvegarde pour l'écart interquartile
+  {%REVOIR LES SIMEQ
+  \tl_set:Nx\l_tmpa_tl
+    {
+    	L'écart~inter~quartile~est~
+    	$
+    	#1=\tl_use:N#5-\tl_use:N#3
+    	  \simeq
+    	  \num
+    	    [round-mode=places,
+    	    round-precision=
+    	      \l_mslf_stat_onevar_mediane_precision_int]
+    	    {\fp_use:N#4}
+      -
+      \num
+        [round-mode=places,
+        round-precision=
+          \l_mslf_stat_onevar_mediane_precision_int]
+        {\fp_use:N#2}
+      \simeq
+      \num
+        [round-mode=places,
+        round-precision=
+          \l_mslf_stat_onevar_mediane_precision_int]
+        {\fp_use:N#6}$.
+    }
+  \_mslf_stat_save_result:NNn
+    \l_mslf_stat_id_tl
+    \l_tmpa_tl
+    {ecartiqredac}
+  }
+%
+%
+%
+\clist_new:N\_mslf_stat_onevar_boxplotindic_clist
+\clist_set:Nn\_mslf_stat_onevar_boxplotindic_clist
+  {xmin,qi,med,qiii,xmax}
+%
+\cs_new:Npn\_mslf_stat_onevar_boxplot_body:NN#1#2
+% #1: liste des ids des series voulues
+% #2: tl de sauvegarde des commandes pgfplots
+% #3: bool pour l'affichage du nom des éléments de la boite à moustache
+  {
+  \clist_map_inline:Nn#1
+    {
+    \tl_put_left:Nn#2{\addplot+[}
+    \tl_put_right:Nx#2
+      {
+        \tl_use:N\l_mslf_stat_onevar_boitemoustache_addboxopt_tl,
+        /pgfplots/boxplot~prepared=
+          {
+          lower~quartile =
+            \fp_eval:n
+              {
+              \_mslf_stat_expandableuse_value:nn
+                {##1}
+                {q1}
+              },
+          median =
+            \fp_eval:n
+              {
+              \_mslf_stat_expandableuse_value:nn
+                {##1}
+                {med}
+              },%
+          upper~quartile =
+            \fp_eval:n
+              {
+              \_mslf_stat_expandableuse_value:nn
+                {##1}
+                {q3}
+              },
+          whisker~extend = {0.2},%
+          box~extend = {0.75},%
+          },
+      }
+    \bool_if:NTF\l_mslf_stat_onevar_boitemoustache_decile_bool
+        {
+         \tl_put_right:Nx#2
+          {
+          /pgfplots/boxplot~prepared=
+            {
+            lower~whisker =
+              \fp_eval:n
+                {
+                \_mslf_stat_expandableuse_value:nn
+                  {##1}
+                  {d1}
+                },
+            upper~whisker =
+              \fp_eval:n
+                {
+                \_mslf_stat_expandableuse_value:nn
+                  {##1}
+                  {d9}
+                },
+            }
+        }
+      \_mslf_stat_get_list:nnN{##1}{val}\l_tmpa_seq% liste des valeurs qui doit être rangée dans l'ordre croissant
+      \fp_set:Nx\l_tmpa_fp{\_mslf_stat_expandableuse_value:nn{##1}{d1}}
+      \fp_set:Nx\l_tmpb_fp{\_mslf_stat_expandableuse_value:nn{##1}{d9}}
+      \tl_set:Nn\l_tmpc_tl{}
+      \seq_map_inline:Nn\l_tmpa_seq
+          {
+          \fp_compare:nTF{####1<\l_tmpa_fp}
+            {\tl_put_right:Nn\l_tmpc_tl{(0,####1) }}
+            {\seq_map_break:}
+          }
+      \seq_reverse:N\l_tmpa_seq
+      \seq_map_inline:Nn\l_tmpa_seq
+          {
+          \fp_compare:nTF{####1>\l_tmpb_fp}
+            {\tl_put_right:Nn\l_tmpc_tl{(0,####1) }}
+            {\seq_map_break:}
+          }
+      \tl_put_right:Nx#2{] coordinates{\l_tmpc_tl};}
+      }
+      {
+      \tl_put_right:Nx#2
+         {
+         /pgfplots/boxplot~prepared=
+           {
+            lower~whisker =
+              \fp_eval:n
+              {
+               \_mslf_stat_expandableuse_value:nn
+                 {##1}
+                 {xmin}
+               },
+           upper~whisker =
+             \fp_eval:n
+             {
+             \_mslf_stat_expandableuse_value:nn
+               {##1}
+               {xmax}
+             },
+           }
+        }
+     \tl_put_right:Nn#2{] coordinates{};}
+      }
+    }
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_boxplot_preamble:NN#1#2
+% #1: liste des ids des series voulues
+% #2: tl de sauvegarde des commandes pgfplots	
+  {
+  \dim_zero:N\l_tmpb_dim
+  \fp_zero:N\l_tmpa_fp
+  \fp_zero:N\l_tmpb_fp
+  \fp_zero:N\l_tmpc_fp
+  \seq_clear:N\l_tmpb_seq
+  \int_set:Nx\l_tmpa_int{\clist_count:N#1}
+  \tl_set:Nx#2
+    {
+    xminorgrids=true
+    ,xmajorgrids=true
+    ,xminorticks=true
+    ,enlarge~y~limits={abs=0.5cm}
+    ,enlarge~x~limits={abs=0.5cm}
+    ,y=1cm
+%    ,axis~y~line=none
+    ,y~axis~line~style={-}
+    ,ylabel={}
+    ,xlabel=\empty
+    }
+  \int_zero:N\l_tmpb_int
+  \clist_map_inline:Nn#1
+    {
+    \_mslf_stat_get_value:nnN{##1}{xmin}\l_tmpc_fp
+    \_mslf_stat_get_value:nnN{##1}{xmax}\l_tmpd_fp
+    \int_compare:nTF{\l_tmpb_int=0}
+      {
+      \fp_set_eq:NN\l_tmpa_fp\l_tmpc_fp
+      \fp_set_eq:NN\l_tmpb_fp\l_tmpd_fp
+      }
+      {
+      \fp_set:Nx\l_tmpa_fp
+        {\fp_eval:n{min(\l_tmpa_fp,\l_tmpc_fp)}}
+      \fp_set:Nx\l_tmpb_fp
+        {\fp_eval:n{max(\l_tmpb_fp,\l_tmpd_fp)}}			
+      }% toujours zero car tmpa initialisé à 0
+    \int_incr:N\l_tmpb_int
+    \seq_put_left:Nn\l_tmpb_seq
+      {
+      \_mslf_stat_expandableuse_value:nn
+        {##1}
+        {boxplotlabel}
+      }
+    }
+  \edef\boitemoustacheymax{\fp_eval:n{\l_tmpa_int+0.75/2}}
+  \edef\boitemoustachexmin{\fp_eval:n{\l_tmpa_fp}}
+  \edef\boitemoustachexmax{\fp_eval:n{\l_tmpb_fp}}
+  \tl_put_right:Nx#2
+    {
+    ,
+    xmin=\fp_eval:n{\l_tmpa_fp},
+    xmax=\fp_eval:n{\l_tmpb_fp}
+    }
+%
+  \clist_if_empty:NF\l_mslf_stat_onevar_boitemoustache_boiteslabels_tl
+    {
+      \clist_map_inline:Nn\l_mslf_stat_onevar_boitemoustache_boiteslabels_tl
+        {
+        \hbox_set:Nn\l_tmpa_box{##1}
+        \dim_compare:nT{\box_wd:N\l_tmpa_box>\l_tmpb_dim}
+         {\dim_set:Nx\l_tmpb_dim{\box_wd:N\l_tmpa_box}}
+        }
+    }
+  \dim_set:Nn\l_tmpa_dim
+    {
+      (0.9\linewidth-\l_tmpb_dim)
+      *\dim_ratio:nn
+        {1pt}
+        {\fp_use:N\l_tmpb_fp pt-\fp_use:N\l_tmpa_fp pt}
+    }
+  \dim_set:Nx\l_tmpa_dim
+    {\dim_to_decimal:n{\l_tmpa_dim} pt}
+  \clist_if_empty:NTF
+    \l_mslf_stat_onevar_boitemoustache_boiteslabels_tl
+    {
+    \int_compare:nTF{\l_tmpa_int=1}
+      {
+      \tl_put_right:Nx#2
+        {
+        ,ytick={1},
+        yticklabels={}
+        }
+      }
+      {
+      \tl_put_right:Nx#2
+        {, ytick={1,...,\int_use:N\l_tmpa_int}
+        ,yticklabels={\seq_use:Nn\l_tmpb_seq{,}}
+        }
+      }
+    }
+    {
+    \clist_reverse:N
+      \l_mslf_stat_onevar_boitemoustache_boiteslabels_tl
+    \tl_put_right:Nx#2
+      {
+      ,ytick={1,...,\int_use:N\l_tmpa_int}
+      ,yticklabels={\clist_use:Nn \l_mslf_stat_onevar_boitemoustache_boiteslabels_tl{,}}
+      }
+    }
+  \tl_put_right:Nx#2{,x=\dim_use:N\l_tmpa_dim,}
+  }
+%
+%
+%
+\dim_new:N\_mslf_stat_boitemoustache_xunit_dim
+%
+\cs_generate_variant:Nn\dim_set:Nn{Nx}
+%
+%
+%
+\NewDocumentCommand{\boitemoustache}{m}
+  {
+  \clist_clear_new:N\l_tmpa_clist
+  \tl_clear_new:N\l_tmpa_tl
+  \tl_clear_new:N\l_tmpb_tl
+  \clist_set:Nn\l_tmpa_clist{#1}
+  \_mslf_stat_onevar_boxplot_body:NN
+    \l_tmpa_clist
+    \l_tmpa_tl
+  \_mslf_stat_onevar_boxplot_preamble:NN
+    \l_tmpa_clist
+    \l_tmpb_tl
+  \def\boxplotpreambule{\tl_use:N\l_tmpb_tl}
+  \def\boxplotbody{\tl_use:N\l_tmpa_tl}% comment laisser la possibilité d'ajouter des nodes au graphique du bas, ou à n'importe quel des autres graphiques\pgfkeysvalueof{/pgfplots/xmin}
+  }
+%
+%
+%
+\NewDocumentCommand{\boitemoustachepreambule}{m}
+  {
+  \clist_clear_new:N\l_tmpa_clist
+  \tl_clear_new:N\l_tmpb_tl
+  \clist_set:Nn\l_tmpa_clist{#1}
+  \_mslf_stat_onevar_boxplot_preamble:NN
+    \l_tmpa_clist
+    \l_tmpb_tl
+  \tl_clear_new:N\l_tmpa_tl
+  \tl_set:Nx\l_tmpa_tl{(\boitemoustachexmin,0)}
+  \edef\boitemoustachexmin{\tl_use:N\l_tmpa_tl}
+  \tl_clear_new:N\l_tmpa_tl
+  \tl_set:Nx\l_tmpa_tl
+    {(\boitemoustachexmax,\boitemoustacheymax)}
+  \edef\boitemoustachexmax{\tl_use:N\l_tmpa_tl}
+  \edef\boxplotpreambule{\tl_use:N\l_tmpb_tl}
+  }
+%
+%
+%
+\NewDocumentCommand{\boitemoustachebody}{m}
+  {
+  \clist_clear_new:N\l_tmpa_clist
+  \tl_clear_new:N\l_tmpa_tl
+  \clist_set:Nn\l_tmpa_clist{#1}
+  \_mslf_stat_onevar_boxplot_body:NN
+    \l_tmpa_clist
+    \l_tmpa_tl
+  \def\boxplotbody{\tl_use:N\l_tmpa_tl}% comment laisser la possibilité d'ajouter des nodes au graphique du bas, ou à n'importe quel des autres graphiques\pgfkeysvalueof{/pgfplots/xmin}
+  }
+%
+%
+%
+\keys_define:nn {stat/boitemoustache}
+  {
+  decile           .bool_set:N = \l_mslf_stat_onevar_boitemoustache_decile_bool,
+  decile		   .initial:n = false,
+  add-tikz-option  .tl_set:N =
+    \l_mslf_stat_onevar_boitemoustache_tikzopt_tl,
+  add-axis-option  .tl_set:N =
+    \l_mslf_stat_onevar_boitemoustache_axisopt_tl,
+%			.initial:n   =  {},
+%			.default:n   =  {},
+  add-boxplot-option      .tl_set:N =
+    \l_mslf_stat_onevar_boitemoustache_addboxopt_tl,
+  add-boxplot      .tl_set:N =
+    \l_mslf_stat_onevar_boitemoustache_addboxbody_tl,
+%			.initial:n   =  {},
+%			.default:n   =  {},
+  add-afterboxplot .tl_set:N =
+    \l_mslf_stat_onevar_boitemoustache_addbody_tl,
+%			.initial:n   =  {},
+%			.default:n   =  {},
+  label		       .tl_set:N =
+    \l_mslf_stat_onevar_boitemoustache_boiteslabels_tl,
+%		.initial:n = {},
+%		.default:n = {},
+  vide		       .bool_set:N =
+    \l_mslf_stat_onevar_boitemoustache_vide_bool,
+  vide		       .initial:n = false
+  }
+%
+%
+%
+\dim_new:N\l_montextwidthactuel_dim
+\NewDocumentCommand{\dessinboitemoustache}{O{}m}
+  {
+  \group_begin:
+  \keys_set:nn{stat/boitemoustache}{#1}
+  \boitemoustachepreambule{#2}
+  \bool_if:NF\l_mslf_stat_onevar_boitemoustache_vide_bool
+    {\boitemoustachebody{#2}}
+  \__mslf_start_tikzpicture:V
+    \l_mslf_stat_onevar_boitemoustache_tikzopt_tl
+  \begin{axis}
+    [
+    \boxplotpreambule,
+    \tl_use:N\l_mslf_stat_onevar_boitemoustache_axisopt_tl
+    ]
+    \bool_if:NTF
+      \l_mslf_stat_onevar_boitemoustache_vide_bool
+      {
+      \addplot[mark=none]
+        coordinates{\boitemoustachexmin};
+      \addplot[mark=none] 
+        coordinates{\boitemoustachexmax};
+      }
+      {\boxplotbody}
+    \tl_use:N
+      \l_mslf_stat_onevar_boitemoustache_addboxbody_tl
+  \end{axis}
+  \tl_use:N\l_mslf_stat_onevar_boitemoustache_addbody_tl
+  \end{tikzpicture}
+  \group_end:
+  }
+%
+%
+%
+\cs_new_protected:Nn \__mslf_start_tikzpicture:n
+  {\begin{tikzpicture}[#1]}
+%
+\cs_generate_variant:Nn \__mslf_start_tikzpicture:n { V }
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_courbecum_body:NN#1#2
+% #1: clist des identifiants des series voulues 
+% #2: clist des courbe voulue: ecc, ecd, fcc, fcd
+  {
+  \clist_map_inline:Nn#1
+    {
+    \prop_get:cnN{g_stat_ ##1 _prop}
+      {listborneinf}
+      \l_tmpb_seq
+    \prop_get:cnN{g_stat_ ##1 _prop}
+      {listbornesup}
+      \l_tmpc_seq
+    \seq_get_right:NN\l_tmpc_seq\l_tmpa_tl
+    \seq_put_right:NV\l_tmpb_seq\l_tmpa_tl
+    \clist_map_inline:Nn#2%
+      {
+      \prop_get:cnN{g_stat_ ##1 _prop}
+        {list####1}
+        \l_tmpa_seq
+      \tl_if_in:nnTF{####1}{cc}
+        {
+        \seq_set_eq:NN\l_tmpc_seq\l_tmpa_seq
+        \seq_put_left:Nn\l_tmpc_seq{0}
+        }
+        {
+        \seq_set_eq:NN\l_tmpc_seq\l_tmpa_seq
+        \seq_put_right:Nn\l_tmpc_seq{0}
+        }
+      \int_zero:N\l_tmpa_int
+      \seq_clear:c{l_mslf_courbe####1_pts##1_seq}
+      \seq_map_inline:Nn\l_tmpc_seq
+        {
+        \int_incr:N\l_tmpa_int
+        \seq_put_right:cx
+          {l_mslf_courbe####1_pts##1_seq}
+          {
+          (\seq_item:Nn\l_tmpb_seq{\l_tmpa_int},########1)
+          }
+        }
+      \tl_set:Nx\l_tmpc_tl
+        {\seq_use:cn{l_mslf_courbe####1_pts##1_seq}{}}
+      \expandafter\xdef\csname pts####1##1\endcsname
+        {\tl_use:N\l_tmpc_tl}
+      }
+    }
+  }
+%
+%
+%
+\def\ptscourbecum#1#2{\csname pts#2#1\endcsname}
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_courbecum_preamble:NN#1#2
+% #1: liste des ids des series voulues
+% #2: tl de sauvegarde des commandes pgfplots
+  {}
+%
+%
+%
+\NewDocumentCommand{\courbecum}{mm}
+  {
+  \clist_set:Nn\l_tmpa_clist{#1}
+  \clist_set:Nn\l_tmpb_clist{#2}
+  \_mslf_stat_onevar_courbecum_body:NN
+    \l_tmpa_clist
+    \l_tmpb_clist
+  }
+%
+% calculs pour une distr d'eff
+%
+\tl_new:N\l_mslf_stat_onevar_exactmoyforcalc_tl
+\tl_new:N\l_mslf_stat_onevar_exactmoy_tl			
+\int_new:N\l_mslf_stat_onevar_length_int% nbre de valeurs différentes
+\int_new:N\l_mslf_stat_onevar_efftot_int
+\int_new:N\l_mslf_stat_onevar_rangqi_fp
+\int_new:N\l_mslf_stat_onevar_rangqiii_fp
+\int_new:N\l_mslf_stat_onevar_rangdi_fp
+\int_new:N\l_mslf_stat_onevar_rangdix_fp
+\fp_new:N\l_mslf_stat_onevar_efffreqmax_fp
+\fp_new:N\l_mslf_stat_onevar_medianerounded_fp		
+\fp_new:N\l_mslf_stat_onevar_dirounded_fp
+\fp_new:N\l_mslf_stat_onevar_dixrounded_fp
+\fp_new:N\l_mslf_stat_onevar_qirounded_fp
+\fp_new:N\l_mslf_stat_onevar_qiiirounded_fp
+\fp_new:N\l_mslf_stat_onevar_moyenne_fp
+\fp_new:N\l_mslf_stat_onevar_moyennerounded_fp
+\fp_new:N\l_mslf_stat_onevar_moyennefromroundedfreq_fp
+\fp_new:N
+  \l_mslf_stat_onevar_moyenneroundedfromroundedfreq_fp
+\fp_new:N\l_mslf_stat_onevar_sumnixi_fp
+\fp_new:N\l_mslf_stat_onevar_sumnixifromroudfres_fp
+\fp_new:N\l_mslf_stat_onevar_etendue_fp
+\fp_new:N\l_mslf_stat_onevar_xmin_fp
+\fp_new:N\l_mslf_stat_onevar_xmax_fp
+\fp_new:N\l_mslf_stat_onevar_freqtot_fp
+\int_new:N\l_mslf_stat_onevar_mediane_rang_int
+\fp_new:N\l_mslf_stat_onevar_mediane_fp
+\fp_new:N\l_mslf_stat_onevar_di_fp
+\fp_new:N\l_mslf_stat_onevar_dix_fp
+\fp_new:N\l_mslf_stat_onevar_qi_fp
+\fp_new:N\l_mslf_stat_onevar_qiii_fp
+\fp_new:N\l_mslf_stat_onevar_ecartiq_fp
+\fp_new:N\l_mslf_stat_onevar_sumniximinusmoycarre_fp
+\fp_new:N\l_mslf_stat_onevar_variance_fp
+\fp_new:N\l_mslf_stat_onevar_variancerounded_fp
+\fp_new:N\l_mslf_stat_onevar_ecarttype_fp
+\fp_new:N\l_mslf_stat_onevar_ecarttyperounded_fp
+\seq_new:N\l_mslf_stat_onevar_vectorval_seq
+\seq_new:N\l_mslf_stat_onevar_vectoreff_seq
+\seq_new:N\l_mslf_stat_onevar_vectorecc_seq
+\seq_new:N\l_mslf_stat_onevar_vectorecd_seq
+\seq_new:N\l_mslf_stat_onevar_vectorfcc_seq
+\seq_new:N\l_mslf_stat_onevar_vectorfcd_seq
+\seq_new:N\l_mslf_stat_onevar_vectorfreq_seq
+\seq_new:N\l_mslf_stat_onevar_vectorexactfreq_seq
+\seq_new:N\l_mslf_stat_onevar_vectorexactfreqforcalc_seq
+\seq_new:N\l_mslf_stat_onevar_vectorroundedfreq_seq
+\seq_new:N\l_mslf_stat_onevar_mode_seq
+\clist_new:N\l_mslf_stat_onevar_mediane_valcentr_clist
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_distreff_savedata:N#1
+  {
+  \_mslf_stat_onevar_boxplot_label:N
+    \l_mslf_stat_onevar_boxplot_label_tl
+  \_mslf_stat_onevar_length:NN
+    #1
+    \l_mslf_stat_onevar_length_int
+  \_mslf_stat_onevar_distr_vectors:NNNn
+    #1
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_vectoreff_seq
+    {eff}
+  \_mslf_stat_onevar_vector_pondcum_int:NNNN% ecc, effectif total, ecd
+    \l_mslf_stat_onevar_vectoreff_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_vectorecc_seq
+    \l_mslf_stat_onevar_vectorecd_seq
+  \_mslf_stat_onevar_distreff_vectorfreq:NNNN
+    \l_mslf_stat_onevar_vectoreff_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_vectorfreq_seq
+  \_mslf_stat_onevar_vector_pondcum_fp:NNNNN% ecc, effectif total, ecd
+    \l_mslf_stat_onevar_vectorfreq_seq
+    \l_mslf_stat_onevar_freqtot_fp
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_vectorfcc_seq
+    \l_mslf_stat_onevar_vectorfcd_seq
+  \bool_if:NT\l_mslf_stat_onevar_freq_round_bool
+    {
+    \_mslf_stat_onevar_distr_vectorroundedfreq:NNN
+      \l_mslf_stat_onevar_vectorfreq_seq
+      \l_mslf_stat_onevar_freq_precision_int
+      \l_mslf_stat_onevar_vectorroundedfreq_seq
+    }
+  \bool_if:NT\l_mslf_stat_onevar_exact_bool
+    {
+    \_mslf_stat_onevar_distreff_vectorexactfreq:NNNN
+      \l_mslf_stat_onevar_vectoreff_seq
+      \l_mslf_stat_onevar_efftot_int
+      \l_mslf_stat_onevar_vectorexactfreqforcalc_seq
+      \l_mslf_stat_onevar_vectorexactfreq_seq
+    }
+  \_mslf_stat_onevar_distreff_moyenne:NNNNNN
+    #1
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_sumnixi_fp
+    \l_mslf_stat_onevar_moyenne_fp
+    \l_mslf_stat_onevar_moy_precision_int
+    \l_mslf_stat_onevar_moyennerounded_fp
+  \bool_if:NTF\l_mslf_stat_onevar_raw_bool
+    {
+    \_mslf_stat_onevar_redac_moyenne_distrraw:nNNNNN
+      {\tl_use:N\l_mslf_stat_onevar_moyenne_label_tl}
+      \l__mslf_stat_dataraw_seq
+      \l_mslf_stat_onevar_efftot_int
+      \l_mslf_stat_onevar_sumnixi_fp
+      \l_mslf_stat_onevar_moyenne_fp
+      \l_mslf_stat_onevar_moyennerounded_fp
+    }
+    {
+    \_mslf_stat_onevar_redac_moyenne_distreff:nNNNNNNN
+      {\tl_use:N\l_mslf_stat_onevar_moyenne_label_tl}
+      \l_mslf_stat_onevar_vectorval_seq
+      \l_mslf_stat_onevar_vectoreff_seq
+      \l_mslf_stat_onevar_efftot_int
+      \l_mslf_stat_onevar_length_int
+      \l_mslf_stat_onevar_sumnixi_fp
+      \l_mslf_stat_onevar_moyenne_fp
+      \l_mslf_stat_onevar_moyennerounded_fp
+    }
+  \_mslf_stat_onevar_distr_mode:NNNN
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_vectoreff_seq
+    \l_mslf_stat_onevar_efffreqmax_fp
+    \l_mslf_stat_onevar_mode_seq
+  \_mslf_stat_onevar_redac_mode_distreff:nNN
+    {\tl_use:N\l_mslf_stat_onevar_mode_label_tl}
+    \l_mslf_stat_onevar_efffreqmax_fp
+    \l_mslf_stat_onevar_mode_seq
+  \_mslf_stat_onevar_distreff_variance:NNNNNNN
+    #1
+    \l_mslf_stat_onevar_moyenne_fp
+    \l_mslf_stat_onevar_efftot_int
+%    \l_mslf_stat_onevar_sumniximinusmoycarre_fp
+    \l_mslf_stat_onevar_sumnixicarre_fp
+    \l_mslf_stat_onevar_variance_fp
+    \l_mslf_stat_onevar_var_precision_int
+    \l_mslf_stat_onevar_variancerounded_fp
+  \_mslf_stat_onevar_redac_variance_distreff:nnNNNNNNN
+    {\tl_use:N\l_mslf_stat_onevar_variance_label_tl}
+    {\tl_use:N\l_mslf_stat_onevar_moyenne_label_tl}
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_vectoreff_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_length_int
+    \l_mslf_stat_onevar_sumnixicarre_fp
+    \l_mslf_stat_onevar_variance_fp
+    \l_mslf_stat_onevar_variancerounded_fp
+  \_mslf_stat_onevar_ecarttype:NNNN
+    \l_mslf_stat_onevar_variance_fp
+    \l_mslf_stat_onevar_ecarttype_fp
+    \l_mslf_stat_onevar_ecarttype_precision_int
+    \l_mslf_stat_onevar_ecarttyperounded_fp
+  \_mslf_stat_onevar_redac_ecarttype_distreff:nnNN
+    {\tl_use:N\l_mslf_stat_onevar_ecarttype_label_tl}
+    {\tl_use:N\l_mslf_stat_onevar_variance_label_tl}
+    \l_mslf_stat_onevar_ecarttype_fp
+    \l_mslf_stat_onevar_ecarttyperounded_fp
+  \_mslf_stat_onevar_distreff_mediane:NNNNNN
+    \l_mslf_stat_onevar_vectorecc_seq
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_mediane_rang_int
+    \l_mslf_stat_onevar_mediane_valcentr_clist
+    \l_mslf_stat_onevar_mediane_fp
+  \_mslf_stat_onevar_redac_mediane_distreff:nNNNN
+    {\tl_use:N\l_mslf_stat_onevar_mediane_label_tl}
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_mediane_rang_int
+    \l_mslf_stat_onevar_mediane_valcentr_clist
+    \l_mslf_stat_onevar_mediane_fp
+  \_mslf_stat_onevar_distr_decilei:NNNN
+    \l_mslf_stat_onevar_vectorecc_seq
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_di_fp
+  \_mslf_stat_onevar_redac_decilei_distreff:nNN
+    {\tl_use:N\l_mslf_stat_onevar_di_label_tl}
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_di_fp
+  \_mslf_stat_onevar_distr_decileix:NNNN
+    \l_mslf_stat_onevar_vectorecc_seq
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_dix_fp
+  \_mslf_stat_onevar_redac_decileix_distreff:nNN
+    {\tl_use:N\l_mslf_stat_onevar_dix_label_tl}
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_dix_fp
+  \_mslf_stat_onevar_distr_quartilei:NNNN
+    \l_mslf_stat_onevar_vectorecc_seq
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_qi_fp
+  \_mslf_stat_onevar_redac_quartilei_distreff:nNN
+    {\tl_use:N\l_mslf_stat_onevar_qi_label_tl}
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_qi_fp
+  \_mslf_stat_onevar_distr_quartileiii:NNNN
+    \l_mslf_stat_onevar_vectorecc_seq
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_qiii_fp
+  \_mslf_stat_onevar_redac_quartileiii_distreff:nNN
+    {\tl_use:N\l_mslf_stat_onevar_qiii_label_tl}
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_qiii_fp
+  \_mslf_stat_onevar_distr_etendue:NNNN
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_etendue_fp
+    \l_mslf_stat_onevar_xmin_fp
+    \l_mslf_stat_onevar_xmax_fp
+  \_mslf_stat_onevar_redac_etendue:nNNN
+    {\tl_use:N\l_mslf_stat_onevar_etendue_label_tl}
+    \l_mslf_stat_onevar_xmin_fp
+    \l_mslf_stat_onevar_xmax_fp
+    \l_mslf_stat_onevar_etendue_fp
+  \_mslf_stat_onevar_ecartiq:NNN
+    \l_mslf_stat_onevar_qi_fp
+    \l_mslf_stat_onevar_qiii_fp
+    \l_mslf_stat_onevar_ecartiq_fp
+  \_mslf_stat_onevar_redac_ecartiq:nNNNNN
+    {\tl_use:N\l_mslf_stat_onevar_ecartiq_label_tl}
+    \l_mslf_stat_onevar_qi_fp
+    \l_mslf_stat_onevar_qi_label_tl
+    \l_mslf_stat_onevar_qiii_fp
+    \l_mslf_stat_onevar_qiii_label_tl
+    \l_mslf_stat_onevar_ecartiq_fp
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_compute_distreff:N#1
+  {\_mslf_stat_onevar_distreff_savedata:N#1}
+%
+% calculs pour une serie brute
+%
+\cs_set_eq:NN\_mslf_stat_onevar_raw_savedata:N
+  \_mslf_stat_onevar_distreff_savedata:N
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_compute_raw:N#1
+  {% on utilise la distr des frequences, voir si parfis on peut s'en passer
+% pour le calcul de la moyenne, voir si on utilise dnas la rédaction le calcul issu de la distribution ou si on utilise la série brute
+  \_mslf_stat_onevar_raw_savedata:N#1
+  }
+%
+% calculs pour un\_mslf_stat_onevar_class_quartileie distr de freq
+%
+\msg_new:nnnn {stat}{sumfreqerror}
+  {\msg_error_text:n{#1}~pour~la~serie~stat~d'id~#2~:~
+  La~somme~des~fréquences~données~dans~cette~distribution~
+  de~fréquences~n'a~pas~une~somme~correcte~(#3).
+  A~vous~de~voir~si~l'erreur~est~ou~non~une~simple~erreur~
+  d'arrondis.
+  }
+  {Revoir~les~frequences~passées~dans~la~serie~d'id~#2}
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_distrfreq_savedata:N#1
+  {
+  \_mslf_stat_onevar_boxplot_label:N
+    \l_mslf_stat_onevar_boxplot_label_tl
+  \_mslf_stat_onevar_length:NN
+    #1
+    \l_mslf_stat_onevar_length_int
+  \_mslf_stat_onevar_distr_vectors:NNNn
+    #1
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_vectorfreq_seq
+    {freq}
+  \_mslf_stat_onevar_vector_pondcum_fp:NNNNN% ecc, effectif total, ecd
+    \l_mslf_stat_onevar_vectorfreq_seq
+    \l_mslf_stat_onevar_freqtot_fp
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_vectorfcc_seq
+    \l_mslf_stat_onevar_vectorfcd_seq
+  \fp_compare:nT
+    {
+    \l_mslf_stat_onevar_freqtot_fp
+      !=\l_mslf_stat_onevar_freqformat_int
+    }
+    {
+    \msg_error:nnxxx {stat}{sumfreqerror}
+      {\msg_line_context:}
+      {\tl_use:N\l_mslf_stat_id_tl}
+      {\fp_use:N\l_mslf_stat_onevar_freqtot_fp}
+    }
+  \bool_if:NT\l_mslf_stat_onevar_effforfreq_bool
+    {
+    \_mslf_stat_onevar_distrfreq_vectoreff:NNNN
+      \l_mslf_stat_onevar_vectorfreq_seq
+      \l_mslf_stat_onevar_effforfreq_int
+      \l_mslf_stat_onevar_freqformat_int
+      \l_mslf_stat_onevar_vectoreff_seq
+    \_mslf_stat_onevar_vector_pondcum_int:NNNN% ecc, effectif total, ecd
+      \l_mslf_stat_onevar_vectoreff_seq
+      \l_mslf_stat_onevar_efftot_int
+      \l_mslf_stat_onevar_vectorecc_seq
+      \l_mslf_stat_onevar_vectorecd_seq
+    \int_compare:nT
+      {
+      \l_mslf_stat_onevar_effforfreq_int
+        !=\l_mslf_stat_onevar_efftot_int
+      }
+      {
+      \msg_error:nnxx {stat}{effbyfreq-rounderror}
+        {\msg_line_context:}
+        {\tl_use:N\l_mslf_stat_id_tl}
+      }
+    }
+  \_mslf_stat_onevar_distr_mode:NNNN
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_vectorfreq_seq
+    \l_mslf_stat_onevar_efffreqmax_fp
+    \l_mslf_stat_onevar_mode_seq
+  \_mslf_stat_onevar_redac_mode_distrfreq:nNN
+    {\tl_use:N\l_mslf_stat_onevar_mode_label_tl}
+    \l_mslf_stat_onevar_efffreqmax_fp
+    \l_mslf_stat_onevar_mode_seq
+  \_mslf_stat_onevar_distrfreq_moyenne:NNNNNNN
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_vectorfreq_seq
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_sumnixi_fp
+    \l_mslf_stat_onevar_moyenne_fp
+    \l_mslf_stat_onevar_moy_precision_int
+    \l_mslf_stat_onevar_moyennerounded_fp
+  \bool_if:NT\l_mslf_stat_onevar_exact_bool
+    {
+    \_mslf_stat_onevar_distrfreq_vector_exactfreq_fp:NNNN
+      \l_mslf_stat_onevar_vectorfreq_seq
+      \l_mslf_stat_onevar_freqformat_int
+      \l_mslf_stat_onevar_vectorexactfreqforcalc_seq
+      \l_mslf_stat_onevar_vectorexactfreq_seq
+    \_mslf_stat_onevar_distrfreq_exactmoyenne:NNNN
+      \l_mslf_stat_onevar_vectorval_seq
+      \l_mslf_stat_onevar_vectorexactfreqforcalc_seq
+      \l_mslf_stat_onevar_exactmoyforcalc_tl
+      \l_mslf_stat_onevar_exactmoy_tl
+    \_mslf_stat_onevar_redac_exactmoyenne_distrfreq:nNNNNNNn
+      {\tl_use:N\l_mslf_stat_onevar_moyenne_label_tl}
+      \l_mslf_stat_onevar_vectorval_seq
+      \l_mslf_stat_onevar_vectorexactfreqforcalc_seq
+      \l_mslf_stat_onevar_freqformat_int
+      \l_mslf_stat_onevar_length_int
+      \l_mslf_stat_onevar_exactmoyforcalc_tl
+      \l_mslf_stat_onevar_moyennerounded_fp
+      {exactmoy}		
+    }
+  \_mslf_stat_onevar_redac_moyenne_distrfreq:nNNNNNNn
+    {\tl_use:N\l_mslf_stat_onevar_moyenne_label_tl}
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_vectorfreq_seq
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_length_int
+    \l_mslf_stat_onevar_moyenne_fp
+    \l_mslf_stat_onevar_moyennerounded_fp
+    {moy}
+  \_mslf_stat_onevar_distrfreq_variance:NNNNNNNN
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_vectorfreq_seq
+    \l_mslf_stat_onevar_moyenne_fp
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_sumniximinusmoycarre_fp
+    \l_mslf_stat_onevar_variance_fp
+    \l_mslf_stat_onevar_var_precision_int
+    \l_mslf_stat_onevar_variancerounded_fp	
+  \bool_if:NT\l_mslf_stat_onevar_freq_round_bool
+    {
+    \_mslf_stat_onevar_distr_vectorroundedfreq:NNN
+      \l_mslf_stat_onevar_vectorfreq_seq
+      \l_mslf_stat_onevar_freq_precision_int
+      \l_mslf_stat_onevar_vectorroundedfreq_seq
+    }
+  \bool_if:NT
+    \l_mslf_stat_onevar_moy_fromroundedfreq_bool
+    {
+    \_mslf_stat_onevar_distrfreq_moyenne:NNNNNNN
+      \l_mslf_stat_onevar_vectorval_seq
+      \l_mslf_stat_onevar_vectorroundedfreq_seq
+      \l_mslf_stat_onevar_freqformat_int
+      \l_mslf_stat_onevar_sumnixifromroudfres_fp
+      \l_mslf_stat_onevar_moyennefromroundedfreq_fp
+      \l_mslf_stat_onevar_moy_precision_int
+      \l_mslf_stat_onevar_moyenneroundedfromroundedfreq_fp
+    \_mslf_stat_onevar_redac_moyenne_distrfreq:nNNNNNNn
+      {\tl_use:N\l_mslf_stat_onevar_moyenne_label_tl}
+      \l_mslf_stat_onevar_vectorval_seq
+      \l_mslf_stat_onevar_vectorroundedfreq_seq
+      \l_mslf_stat_onevar_freqformat_int
+      \l_mslf_stat_onevar_length_int
+      \l_mslf_stat_onevar_moyennefromroundedfreq_fp
+      \l_mslf_stat_onevar_moyenneroundedfromroundedfreq_fp
+      {moyfromroundedfreq}
+    }
+  \_mslf_stat_onevar_ecarttype:NNNN
+    \l_mslf_stat_onevar_variance_fp
+    \l_mslf_stat_onevar_ecarttype_fp
+    \l_mslf_stat_onevar_ecarttype_precision_int
+    \l_mslf_stat_onevar_ecarttyperounded_fp
+  \_mslf_stat_onevar_distrfreq_mediane:NNNN
+    \l_mslf_stat_onevar_vectorfcc_seq
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_mediane_fp
+  \_mslf_stat_onevar_redac_mediane_distrfreq:nNN
+    {\tl_use:N\l_mslf_stat_onevar_mediane_label_tl}
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_mediane_fp
+  \_mslf_stat_onevar_distr_decilei:NNNN
+    \l_mslf_stat_onevar_vectorfcc_seq
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_di_fp
+  \_mslf_stat_onevar_redac_decilei_distrfreq:nNN
+    {\tl_use:N\l_mslf_stat_onevar_di_label_tl}
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_di_fp
+  \_mslf_stat_onevar_distr_decileix:NNNN
+    \l_mslf_stat_onevar_vectorfcc_seq
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_dix_fp
+  \_mslf_stat_onevar_redac_decileix_distrfreq:nNN
+    {\tl_use:N\l_mslf_stat_onevar_dix_label_tl}
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_dix_fp
+  \_mslf_stat_onevar_distr_quartilei:NNNN
+    \l_mslf_stat_onevar_vectorfcc_seq
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_qi_fp
+  \_mslf_stat_onevar_redac_quartilei_distrfreq:nNN
+    {\tl_use:N\l_mslf_stat_onevar_qi_label_tl}
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_qi_fp
+  \_mslf_stat_onevar_distr_quartileiii:NNNN
+    \l_mslf_stat_onevar_vectorfcc_seq
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_qiii_fp
+  \_mslf_stat_onevar_redac_quartileiii_distrfreq:nNN
+    {\tl_use:N\l_mslf_stat_onevar_qiii_label_tl}
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_qiii_fp
+  \_mslf_stat_onevar_distr_etendue:NNNN
+    \l_mslf_stat_onevar_vectorval_seq
+    \l_mslf_stat_onevar_etendue_fp
+    \l_mslf_stat_onevar_xmin_fp
+    \l_mslf_stat_onevar_xmax_fp
+  \_mslf_stat_onevar_redac_etendue:nNNN
+    {\tl_use:N\l_mslf_stat_onevar_etendue_label_tl}
+    \l_mslf_stat_onevar_xmin_fp
+    \l_mslf_stat_onevar_xmax_fp
+    \l_mslf_stat_onevar_etendue_fp
+  \_mslf_stat_onevar_ecartiq:NNN
+    \l_mslf_stat_onevar_qi_fp
+    \l_mslf_stat_onevar_qiii_fp
+    \l_mslf_stat_onevar_ecartiq_fp
+  \_mslf_stat_onevar_redac_ecartiq:nNNNNN
+    {\tl_use:N\l_mslf_stat_onevar_ecartiq_label_tl}
+    \l_mslf_stat_onevar_qi_fp
+    \l_mslf_stat_onevar_qi_label_tl
+    \l_mslf_stat_onevar_qiii_fp
+    \l_mslf_stat_onevar_qiii_label_tl
+    \l_mslf_stat_onevar_ecartiq_fp
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_compute_distrfreq:N#1
+  {\_mslf_stat_onevar_distrfreq_savedata:N#1}
+%
+% calculs pour une repartition en classe d'eff
+%
+\seq_new:N\l_mslf_stat_onevar_vectorvalbi_seq% borne inf des classes
+\seq_new:N\l_mslf_stat_onevar_vectorvalbs_seq
+\seq_new:N\l_mslf_stat_onevar_vectorvalmp_seq
+\seq_new:N\l_mslf_stat_onevar_vectorclass_seq
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_classeff_savedata:N#1
+  {
+  \_mslf_stat_onevar_boxplot_label:N
+    \l_mslf_stat_onevar_boxplot_label_tl
+  \_mslf_stat_onevar_length:NN
+    #1
+    \l_mslf_stat_onevar_length_int
+  \_mslf_stat_onevar_class_vectors:NNNNn
+    #1
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_vectoreff_seq
+    {eff}
+  \_mslf_stat_onevar_class_vectorclass:NNNNNN
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_firstclassformat_tl
+    \l_mslf_stat_onevar_classformat_tl
+    \l_mslf_stat_onevar_lastclassformat_tl
+    \l_mslf_stat_onevar_vectorclass_seq
+  \_mslf_stat_onevar_vector_pondcum_int:NNNN% ecc, effectif total, ecd
+    \l_mslf_stat_onevar_vectoreff_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_vectorecc_seq
+    \l_mslf_stat_onevar_vectorecd_seq
+  \_mslf_stat_onevar_distreff_vectorfreq:NNNN
+    \l_mslf_stat_onevar_vectoreff_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_vectorfreq_seq
+  \_mslf_stat_onevar_vector_pondcum_fp:NNNNN% ecc, effectif total, ecd
+    \l_mslf_stat_onevar_vectorfreq_seq
+    \l_mslf_stat_onevar_freqtot_fp
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_vectorfcc_seq
+    \l_mslf_stat_onevar_vectorfcd_seq
+  \_mslf_stat_onevar_class_midpoint:NNN
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_vectorvalmp_seq	
+  \_mslf_stat_onevar_classeff_moyenne:NNNNNNN
+    \l_mslf_stat_onevar_vectorvalmp_seq	
+    \l_mslf_stat_onevar_vectoreff_seq	
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_sumnixi_fp
+    \l_mslf_stat_onevar_moyenne_fp
+    \l_mslf_stat_onevar_moy_precision_int
+    \l_mslf_stat_onevar_moyennerounded_fp
+  \_mslf_stat_onevar_redac_moyenne_classeff:nNNNNNNN
+    {\tl_use:N\l_mslf_stat_onevar_moyenne_label_tl}
+    \l_mslf_stat_onevar_vectorvalmp_seq
+    \l_mslf_stat_onevar_vectoreff_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_length_int
+    \l_mslf_stat_onevar_sumnixi_fp
+    \l_mslf_stat_onevar_moyenne_fp
+    \l_mslf_stat_onevar_moyennerounded_fp
+  \_mslf_stat_onevar_classeff_variance:NNNNNNNN
+    \l_mslf_stat_onevar_vectorvalmp_seq	
+    \l_mslf_stat_onevar_vectoreff_seq	
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_moyenne_fp
+    \l_mslf_stat_onevar_sumniximinusmoycarre_fp
+    \l_mslf_stat_onevar_variance_fp
+    \l_mslf_stat_onevar_var_precision_int
+    \l_mslf_stat_onevar_variancerounded_fp
+  \_mslf_stat_onevar_ecarttype:NNNN
+    \l_mslf_stat_onevar_variance_fp
+    \l_mslf_stat_onevar_ecarttype_fp
+    \l_mslf_stat_onevar_ecarttype_precision_int
+    \l_mslf_stat_onevar_ecarttyperounded_fp
+  \_mslf_stat_onevar_class_mediane:NNNNNNN
+    \l_mslf_stat_onevar_vectorecc_seq
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_mediane_fp
+    \l_mslf_stat_onevar_mediane_precision_int
+    \l_mslf_stat_onevar_medianerounded_fp
+  \_mslf_stat_onevar_redac_mediane_classeff:nNN
+    {\tl_use:N\l_mslf_stat_onevar_mediane_label_tl}
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_medianerounded_fp
+  \_mslf_stat_onevar_class_decilei:NNNNN
+    \l_mslf_stat_onevar_vectorecc_seq
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_di_fp
+  \_mslf_stat_onevar_redac_decilei_classeff:nNNNN
+    {\tl_use:N\l_mslf_stat_onevar_qi_label_tl}
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_di_fp
+    \l_mslf_stat_onevar_di_precision_int
+    \l_mslf_stat_onevar_dirounded_fp
+  \_mslf_stat_onevar_class_decileix:NNNNN
+    \l_mslf_stat_onevar_vectorecc_seq
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_dix_fp
+  \_mslf_stat_onevar_redac_decileix_classeff:nNNNN
+    {\tl_use:N\l_mslf_stat_onevar_dix_label_tl}
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_dix_fp
+    \l_mslf_stat_onevar_dix_precision_int
+    \l_mslf_stat_onevar_dixrounded_fp
+  \_mslf_stat_onevar_class_quartilei:NNNNNNN
+    \l_mslf_stat_onevar_vectorecc_seq
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_qi_fp
+    \l_mslf_stat_onevar_qi_precision_int
+    \l_mslf_stat_onevar_qirounded_fp
+  \_mslf_stat_onevar_redac_quartilei_classeff:nNN
+    {\tl_use:N\l_mslf_stat_onevar_qi_label_tl}
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_qirounded_fp
+  \_mslf_stat_onevar_class_quartileiii:NNNNNNN
+    \l_mslf_stat_onevar_vectorecc_seq
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_qiii_fp
+    \l_mslf_stat_onevar_qiii_precision_int
+    \l_mslf_stat_onevar_qiiirounded_fp
+  \_mslf_stat_onevar_redac_quartileiii_classeff:nNN
+    {\tl_use:N\l_mslf_stat_onevar_qiii_label_tl}
+    \l_mslf_stat_onevar_efftot_int
+    \l_mslf_stat_onevar_qiiirounded_fp
+  \_mslf_stat_onevar_class_etendue:NNNNN
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_etendue_fp
+    \l_mslf_stat_onevar_xmin_fp
+    \l_mslf_stat_onevar_xmax_fp
+  \_mslf_stat_onevar_redac_etendue:nNNN
+    {\tl_use:N\l_mslf_stat_onevar_etendue_label_tl}
+    \l_mslf_stat_onevar_xmin_fp
+    \l_mslf_stat_onevar_xmax_fp
+    \l_mslf_stat_onevar_etendue_fp
+  \_mslf_stat_onevar_ecartiq:NNN
+    \l_mslf_stat_onevar_qi_fp
+    \l_mslf_stat_onevar_qiii_fp
+    \l_mslf_stat_onevar_ecartiq_fp
+  \_mslf_stat_onevar_redac_class_ecartiq:nNNNNN
+    {\tl_use:N\l_mslf_stat_onevar_ecartiq_label_tl}
+    \l_mslf_stat_onevar_qi_fp
+    \l_mslf_stat_onevar_qi_label_tl
+    \l_mslf_stat_onevar_qiii_fp
+    \l_mslf_stat_onevar_qiii_label_tl
+    \l_mslf_stat_onevar_ecartiq_fp
+  \bool_if:NT\l_mslf_stat_onevar_freq_round_bool
+    {
+    \_mslf_stat_onevar_distr_vectorroundedfreq:NNN
+      \l_mslf_stat_onevar_vectorfreq_seq
+      \l_mslf_stat_onevar_freq_precision_int
+      \l_mslf_stat_onevar_vectorroundedfreq_seq
+    }
+  \bool_if:NT\l_mslf_stat_onevar_exact_bool
+    {
+    \_mslf_stat_onevar_distreff_vectorexactfreq:NNNN
+      \l_mslf_stat_onevar_vectoreff_seq
+      \l_mslf_stat_onevar_efftot_int
+      \l_mslf_stat_onevar_vectorexactfreqforcalc_seq
+      \l_mslf_stat_onevar_vectorexactfreq_seq
+    }
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_compute_classeff:N#1
+  {\_mslf_stat_onevar_classeff_savedata:N#1}
+%
+% calculs pour une repartition en classe de freq
+%
+\cs_new:Npn\_mslf_stat_onevar_classfreq_savedata:N#1
+  {
+  \_mslf_stat_onevar_boxplot_label:N
+    \l_mslf_stat_onevar_boxplot_label_tl
+  \_mslf_stat_onevar_length:NN
+    #1
+    \l_mslf_stat_onevar_length_int
+  \_mslf_stat_onevar_class_vectors:NNNNn
+    #1
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_vectorfreq_seq
+    {freq}
+  \_mslf_stat_onevar_class_vectorclass:NNNNNN
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_firstclassformat_tl
+    \l_mslf_stat_onevar_classformat_tl
+    \l_mslf_stat_onevar_lastclassformat_tl
+    \l_mslf_stat_onevar_vectorclass_seq
+  \_mslf_stat_onevar_vector_pondcum_fp:NNNNN%
+    \l_mslf_stat_onevar_vectorfreq_seq
+    \l_mslf_stat_onevar_freqtot_fp
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_vectorfcc_seq
+    \l_mslf_stat_onevar_vectorfcd_seq
+  \fp_compare:nT
+    {
+    \l_mslf_stat_onevar_freqtot_fp
+      !=\l_mslf_stat_onevar_freqformat_int
+    }
+    {
+    \msg_error:nnxxx {stat}{sumfreqerror}
+      {\msg_line_context:}
+      {\tl_use:N\l_mslf_stat_id_tl}
+      {\fp_use:N\l_mslf_stat_onevar_freqtot_fp}
+    }
+  \bool_if:NT\l_mslf_stat_onevar_effforfreq_bool
+    {
+    \_mslf_stat_onevar_distrfreq_vectoreff:NNNN
+      \l_mslf_stat_onevar_vectorfreq_seq
+      \l_mslf_stat_onevar_effforfreq_int
+      \l_mslf_stat_onevar_freqformat_int
+      \l_mslf_stat_onevar_vectoreff_seq
+    \_mslf_stat_onevar_vector_pondcum_int:NNNN% ecc, effectif total, ecd
+      \l_mslf_stat_onevar_vectoreff_seq
+      \l_mslf_stat_onevar_efftot_int
+      \l_mslf_stat_onevar_vectorecc_seq
+      \l_mslf_stat_onevar_vectorecd_seq
+    \int_compare:nT
+      {
+      \l_mslf_stat_onevar_effforfreq_int
+        !=\l_mslf_stat_onevar_efftot_int
+      }
+      {
+      \msg_error:nnxx {stat}{effbyfreq-rounderror}
+        {\msg_line_context:}
+        {\tl_use:N\l_mslf_stat_id_tl}
+      }
+    }
+  \_mslf_stat_onevar_class_midpoint:NNN
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_vectorvalmp_seq	
+  \_mslf_stat_onevar_classfreq_moyenne:NNNNNNN
+    \l_mslf_stat_onevar_vectorvalmp_seq	
+    \l_mslf_stat_onevar_vectorfreq_seq	
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_sumnixi_fp
+    \l_mslf_stat_onevar_moyenne_fp
+    \l_mslf_stat_onevar_moy_precision_int
+    \l_mslf_stat_onevar_moyennerounded_fp
+  \_mslf_stat_onevar_redac_moyenne_classfreq:nNNNNNN
+    {\tl_use:N\l_mslf_stat_onevar_moyenne_label_tl}
+    \l_mslf_stat_onevar_vectorvalmp_seq
+    \l_mslf_stat_onevar_vectorfreq_seq
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_length_int
+    \l_mslf_stat_onevar_moyenne_fp
+    \l_mslf_stat_onevar_moyennerounded_fp
+  \_mslf_stat_onevar_classfreq_variance:NNNNNNNN
+    \l_mslf_stat_onevar_vectorvalmp_seq	
+    \l_mslf_stat_onevar_vectorfreq_seq	
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_moyenne_fp
+    \l_mslf_stat_onevar_sumniximinusmoycarre_fp
+    \l_mslf_stat_onevar_variance_fp
+    \l_mslf_stat_onevar_var_precision_int
+    \l_mslf_stat_onevar_variancerounded_fp
+  \_mslf_stat_onevar_ecarttype:NNNN
+    \l_mslf_stat_onevar_variance_fp
+    \l_mslf_stat_onevar_ecarttype_fp
+    \l_mslf_stat_onevar_ecarttype_precision_int
+    \l_mslf_stat_onevar_ecarttyperounded_fp
+  \_mslf_stat_onevar_class_mediane:NNNNNN
+    \l_mslf_stat_onevar_vectorfcc_seq
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_mediane_fp
+    \l_mslf_stat_onevar_mediane_precision_int  
+    \l_mslf_stat_onevar_medianerounded_fp  
+  \_mslf_stat_onevar_redac_mediane_classfreq:nNN
+    {\tl_use:N\l_mslf_stat_onevar_mediane_label_tl}
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_medianerounded_fp
+  \_mslf_stat_onevar_class_decilei:NNNNN
+    \l_mslf_stat_onevar_vectorfcc_seq
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_di_fp
+  \_mslf_stat_onevar_redac_decilei_classfreq:nNN
+    {\tl_use:N\l_mslf_stat_onevar_di_label_tl}
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_di_fp
+  \_mslf_stat_onevar_class_decileix:NNNNN
+    \l_mslf_stat_onevar_vectorfcc_seq
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_dix_fp
+  \_mslf_stat_onevar_redac_decileix_classfreq:nNN
+    {\tl_use:N\l_mslf_stat_onevar_dix_label_tl}
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_dix_fp
+  \_mslf_stat_onevar_class_quartilei:NNNNNNN
+    \l_mslf_stat_onevar_vectorfcc_seq
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_qi_fp
+    \l_mslf_stat_onevar_qi_precision_int
+    \l_mslf_stat_onevar_qirounded_fp
+  \_mslf_stat_onevar_redac_quartilei_classfreq:nNN
+    {\tl_use:N\l_mslf_stat_onevar_qi_label_tl}
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_qirounded_fp
+  \_mslf_stat_onevar_class_quartileiii:NNNNNNN
+    \l_mslf_stat_onevar_vectorfcc_seq
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_qiii_fp
+    \l_mslf_stat_onevar_qiii_precision_int
+    \l_mslf_stat_onevar_qiiirounded_fp
+  \_mslf_stat_onevar_redac_quartileiii_classfreq:nNN
+    {\tl_use:N\l_mslf_stat_onevar_qiii_label_tl}
+    \l_mslf_stat_onevar_freqformat_int
+    \l_mslf_stat_onevar_qiiirounded_fp
+  \_mslf_stat_onevar_class_etendue:NNNNN
+    \l_mslf_stat_onevar_vectorvalbi_seq
+    \l_mslf_stat_onevar_vectorvalbs_seq
+    \l_mslf_stat_onevar_etendue_fp
+    \l_mslf_stat_onevar_xmin_fp
+    \l_mslf_stat_onevar_xmax_fp
+  \_mslf_stat_onevar_redac_etendue:nNNN
+    {\tl_use:N\l_mslf_stat_onevar_etendue_label_tl}
+    \l_mslf_stat_onevar_xmin_fp
+    \l_mslf_stat_onevar_xmax_fp
+    \l_mslf_stat_onevar_etendue_fp
+  \_mslf_stat_onevar_ecartiq:NNN
+    \l_mslf_stat_onevar_qi_fp
+    \l_mslf_stat_onevar_qiii_fp
+    \l_mslf_stat_onevar_ecartiq_fp
+  \_mslf_stat_onevar_redac_class_ecartiq:nNNNNN
+    {\tl_use:N\l_mslf_stat_onevar_ecartiq_label_tl}
+    \l_mslf_stat_onevar_qi_fp
+    \l_mslf_stat_onevar_qi_label_tl
+    \l_mslf_stat_onevar_qiii_fp
+    \l_mslf_stat_onevar_qiii_label_tl
+    \l_mslf_stat_onevar_ecartiq_fp
+  }
+%
+%
+%
+\cs_new:Npn\_mslf_stat_onevar_compute_classfreq:N#1
+  {\_mslf_stat_onevar_classfreq_savedata:N#1}
+% 
+\cs_generate_variant:Nn\fp_set:Nn{Nx}
+%
+\cs_new_protected:Npn\mys_stat_onevar_encadreval:nnN#1#2#3
+% #1 : id
+% #2 : val
+  {
+  \prop_get:cnN{g_stat_ #1 _prop}{listborneinf}\l_tmpa_seq
+  \prop_get:cnN{g_stat_ #1 _prop}{listbornesup}\l_tmpb_seq
+  \int_zero:N\l_tmpa_int
+  \fp_set:Nx\l_tmpa_fp{#2+1}
+  \fp_set:Nx\l_tmpb_fp{#2-1}	
+  \fp_do_until:nn{\l_tmpa_fp<=#2 && #2<=\l_tmpb_fp}
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_set:Nx\l_tmpa_fp
+      {\seq_item:Nn\l_tmpa_seq{\l_tmpa_int}}
+    \fp_set:Nx\l_tmpb_fp
+      {\seq_item:Nn\l_tmpb_seq{\l_tmpa_int}}	
+    }
+  \fp_compare:nT{\l_tmpa_fp=#2 || #2=\l_tmpb_fp}
+    {la~valeur~ est ~ une ~borne!}
+  \int_set_eq:NN#3\l_tmpa_int
+  }
+%
+%
+%
+\cs_new_protected:Npn
+  \mys_stat_onevar_interpollin_findord:nnnN#1#2#3#4
+% #1 : id
+% #2 : fcc,ecc,fcd,ecd
+% #3 : value for which we want the fcc or ecc or ...  
+  {
+  \mys_stat_onevar_encadreval:nnN{#1}{#3}\l_tmpa_int
+  \prop_get:cnN{g_stat_ #1 _prop}{list#2}\l_tmpa_seq
+  \prop_get:cnN{g_stat_ #1 _prop}{listborneinf}\l_tmpb_seq
+  \fp_set:Nx\l_tmpvala_fp
+    {\seq_item:Nn\l_tmpb_seq{\l_tmpa_int}}
+  \prop_get:cnN{g_stat_ #1 _prop}{listbornesup}\l_tmpb_seq
+  \fp_set:Nx\l_tmpvalb_fp
+    {\seq_item:Nn\l_tmpb_seq{\l_tmpa_int}}
+  \fp_set:Nx\l_tmpresa_fp
+    {\seq_item:Nn\l_tmpa_seq{\l_tmpa_int-1}}
+  \fp_set:Nx\l_tmpresb_fp
+    {\seq_item:Nn\l_tmpa_seq{\l_tmpa_int}}
+  \fp_set:Nx#4
+    {
+    (\l_tmpresb_fp-\l_tmpresa_fp)
+      /(\l_tmpvalb_fp-\l_tmpvala_fp)
+      *(#3-\l_tmpvala_fp)
+      +\l_tmpresa_fp
+    }
+  }
+%
+%
+%
+\NewDocumentCommand\statcumfor{O{resultat}mmm}
+%#1 : id
+% #2 : ecc,fcd, fcc, ecd
+% #3 : valeur de la série dont on veut interpoler l'ecc ou l'ecd, ...
+  {
+  \mys_stat_onevar_interpollin_findord:nnnN
+    {#2}
+    {#3}
+    {#4}
+    \l_tmpa_fp
+  \cs_set:cpx{#1}{\fp_eval:n{\l_tmpa_fp}}
+  }
+%
+%
+%
+\cs_new_protected:Npn
+  \mys_stat_onevar_encadreefcc:nnN#1#2#3
+% #1 : id
+% #2 : val
+  {}
+%
+%
+%
+\cs_new_protected:Npn
+  \mys_stat_onevar_interpollin_findabs:nnnN#1#2#3#4
+% #1 : id
+% #2 : fcc,ecc,fcd,ecd
+% #3 : ecc, fcc, ... de la série dont on veut interpoler la valeur
+  {}
+%
+%
+%
+\NewDocumentCommand\statvalfor{O{resultat}mmm}
+% #1 : id
+% #2 : ecc,fcd, fcc, ecd
+% #3 : ecc, fcc, ... de la série dont on veut interpoler la valeur
+  {}
+%
+%
+%\statprint{a}{val1}
+%
+%\statuselistitem{a}{val}{1}
+%\statuselistitemexpandable{a}{val}{1}
+%
+%\calculer{\statuselistitem{a}{val1}+\statuselistitem{a}{val6}}
+%
+%\printecc{3}++
+%\begin{centered}
+%\tab
+%\makeatletter\distrib@f{val,freq}\tab\makeatother%
+%\end{centered}
+%L'effectif total est \effectiftotal.\par
+%Le premier quartile est \quartile1.\par
+%Le troisième quartile est \quartile3.\par
+%La médiane est \mediane{}.
+%	Longueur : \dim@list\par
+%	3eme val = \val{3}\par
+%	3eme  eff=\eff3\par
+%	Distrib des valeurs.\vectorval\par%
+%	Distrib des eff.\vectoreff\par
+%}
+%\statuselistitemexpandable{a}{val}{1}
+%\end{enumerate}\end{exr}\end{document}
+\endinput

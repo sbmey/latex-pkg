@@ -1,0 +1,161 @@
+\documentclass{article}
+%
+%\usepackage{trace}
+%
+\usepackage{luatex}
+\ifluatex \else\usepackage{pdfprivacy}\usepackage{fontspec}\fi
+%
+\setlength{\parindent}{0pt}
+%
+\def\esphor{\hspace{1cm}}
+%
+\def\packtested{mys-info-python}
+\usepackage{\packtested}
+\usepackage{pgffor}
+%
+%####################################################
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%
+%  Titre du chapitre
+                     \title{\packtested}
+                     \author{moi}
+%
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%####################################################
+%
+\begin{sympycode}
+from sympy.stats import DiscreteUniform, sample
+x = Symbol('x')
+a = DiscreteUniform('a', range(-10, 11))
+b = DiscreteUniform('b', range(-10, 11))
+c = DiscreteUniform('c', range(-10, 11))
+def randquad():
+      return Eq(sample(a)*x**2 + sample(b)*x + sample(c))
+\end{sympycode}
+\newcommand\randquad{\sympy{randquad()}}
+%
+\begin{document}
+%
+\maketitle{}
+\section{A Faire}
+Montrer l'indentation avec les espaces rendus visibles en début de ligne
+
+Un environnement qui montre le code à gauche et le résultat (obtenu avec python) à droite
+
+Meilleures couleurs
+\section{Utilisation de pythontex}
+\subsection{importing python files}
+%https://tex.stackexchange.com/questions/129657/pythontex-importing-python-files
+\begin{pyconsole}
+import os
+os.getcwd()
+import sayhi
+\end{pyconsole}
+
+\begin{pyconcode}
+import os
+import sys
+sys.path.append(os.getcwd())
+\end{pyconcode}
+
+\begin{pyconsole}
+import sayhi
+sayhi.hi()
+\end{pyconsole}
+
+
+\subsection{tikz \texttt{foreach} to iterate over a python list via pythontex}
+% https://tex.stackexchange.com/questions/469263/tikz-foreach-to-iterate-over-a-python-list-via-pythontex
+\begin{pycode}
+import sys
+some_letters = ['A', 'B', 'C']
+\end{pycode}
+
+normal for-loop:\\
+\foreach \letter in {a, b, c} {letter=\letter\\}
+
+for-loop with \texttt{pythontex}:\\
+Version 1:\\
+\pyc{print("\\foreach \\letter in {"+','.join(some_letters)+"} {letter=\\letter\\\\}",file=sys.stdout, flush=True)}
+
+\noindent
+Version 2.2:\\
+\py{"\\foreach \\letter in {"+','.join(some_letters)+"} {letter=\\letter\\\\}"}
+%
+%
+%
+\subsection{sympy}
+$\randquad$\quad $\randquad$\quad $\randquad$
+
+\section{listing d'un code}
+\subsection{listings}
+\begin{python}[frame=single]{python}
+def f(n):
+  if n == 1:
+    return 1
+  else:
+    return f(n-1)
+    
+print(f(4))
+\end{python}
+%
+\subsection{pygments}
+\begin{pygments}[frame=single, indent=L]{python}
+def f(n):
+  if n == 1:
+    return 1
+  else:
+    return f(n-1)
+    
+print(f(4))
+\end{pygments}
+%
+\begin{pygments}[frame=single]{python}
+def f(n):
+  if n == 1:
+    return 1
+  else:
+    return f(n-1)
+    
+print(f(4))
+\end{pygments}
+%
+%
+%
+\section{Importation d'un fichier .py}
+\subsection{listings}
+
+\pythonexternal[language=Python, label={lst:label32}, showstringspaces=false, extendedchars=true,keepspaces=true, tabsize=4, morekeywords={models, lambda, forms}, commentstyle={\rmfamily\catcode`\$=11}, columns=flexible,texcl,showspaces=false, captionpos=b,caption=Example of using the segmentation script with the help of the PypePad command and a Pypes object.]{./PythonCodePart.py}
+
+\subsection{minted}
+\begin{minted}{Python}
+#!/usr/bin/env python
+import sys
+import math
+import string
+from vmtk import pypes
+from vmtk import vmtkscripts
+
+"""triple quoted strings"""
+
+seedPointCoordinates = "399 268 364"
+targetPointCoordinates = [" 367 264 361 " , "344 287 336 ",
+ " 336 289 330 " , " 315 287 330 " , " 294 278 325 " , " 269 254 321 "]
+
+for x in range (0,6,1):
+    myInitializationArguments = "vmtkimageinitialization -ifile <PATH>" 
+    \XA_001.dcm -interactive 0 -method fastmarching
+    -upperthreshold 11000  -lowerthreshold 2000 -sourcepoints " 
+    +seedPointsOne+ 
+    " -targetpoints "
+    +targetPointsOne[x]+
+    " -olevelsetsfile <PATH>\initialLevelSets"+str(x+1)+".vti"
+
+    myPype = pypes.PypeRun(myinitializationArguments)
+
+    myArgumentsForMarchingCubes = "vmtkmarchingcubes –ifile <PATH>\initialLevelSets" 
+    +str(x+1)+ ".vti   -ofile <PATH>\initialLevelSets"
+    +str(x+1)+ "mc.vtp"
+    myPype = pypes.PypeRun(myArgumentsForMarchingCubes)
+\end{minted}
+\end{document}

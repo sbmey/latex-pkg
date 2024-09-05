@@ -1,0 +1,298 @@
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    DÉCLARATION PACKAGE
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-objet}%
+%    [2020/07/02 v0.0 create so called objects]%
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    PACKAGES NÉCESSAIRES
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+\@ifpackageloaded{mys-delimiteur}%
+    {\typeout{Essai de chargement multiple du package mys-delimiteur.}}%
+    {\RequirePackage{mys-delimiteur}}%
+%
+\@ifpackageloaded{mys-code-tool}%
+    {\typeout{Essai de chargement multiple du package mys-code-tool.}}%
+    {\RequirePackage{mys-code-tool}}%
+%
+%\@ifpackageloaded{mathtools}% chargé par mys-delimiteur
+%    {\typeout{Essai de chargement multiple du package mathtools.}}%
+%    {\RequirePackage{mathtools}}%
+%
+\@ifpackageloaded{array}%
+    {\typeout{Essai de chargement multiple du package array.}}%
+    {\RequirePackage{array}}%
+%
+\@ifpackageloaded{tkz-tab}%
+    {\typeout{Essai de chargement multiple du package tkz-tab.}}%
+    {\RequirePackage{tkz-tab}}%
+%
+\@ifpackageloaded{tkz-fct}%
+    {\typeout{Essai de chargement multiple du package tkz-fct.}}%
+    {\RequirePackage{tkz-fct}}%
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    CODE
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%======================================
+%
+%---   Explications
+%
+%======================================
+%
+% Un objet est défini par :
+%     - son nom,
+%     - l'ensemble des couples formés  d'une valeur possible de l'objet et de l'identifiant de cette valeur.
+% Par exemple, l'objet "truc" prenant les valeurs "machin" d'identifiant "m" et "bidule" d'identifiant "b".
+%
+%
+% La valeur de l'objet est unique lorsqu'elle est utilisée (par exemple : pour une fiche l'objet classe a une unique valeur  (211, 1ere14, Tale03, ...)
+%
+%
+% On peut imaginer que la valeur de l'objet change dans un document. Exemple ? Utilité ? Possible ?
+%
+%======================================
+%
+%---   Création d'un objet, de ses valeurs, de leurs identifiants
+%
+%======================================
+%
+%----------------------------------------------------------------------------------------
+%     ---     Macro principale
+%----------------------------------------------------------------------------------------
+%
+% ----- macro pour stocker les caractéristiques de l'objet : identifiants, valeurs et liste des ordinaux (1er,2e,3e,...) des valeurs
+%       \StoreObject{<nom objet>}{<id1>/val1,<id2>/val2, ...}
+%
+\newcommand*\StoreObject[2]{\mys@objet@store@object@cs@id@val{#1}{#2}}%
+%     #1 : nom de l'objet
+%     #2 : clist d'éléments de la forme <identifiant de la valeur>/<valeur>
+%
+%----------------------------------------------------------------------------------------
+%     ---     Macro auxiliaire
+%----------------------------------------------------------------------------------------
+%
+\protected\def\mys@objet@store@object@cs@id@val#1#2{%
+%     #1 : nom de l'objet
+%     #2 : clist d'éléments de la forme <identifiant de la valeur>/<valeur>
+    \foreach\truc[count=\obj@temp] in{#2}{%
+        % \tmp a pour remplacement /<numéro valeur>/<id>/<valeur>/<nom objet>
+        \expandafter\expandafter\expandafter\mys@objet@store@cs@id@val@object@helper%
+            \expandafter\expandafter\expandafter/\expandafter\obj@temp\expandafter/\truc/#1/%
+        }%
+    }%
+%
+%----------------------------------------------------------------------------------------
+%     ---     Macro auxiliaire
+%----------------------------------------------------------------------------------------
+%
+\protected\def\mys@objet@store@cs@id@val@object@helper/#1/#2/#3/#4/{%
+% #1 : compteur (position de la valeur de l'objet dans la liste donnée à \Objet)
+% #2 : id
+% #3 : valeur
+% #4 : objet
+    \mys@csgdef{mys@objet@id@#4@#1}{#2}%  \id@<objet>@<numéro de la valeur> a pour remplacement <id> 
+    \mys@csgdef{mys@objet@val@#4@#1}{#3}% \val@<objet>@<numéro de la valeur> a pour remplacement <valeur>
+    \mys@addcsgdef{mys@objet@liste@#4}{#1}% \liste@<objet> a pour remplacement <numéro de la valeur>
+    }%
+%
+%======================================
+%
+%---   Initialisation des macros stockant la valeur d'un objet et son id ainsi que la liste des valeurs
+%
+%======================================
+%
+%----------------------------------------------------------------------------------------
+%     ---     Macro principale
+%----------------------------------------------------------------------------------------
+%
+% ----- macro pour initialiser les macros stockant l'id de la valeur et un objet et ses valeurs et leurs identifiants
+%
+\newcommand*\InitObject[1]{\mys@objet@init@object@id{#1}}%
+%     #1 : nom de l'objet
+%
+%----------------------------------------------------------------------------------------
+%     ---     Macro auxiliaire
+%----------------------------------------------------------------------------------------
+%
+\protected\def\mys@objet@init@object@id#1{%
+%     #1 : objet
+    \mys@cslet{mys@objet@#1@}\@empty% \@#1@ est \myerror car non defini}% macro stockant l'id de la valeur de l'objet (ou cette valeur si son id n'est pas défini par \create@object@cs@id@val)
+    \mys@cslet{mys@objet@#1}\@empty% macro stockant la valeur de l'objet
+    \mys@csgdef{mys@objet@liste@#1}{}%
+    }%
+%
+%======================================
+%
+%---   Macro définissant la macro affectant à \@<objet> la valeur correspondant à l'id choisi par l'utilisateur
+%
+%======================================
+%
+% ----- Macro construisant la macro, dépendant de l'objet choisi et de l'id choisi, donnant la valeur correspondant à l'id choisi (si la valeur n'est pas définie, c'est l'id lui-même)
+\protected\def\mys@objet@build@set@val@object#1{%
+%    #1 : objet
+    % Définition de la macro \Set<objet> permettant d'affecter à \mys@objet@<objet>@ l'id choisi 
+    \expandafter\gdef\csname Set#1\endcsname##1{\expandafter\gdef\csname mys@objet@#1@\endcsname{##1}}%
+%
+    % définition de la macro \Build@<objet> affectant à \mys@objet@<objet> la valeur  correspondant à l'id choisi (ou l'id lui-même si cet id n'est pas dans la liste de l'objet. Peut-être vaudrait-il mieux renvoyer une erreur pour forcer la définition de tous les id utiles)
+    \expandafter\gdef\csname Build@#1\endcsname{%
+% test si \@<objet> n'est pas dans la liste des id. Dans ce cas : erreur. Sinon on continue (supprimer la ligne suivante qui n'a plus d'intérêt alors)
+        \mys@csletcs{mys@objet@#1}{mys@objet@#1@}% \mys@objet@<nom de l'objet> = \mys@objet@<objet>@ donc \mys@objet@<objet> contient par défaut l'id choisi par l'utilisateur.
+        \edef\tmp{in {\csname mys@objet@liste@#1\endcsname}}%
+        \expandafter\let\expandafter\tmpi\csname mys@objet@#1\endcsname% \tmpi = \mys@objet@<objet>
+        \expandafter\foreach\expandafter\truc\tmp {%
+            \expandafter\let\expandafter\tmpii\csname mys@objet@id@#1@\truc\endcsname% \tmpii = \id@objet@<numéro de la valeur> ---> <id valeur>
+            \ifx\tmpi\tmpii%
+                \mys@csletcs{mys@objet@#1}{mys@objet@val@#1@\truc}% \mys@objet@<objet> = \mys@objet@val@<objet>@<numéro valeur> ---> <valeur> 
+            \fi%
+            }%
+        }%
+    }%
+%
+%======================================
+%
+%---   Création d'un objet
+%
+%======================================
+%
+%----------------------------------------------------------------------------------------
+%     ---     Création de macros de stockage
+%----------------------------------------------------------------------------------------
+%
+\let\mys@objet@liste@objet\@empty%
+\let\mys@objet@liste@objet@defobligatoire\@empty%
+%
+%----------------------------------------------------------------------------------------
+%     ---     Macro principale
+%----------------------------------------------------------------------------------------
+%
+\newcommand*\Objet{%
+% étoile : la valeur de l'objet peut ne pas être donnée par l'utilisateur
+% non étoilé : la valeur de l'objet doit être donnée sinon une erreur arrête la composition du document 
+    \@ifstar{\mys@objet@nonoblig}{\mys@objet@oblig}%
+    }%
+%
+%----------------------------------------------------------------------------------------
+%     ---     Macro auxiliaire
+%----------------------------------------------------------------------------------------
+%
+% \objet@oblig{<objet>}{<clist id/valeur>} : Ajout de l'objet à la liste des objets + Création d'un objet
+%
+\protected\def\mys@objet@nonoblig#1#2{%
+% #1 = objet
+% #2 = cslist dont les éléments sont <id>/<valeur>
+    \mys@objet@add@to@allobj{#1}%
+    \mys@objet@{#1}{#2}%
+    }%%
+%----------------------------------------------------------------------------------------
+%     ---     Macro auxiliaire
+%----------------------------------------------------------------------------------------
+%
+% \objet@oblig{<objet>}{<clist id/valeur>} : Ajout de l'objet à la liste des objets obligatoires + Création d'un objet
+%
+\protected\def\mys@objet@oblig#1#2{%
+% #1 = objet
+% #2 = cslist dont les éléments sont <id>/<valeur>
+    \mys@objet@add@to@allobj{#1}%
+    \mys@objet@add@to@objoblig{#1}%
+    \mys@objet@{#1}{#2}%
+    }%
+%
+%----------------------------------------------------------------------------------------
+%     ---     Macro auxiliaire
+%----------------------------------------------------------------------------------------
+%
+% \objet@{<objet>}{<clist id/valeur>} : Création d'un objet
+%
+\protected\def\mys@objet@#1#2{%
+% #1 = objet
+% #2 = cslist dont les éléments sont <id>/<valeur>
+    % initialisation des macros 
+    \InitObject{#1}%
+    % 
+    \StoreObject{#1}{#2}%
+    %
+    \mys@objet@build@set@val@object{#1}%
+    }%
+%
+%----------------------------------------------------------------------------------------
+%     ---     Macro auxiliaire
+%----------------------------------------------------------------------------------------
+%
+% \add@to@allobj{<objet>} : ajout de <objet> à la liste des objets définis
+%
+\protected\def\mys@objet@add@to@allobj#1{%
+%    #1 : objet
+    % ajout de l'objet à la liste des objets
+    \ifx\mys@objet@liste@objet\@empty \gdef\mys@objet@liste@objet{#1}\else\mys@addcsgdef{mys@objet@liste@objet}{#1}\fi%
+    }%
+%
+%----------------------------------------------------------------------------------------
+%     ---     Macro auxiliaire
+%----------------------------------------------------------------------------------------
+%
+% \add@to@objoblig{<objet>} : ajout de <objet> à la liste des objets obligatoires définis
+%
+\protected\def\mys@objet@add@to@objoblig#1{%
+%    #1 : objet
+    % ajout de l'objet à la liste des objets obligatoires (ceux dont l'utilisateur doit choisir un id)
+    \ifx\mys@objet@liste@objet@defobligatoire\@empty%
+        \gdef\mys@objet@liste@objet@defobligatoire{#1}%
+    \else%
+        \mys@addcsgdef{mys@objet@liste@objet@defobligatoire}{#1}%
+    \fi%
+    }%
+%
+%======================================
+%
+%---   Numérotation d'un objet
+%
+%======================================
+%
+%\newcommand*\NumObj[2]{%
+%    \newcounter{mys@obj@cnt@#1}%
+%    \def\mys@obj@num@##1,##2,{%
+%        \stepcounter{mys@obj@cnt@#1}%
+%        \expandafter\xdef\csname mys@#1@##1@num\endcsname{\csname themys@obj@cnt@#1\endcsname}%
+%        \ifx\relax##2\relax \else \def\truc{\mys@obj@num@##2,}\expandafter\truc\fi%
+%        }%
+%    \mys@obj@num{#2}
+%    }
+%%
+%\def\mys@obj@num#1{\mys@obj@num@#1,,}%
+%%
+%\def\ObjNum#1#2{\csname mys@#1@#2@num\endcsname}
+%
+\newcommand*\NumObj[3]{%
+    \newcounter{mys@obj@cnt@#1@#2}%
+    \def\mys@obj@num@##1,##2,{%
+        \stepcounter{mys@obj@cnt@#1@#2}%
+        \expandafter\xdef\csname mys@#1@#2@##1@num\endcsname{\csname themys@obj@cnt@#1@#2\endcsname}%
+        \ifx\relax##2\relax \else \def\truc{\mys@obj@num@##2,}\expandafter\truc\fi%
+        }%
+    \mys@obj@num{#3}
+    }
+%
+\def\mys@obj@num#1{\mys@obj@num@#1,,}%
+%%
+\def\ObjNum#1#2#3{\csname mys@#1@#2@#3@num\endcsname}
+%

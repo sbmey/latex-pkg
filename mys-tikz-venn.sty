@@ -1,0 +1,66 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+  {mys-tikz-venn}%
+  [2016/08/18 v0.0 to do the job]%
+%
+%####################################################
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%-------------------------------------------------------------------------------------------------------------------------
+%   Venn
+%-------------------------------------------------------------------------------------------------------------------------
+%
+\usetikzlibrary{fit}
+\pgfkeys%
+  {%
+  /venn/.cd,%
+  comm/.store in= \mys@venn@comm,%
+  comm/.initial = {right:{}},%
+  label/.store in= \mys@venn@lbl@txt,%
+  opt/.store in= \mys@venn@opt,%
+  }
+%
+\tikzset{enspatate/.style= {circle,minimum width=5em,draw,inner sep=0pt,outer sep=0pt,pattern=north east lines}}
+\tikzset{ensref/.style= {rectangle,rounded corners,minimum width=2em,minimum height=3em,draw,inner sep=1ex,outer sep=0pt}}
+\NewDocumentCommand\Vnpatate{ O{}m m}{\node[enspatate/.append style={#1},enspatate](#3) at #2{};}
+\NewDocumentCommand\Vnreference{O{}mm}{\node[ensref/.append style={fit=#2,#1},ensref] (#3) {};}
+
+\NewDocumentCommand{\VennPatate}{O{pattern=north east lines,}mm}
+% #1 : options
+% #2 : nom de la patate
+% #3 : centre (coordonnée ou nom d'un node sans les parenthèse)
+  {%
+  \pgfkeys{/venn/.cd,#1}
+  \node[enspatate,\mys@venn@opt,pin=\mys@venn@comm] (#2) at (#3){\mys@venn@lbl@txt};
+  }
+%
+\NewDocumentCommand{\VennReference}{O{}mm}
+% #1 : options
+% #2 : nom de la patate
+% #3 : centre (coordonnée ou nom d'un node sans les parenthèse)
+  {%
+  \node[enspatate,#1] (#2) at (#3){};
+  }
+%
+\tikzset{txt/.style= {inner sep=0pt} }
+
+
+
+
+\NewDocumentCommand\Vnlabel{mmO{}O{north}}{\node[txt,above=2ex,#3] (tmp)at (#1.#4){$#2$};\draw(tmp)--(#1);}
+\NewDocumentCommand\Vncomm{mmO{}O{north}}{\node[txt,above=2ex,#3] (tmp) at (#1.#4){#2};\draw(tmp)--(#1);}

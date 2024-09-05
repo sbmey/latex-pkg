@@ -1,0 +1,445 @@
+%
+%####################################################
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%
+%  Declaration package
+%
+%+++++++++++++
+%#############
+%
+\NeedsTeXFormat{LaTeX2e}
+%
+\ProvidesPackage
+  {mys-code-tool}%
+  [20/05/2019  v0.0 to do the job]
+%
+%####################################################
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%
+%  Packages nécessaires
+%
+%+++++++++++++
+%#############
+%
+\@ifpackageloaded{iftex}%
+    {\typeout{Essai de chargement multiple du package iftex.}}%
+    {\RequirePackage{iftex}}%
+%
+%####################################################
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%
+%  Macros
+%
+%+++++++++++++
+%#############
+%
+%====================================================
+%
+%    gobble
+%
+%====================================================
+%
+\def\mys@gobble#1{}
+\def\mys@gobble@delimited#1\mys@stop{}
+\def\mys@gobble@one#1#2\mys@stop{#2}
+%
+\def\mys@gobble@firstoftwo#1#2{#2}
+\def\mys@gobble@secondoftwo#1#2{#1}
+%
+\def\mys@gobble@allfirstplusminus#1{\mys@gobble@allfirstplusminus@#1\mys@stop}%
+\def\mys@gobble@allfirstplusminus@{\@ifnextchar+\mys@gobble@allsigngobble\mys@gobble@allminusnone}%
+\def\mys@gobble@allsigngobble#1\mys@stop{\expandafter\mys@gobble@allfirstplusminus@\mys@gobble#1\mys@stop}%
+\def\mys@gobble@allminusnone#1\mys@stop{\@ifnextchar-\mys@gobble@allsigngobble\mys@donothing@stop#1\mys@stop}%
+%
+%====================================================
+%
+%    first of ..., second of ..., three of ..., etc.
+%
+%====================================================
+%
+\def\mys@firstoffour#1#2#3#4{#1}%
+\def\mys@secondoffour#1#2#3#4{#2}%
+\def\mys@threeoffour#1#2#3#4{#3}%
+\def\mys@fouroffour#1#2#3#4{#4}%
+\def\mys@firstoftwo@delimited #1\mys@stop#2\mys@stop{#1\mys@stop}%
+\def\mys@secondoftwo@delimited #1\mys@stop#2\mys@stop{#2\mys@stop}%
+%
+%====================================================
+%
+% conditional
+%
+%====================================================
+%
+%---   si l'argument est vide on obtient le premier groupe sinon le second
+%
+\def\mys@ifempty#1{\ifx\relax#1\relax\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+%
+%---   si argument = / alors on enlève ce qui suit jusqu'à \mys@stop (inclus)
+% exple : 
+%    \mys@ifslash@gobbleuntilstop{a}\macrotruc texte bla bla \mys@stop --> \macrotruc texte bla bla \mys@stop
+%    \mys@ifslash@gobbleuntilstop{/}\macrotruc texte bla bla \mys@stop textesuivant--> textesuivant
+\def\mys@ifslash@gobbleuntilstop#1{%
+    \ifx/#1\relax\expandafter\mys@gobble@delimited\fi%
+    }%
+%
+%---   si argument vide alors on enlève ce qui suit jusqu'à \mys@stop (inclus)
+% exple : 
+%    \mys@ifempty@gobbleuntilstop{a}\macrotruc texte bla bla \mys@stop --> \macrotruc texte bla bla \mys@stop
+%    \mys@ifempty@gobbleuntilstop{}\macrotruc texte bla bla \mys@stop textesuivant--> textesuivant
+\def\mys@ifempty@gobbleuntilstop#1{\ifx\relax#1\relax\expandafter\mys@gobble@delimited\fi}%
+%
+%---   si argument vide alors on garde ce qui suit l'argument de la macro jusqu'au premier \mys@stop ce qui suit jusqu'au second \mys@stop est ignoré. Sinon on ignore tout jusqu'au premier \mys@stop et on garde ce qui suit jusqu'au second \mys@stop 
+% exple : 
+%    \mys@ifemptyTF@delimited{a}\macro1 texte1 \mys@stop \macro2 texte2 \mys@stop --> \macro2 texte2 \mys@stop
+%    \mys@ifemptyTF@delimited{}\macro1 texte1 \mys@stop \macro2 texte2 \mys@stop --> \macro1 texte1 \mys@stop
+\def\mys@ifemptyTF@delimited#1{%
+    \ifx\relax#1\relax%
+        \expandafter\mys@firstoftwo@delimited\else%
+        \expandafter\mys@secondoftwo@delimited\fi%
+    }%
+%
+%---   si signe moins
+%
+\def\mys@if@minus#1{%
+  \@ifnextchar{-}
+    {\expandafter\@firstoftwo\remove@to@nnil}%
+    {\expandafter\@secondoftwo\remove@to@nnil}%
+  #1
+  \@nnil
+  }%
+%
+%---   si 2 signes moins mettre un plus
+%
+%\def\mys@if@twominus#1{%
+%  \@ifnextchar{-}
+%    {\expandafter\@firstoftwo\remove@to@nnil}%
+%    {\expandafter\@secondoftwo\remove@to@nnil}%
+%  #1
+%  \@nnil
+%  }%
+%\def\santize@doubleminus#1{\santize@doubleminus@#1\@nnil}
+%\def\santize@doubleminus@#1#2\@nnil{%
+%    \ifx\relax#2\relax#1
+%    \else
+%        \ifx#1-\ifx#2-+\else-#2\fi\else#1#2\fi
+%    \fi
+%}%
+%
+%---   si le premier token est une lettre
+%
+\def\mys@is@firsttok@letter#1{\expandafter\mys@is@firsttok@letter@\expanded{#1}\mys@stop}
+\def\mys@is@firsttok@letter@#1#2\mys@stop{\ifnum\numexpr\uccode`#1/26=3 \expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+%
+%---   si le premier token est un chiffre
+%
+\def\mys@is@firsttok@digit#1{\expandafter\mys@is@firsttok@digit@\expanded{#1}\mys@stop}
+\def\mys@is@firsttok@digit@#1#2\mys@stop{\ifnum 9<1#1 \expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+%
+%---   si prime
+%
+\def\mys@ifprime#1{\@ifnextchar'{\@firstoftwo{#1}}}%
+%
+%---   est-ce que le premier token de l'argument est le signe moins, le signe plus, un chiffre ou autre chose
+%
+% \mys@is@firsttok@minusplusdigitother{argument}{cas du signe -}{autre cas}{cas du signe +}{cas d'un signe}
+\def\mys@is@firsttok@minusplusdigitother#1{\expandafter\mys@is@firsttok@minusplusdigitother@\expanded{#1}\mys@stop}
+\def\mys@is@firsttok@minusplusdigitother@#1#2\mys@stop{%
+    \ifcase\numexpr1\noexpand#11\relax
+         \expandafter\mys@firstoffour
+    \or \expandafter\mys@secondoffour
+    \or   \expandafter\mys@threeoffour
+    \else \expandafter\mys@fouroffour
+    \fi%
+    }%
+%
+%---   si décimal
+%
+\def\mys@if@decimal#1{\expandafter\mys@if@decimal@\expanded{#1}\mys@stop}%
+\def\mys@if@decimal@{\@ifnextchar+\mys@if@decimal@i\mys@if@decimal@ii}%
+\def\mys@if@decimal@i#1\mys@stop{\expandafter\mys@if@decimal@\mys@gobble#1\mys@stop}%
+\def\mys@if@decimal@ii#1\mys@stop{\@ifnextchar-\mys@if@decimal@i\mys@if@decimal@iii#1\mys@stop}%
+\def\mys@if@decimal@iii#1\mys@stop{\mys@if@decimal@parse@decdoti#1.\mys@stop}%
+%
+\def\mys@if@decimal@gobblelastpoint#1.\mys@stop{#1}%%
+%
+\def\mys@if@decimal@parse@decdoti#1.#2\mys@stop{%
+    \def\tmp{.}\def\tmpp{#2}% pour que la comparaison de . et ..12 soit correcte
+    \ifx\tmp\tmpp % l'argument initial (de \mys@if@number) est de la forme <digit>*n<point>
+            \ifx\relax#1\relax
+                 \expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\@secondoftwo
+            \else
+                \mys@if@number@main{#1}{\expandafter\expandafter\expandafter\@firstoftwo}{\expandafter\expandafter\expandafter\@secondoftwo}%
+            \fi
+    \else%
+        \ifx\relax#2\relax % l'argument initial (de \mys@if@number) est de la forme <digit>*n
+            \ifx\relax#1\relax
+                \expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\@secondoftwo
+            \else
+                \mys@if@number@main{#1}{\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\@firstoftwo}{\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\@secondoftwo}%
+            \fi
+        \else %
+            \ifx\relax#1\relax% l'argument initial (de \mys@if@number) est de la forme <point><digit>*n
+                \expandafter\mys@if@number@main\expandafter{\mys@if@decimal@gobblelastpoint#2\mys@stop}{\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\@firstoftwo}{\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\@secondoftwo}%
+            \else
+                \mys@if@number@main{#1}%
+                    {\expandafter\mys@if@number@main\expandafter{\mys@if@decimal@gobblelastpoint#2\mys@stop}{\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\@firstoftwo}{\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\@secondoftwo}}%
+                    {\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\expandafter\@secondoftwo}%
+            \fi
+        \fi
+    \fi%
+    }%
+%
+% détection d'un chiffre
+%
+% développable
+\def\mys@if@number@main@i#1{\if\relax\detokenize\expandafter{\romannumeral-0#1}\relax\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+%
+% egreg : https://tex.stackexchange.com/questions/50111/how-to-check-if-the-value-of-a-parameter-is-a-number
+% non développable
+\def\mys@if@number@main@ii#1{\afterassignment\get@args\count@=0#1\hfuzz#1\hfuzz}
+\def\get@args#1\hfuzz#2\hfuzz{%
+  \if\relax\detokenize{#1}\relax
+\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi
+}
+%
+\let\mys@if@number@main\mys@if@number@main@ii
+%
+%---   si réel (ou si décimal ?)
+%
+\ifluatex%
+    \directlua{ require("/home/myself/texmflua/tex_condition") }%
+    \newcommand*\mys@if@real[1]{%
+        \ifnum\directlua{mysifreal("#1")}=1\relax \expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi%
+    }%
+\fi
+%
+%--- si le compteur existe alors ... sinon ...
+%
+\newcommand*\ifcounter[1]{%
+  \ifcsname c@#1\endcsname
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi
+}
+%
+%====================================================
+%
+% supprime l'argument
+%
+%====================================================
+%
+\def\mys@emptying#1\mys@stop{}%
+%
+%====================================================
+%
+% ne fait aucun traitement sur l'argument
+%
+%====================================================
+%
+\def\mys@donothing#1{#1}%
+\def\mys@donothing@stop#1\mys@stop{#1}%
+%
+%====================================================
+%
+% control sequence name
+%
+%====================================================
+%
+%---   appelle une macro par son cs name
+%
+\def\mys@csuse#1{\csname #1\endcsname}
+%
+%====================================================
+%
+\def\mys@csletcs#1#2{\global\expandafter\expandafter\expandafter\let\expandafter\csname\expandafter#1\expandafter\endcsname\csname#2\endcsname}
+\def\mys@cslet#1#2{\global\expandafter\let\csname#1\endcsname#2}
+%
+%---   définit une macro dont on donne le cs name
+%
+\def\mys@csdef#1#2{\expandafter\def\csname#1\endcsname{#2}}
+%
+\def\mys@csgdef#1#2{\expandafter\gdef\csname#1\endcsname{#2}}
+%
+%---   ajoute le texte de remplacement de #2 au texte de remplacement de la macro de cs name #1 et stocke tout ça dans la macro de cs name #1
+%
+\def\mys@addcsgdef@i#1{\expandafter\gdef\csname#1\endcsname}
+%
+\def\mys@addcsgdef#1#2{%
+    \expandafter\expandafter\expandafter\mys@addcsgdef@i\expandafter\expandafter\expandafter%
+    {\expandafter\expandafter\expandafter#1\expandafter\expandafter\expandafter}\expandafter\expandafter\expandafter{\csname#1\endcsname,#2}}
+%
+%====================================================
+%
+% debug
+%
+%====================================================
+%
+\def\mys@showarg#1{\def\tmp{#1}\show\tmp}%
+\def\mys@showargii#1#2{\def\tmp{#1}\show\tmp\def\tmpp{#2}\show\tmpp}%
+%
+%====================================================
+%
+% outil pour définir des macros faisant intervenir des délimiteurs extensibles
+% voir mys-notation-trigo
+%
+%====================================================
+%
+\def\declareiinotation#1#2{%
+% #1 --> nom de la macro créée
+% #2 --> macro correspondant à un délimiteur créé avec \DeclarePairedDelimiter ou \DeclarePairedDelimiterXPP 
+%
+    \def#1{%
+        \expandafter\let\expandafter\mys@util@iinotation@format\csname mys@declareiinotation@\string#1@format\endcsname
+        \expandafter\let\expandafter\mys@util@iinotation@format@aux\csname mys@declareiinotation@\string#1@format@aux\endcsname% version sans prime : formate les arguments avant de les passser à la macro \mys@util@iinotation@format précédente 
+        \@ifnextchar'%
+            {\let\mys@util@iinotation@format@\relax\expandafter\mys@declareiinotation@aux\mys@gobble}%
+            {\let\mys@util@iinotation@format@\mys@util@iinotation@format@aux\mys@declareiinotation@aux}%
+    }%
+%
+    \def\mys@declareiinotation@aux{%
+        \@ifnextchar*%
+            {\expandafter\mys@declareiinotation@etoile\mys@gobble}%
+            {%
+            \@ifnextchar[%
+                {\mys@declareiinotation@opt}%
+                {\mys@declareiinotation@nonetoile}%
+            }%
+    }%    
+%
+%      ------      version avec étoile (ajustement auto de la taille des parenthèses)
+%
+    \def\mys@declareiinotation@etoile##1{%
+        \expandafter#2\expandafter*\expandafter{\expandafter\mys@util@iinotation@format\mys@util@iinotation@format@##1\mys@stop}%
+    }%
+%
+%      ------      version avec argument optionnel (donnant la taille des parenthèses)
+%
+    \def\mys@declareiinotation@opt[##1]##2{%
+        \expandafter#2\expandafter[\expandafter##1\expandafter]\expandafter{\expandafter\mys@util@iinotation@format\mys@util@iinotation@format@##2\mys@stop}%
+    }%
+%
+%      ------      version sans argument optionnel ni etoile
+%
+    \def\mys@declareiinotation@nonetoile##1{%
+        \expandafter#2\expandafter{\expandafter\mys@util@iinotation@format\mys@util@iinotation@format@##1\mys@stop}%
+    }%
+}%
+%
+\def\setiinotationformat#1#2#3{%
+    \expandafter\def\csname mys@declareiinotation@\string#1@format\endcsname#2\mys@stop{#3}%
+    }
+%
+\def\setiinotationformatprime#1#2#3{%
+    \expandafter\def\csname mys@declareiinotation@\string#1@format@aux\endcsname#2\mys@stop{#3\mys@stop}%
+    }
+%
+%====================================================
+%
+% outil pour définir des macros faisant intervenir des délimiteurs extensibles
+% voir  mys-notation-fonction
+%
+%====================================================
+%
+\def\mys@declareiipd@format#1\mys@stop{#1}
+%
+\newcommand*\declareiipaireddelimiter[3]{%
+% #1 : nom de la macro
+% #2 : si pas prime
+% #3 : si prime
+    \def#1{%
+        \@ifnextchar'%
+            {%
+            \expandafter\let\expandafter\mys@declareiipd@format\csname mys@declareiipd@ii@\string#1@format\endcsname%
+           \expandafter\mys@declareiipd@primeornot\mys@gobble@secondoftwo{#3}}%
+            {%
+            \expandafter\let\expandafter\mys@declareiipd@format\csname mys@declareiipd@i@\string#1@format\endcsname% version sans prime
+            \mys@declareiipd@primeornot{#2}}%
+        }%
+    }%
+%
+\def\mys@declareiipd@primeornot#1{%
+    \@ifnextchar*%
+        {\expandafter\mys@declareiipd@etoile\mys@gobble@secondoftwo{#1}}%
+        {%
+        \@ifnextchar[%
+            {\mys@declareiipd@opt{#1}}%
+            {\mys@declareiipd@nonetoile{#1}}%
+        }%
+    }%    
+%
+%      ------      version avec étoile (ajustement auto de la taille des parenthèses)
+%
+\def\mys@declareiipd@etoile#1#2{%
+    \expandafter#1\expandafter*\expandafter{\mys@declareiipd@format#2\mys@stop}%
+    }%
+%
+%      ------      version avec argument optionnel (donnant la taille des parenthèses)
+%
+\def\mys@declareiipd@opt#1[#2]#3{%
+    \expandafter#1\expandafter[\expandafter#2\expandafter]\expandafter{\mys@declareiipd@format#3\mys@stop}%
+    }%
+%
+%      ------      version sans argument optionnel ni etoile
+%
+\def\mys@declareiipd@nonetoile#1#2{%
+    \expandafter#1\expandafter{\mys@declareiipd@format#2\mys@stop}%
+    }%
+%
+\def\setiipdformatii#1#2#3{% si prime
+    \expandafter\def\csname mys@declareiipd@ii@\string#1@format\endcsname#2\mys@stop{#3}%
+    }%
+%
+%
+\def\setiipdformati#1#2#3{%
+    \expandafter\def\csname mys@declareiipd@i@\string#1@format\endcsname#2\mys@stop{#3}%
+    }%
+%
+%====================================================
+%
+% outil pour définir des macros avec une syntaxe particulière
+% voir  mys-notation-fonction
+%
+%====================================================
+%
+% définit une macro (par exemple \courbe) t.q.
+%
+% \courbe{h}				-->	\mys@macro@optoblnone@format{<arg opt>}{h}
+%	\courbe[<char>]	-->	\mys@macro@optoblnone@format@empty{<char>}
+%	\courbe[<char>]{h}	-->	\mys@macro@optoblnone@format{<char>}{h} 
+%	\courbe					--> \mys@macro@optoblnone@format@empty{C}
+%
+\newcommand*\definemacrowithnomandatory[4][C]{%
+    \toks@{#3}%
+    \setdmwnmformatempty{#2}{#3}%
+    \setdmwnmformat{#2}{#4}%
+    \expandafter\let\expandafter\mys@macro@optoblnone@format@empty\csname mys@dmwnm@\string#2@format@empty\endcsname%
+    \expandafter\let\expandafter\mys@macro@optoblnone@format\csname mys@dmwnm@\string#2@format\endcsname%
+%
+%   ---   pas d'argument
+%
+    \def\mys@dmwnm@optobl@none{\mys@dmwnm@opt@oblnone@{#1}}%
+%
+%   ---   argument obligatoire et/ou optionnel
+%
+    \def\mys@dmwnm@optoblnone[##1]{\@ifnextchar\bgroup{\mys@dmwnm@opt@oblnone{##1}}{\mys@dmwnm@opt@oblnone@{##1}}}%
+%
+%   ---   aux
+%
+    \def\mys@dmwnm@opt@oblnone@##1{\mys@macro@optoblnone@format@empty{##1}}%
+    \def\mys@dmwnm@opt@oblnone##1##2{\mys@macro@optoblnone@format{##1}{##2}}%
+%
+%   ---   macro principale
+%
+    \newcommand*#2{%
+        \@ifnextchar[%
+            {\mys@dmwnm@optoblnone}%
+            {\@ifnextchar\bgroup{\mys@dmwnm@opt@oblnone{#1}}{\mys@dmwnm@optobl@none}}%
+        }%
+    {}}%
+%
+\newcommand*\setdmwnmformatempty[2]{\expandafter\def\csname mys@dmwnm@\string#1@format@empty\endcsname##1{#2}}%
+%
+\newcommand*\setdmwnmformat[2]{\expandafter\def\csname mys@dmwnm@\string#1@format\endcsname##1##2{#2}}%
+%
+\endinput

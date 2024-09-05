@@ -1,0 +1,1234 @@
+
+%\RequirePackage{ expl3 , xparse , l3keys2e, l3sort }%
+%
+\ProvidesExplPackage%
+	{mys-l3droites}%
+	{2015/02/13}%
+	{0.0}%
+	{droites}%
+%
+% TODO : 2var
+%		gestion des calculs : ne faire que les calculs demandés
+%		variance et ecarttype
+%	Graphiques : bar, circ,hist,cecc,cecd,cfcd,cfcc,nuage
+%	Corriger les rdac
+%
+%
+%
+%\setpoints{A/1/2,B/3/8}
+%\setdroite[id={a,b,c},nom={d,e,}]{y=-3x+6,x=8,A/B}% Attention à la virgle après e
+%$\droiteprint{a}{label}$ : $\droiteprint{a}{eq}$\newline
+%$\droiteprint{b}{label}$ : $\droiteprint{b}{eq}$\newline
+%$\droiteprint{c}{label}$ : $\droiteprint{c}{eq}$\newline
+%
+%\setpoints{A/1/2,B/3/8}
+%\setdroite[id={a,b,c},nom={d,e}]{y=-3x+6,x=8,A/B}
+%$\droiteprint{a}{label}$ : $\droiteprint{a}{eq}$\newline
+%$\droiteprint{b}{label}$ : $\droiteprint{b}{eq}$\newline
+%$\droiteprint{c}{label}$ : $\droiteprint{c}{eq}$\newline
+%
+%\RequirePackage{mslf-notation-math,mslf-resolution-geo-analytique,,}%fp (attention au clash avec diagbox)
+\RequirePackage{xintexpr,xintfrac}
+%
+%%
+%%%
+%%% Class
+%%%
+%%
+%
+%
+\tl_set:Nn\l_mslf_droite_nom_defaut_tl{@}
+\cs_generate_variant:Nn\int_set:Nn{Nx}
+\cs_generate_variant:Nn\fp_set:Nn{Nx}
+\int_new:N\l_mslf_droite_ids_int
+\int_new:N\l_mslf_droite_noms_int
+\int_new:N\l_mslf_droite_cds_labels_int
+\tl_new:N\l_mslf_droite_id_tl
+\keys_define:nn {droite}
+	{
+% id des données (1 id pour éventuellement plusieurs droites)
+id				.code:n 	=	{
+							\seq_set_split:Nnn\l_tmpa_seq{,}{#1}
+							\int_set:Nx
+								\l_mslf_droite_ids_int
+								{\seq_count:N\l_tmpa_seq}
+							\int_zero:N\l_tmpa_int
+							\seq_map_inline:Nn
+								\l_tmpa_seq
+								{
+								\int_incr:N\l_tmpa_int
+								\tl_set:cn{l_mslf_droite_id_\int_use:N\l_tmpa_int _tl}{##1}
+								\prop_clear_new:c{g_droite_ ##1 _prop}
+								}
+							},
+id				.default:n	=	{},	
+id				.initial:n	=	{},	
+%listedroites		.tl_set:
+cds				.code:n 	=	{
+							\seq_set_split:Nnn\l_tmpa_seq{,}{#1}
+							\int_set:Nx
+								\l_mslf_droite_cds_labels_int
+								{\seq_count:N\l_tmpa_seq}
+							\int_zero:N\l_tmpa_int
+							\seq_map_inline:Nn
+								\l_tmpa_seq
+								{
+								\int_incr:N\l_tmpa_int
+								\tl_set:cn{l_mslf_droite_cdlabel_\int_use:N\l_tmpa_int _tl}{##1}
+								}
+							},
+cds				.default:n	=	{a},	
+cds				.initial:n	=	{a},	
+nom			    .code:n =   {%
+							\seq_set_split:Nnn\l_tmpa_seq{,}{#1}
+							\int_set:Nx
+								\l_mslf_droite_noms_int
+								{\seq_count:N\l_tmpa_seq}
+							\int_zero:N\l_tmpa_int
+							\seq_map_inline:Nn
+								\l_tmpa_seq
+								{
+								\int_incr:N\l_tmpa_int
+								\tl_set:cn{l_mslf_droite_nom_\int_use:N\l_tmpa_int _tl}{##1}
+								}
+							},
+% si nom={...,...,...} comporte moins de valeurs que d'id, la dernière valeur donnée est utilisée est indexée à partir de 1
+% si nom={ ,...} ---> erreur
+%nom				.default:n	=	{d},	
+nom				.initial:n	=	{},
+	}
+%
+%
+%
+\NewDocumentCommand{\setdroite}{O{}m}%
+% #1 : clés-valeurs
+% #2 : données séparées par des ; 
+%		y=<nbr>x+<nbr>
+%		x=<nbr>
+%		A,B
+	{
+	\keys_set:nn{droite}{#1}
+	\seq_set_split:Nnn\l_tmpa_seq{;}{#2}
+	\int_set:Nx\l_tmpa_int{\seq_count:N\l_tmpa_seq}
+	\_mslf_droite_id_sanitize:NN\l_tmpa_int\l_mslf_droite_ids_int% SI nécessaire, on rajoute des ids automatiquement
+	\_mslf_droite_cdlabel_sanitize:NN\l_tmpa_int\l_mslf_droite_cds_labels_int
+%	\_mslf_droite_noms_sanitize:NN\l_tmpa_int\l_mslf_droite_noms_int
+	\_mslf_droite_set:N\l_tmpa_seq
+	}
+%
+%
+%
+\cs_new:Npn\_mslf_droite_id_sanitize:NN#1#2
+% #1 : integer contenant le nombre de droites passées en argument
+% #2 ; nbre d'identifiant donnés
+	{
+	\int_compare:nTF
+		{#2>=#1}
+		{}% les id donnés sont en nbre suffisant
+		{% ici il manque des ids, le dernier (par exemple a) est renommé en a1, les suivants sont a2, a3, ...
+		\int_step_inline:nnnn
+			{#1}{-1}{#2}
+			{
+			\tl_set:cx{l_mslf_droite_id_##1 _tl}
+				{\tl_use:c{l_mslf_droite_id_\int_use:N#2 _tl}\int_eval:n{##1-#2+1}
+				}
+			}
+		}
+	}
+%
+%
+\cs_new:Npn\_mslf_droite_cdlabel_sanitize:NN#1#2
+% #1 : integer contenant le nombre de droites passées en argument
+% #2 ; nbre de labels donnés
+	{
+	\int_compare:nTF
+		{#2>=#1}
+		{}% les cd donnés sont en nbre suffisant
+		{% ici il manque des cds, le dernier (par exemple a) est renommé en a1, les suivnts sont a2, a3, ...
+		\int_step_inline:nnnn
+			{#1}{-1}{#2}
+			{
+			\tl_set:cx{l_mslf_droite_cdlabel_##1 _tl}
+				{\tl_use:c{l_mslf_droite_cdlabel_ \int_use:N#2 _tl}\int_eval:n{##1-#2+1}
+				}
+			}
+		}
+	}
+%
+%
+\cs_new:Npn\_mslf_droite_noms_sanitize:NN#1#2
+% #1 : integer contenant le nombre de droites passées en argument
+% #2 ; nbre de labels donnés
+	{
+	\int_compare:nTF
+		{#2>=#1}
+		{}% les cd donnés sont en nbre suffisant
+		{% ici il manque des cds, le dernier (par exemple a) est renommé en a1, les suivnts sont a2, a3, ...
+		\int_step_inline:nnnn
+			{#1}{-1}{#2}
+			{
+			\tl_set:cx{l_mslf_droite_nom_##1 _tl}
+				{\tl_use:c{l_mslf_droite_nom_ \int_use:N#2 _tl}\c_math_subscript_token{\int_eval:n{##1-#2+1}}}
+			}
+		}
+	}
+%
+%%
+%\cs_new:Npn\mslf_droite_type:n#1
+%	{
+%	\seq_set_split:NnV\l_tmpa_seq{,}#1
+%	\seq_clear:N\l_tmpb_seq
+%	\seq_map_inline:Nn\l_tmpa_seq
+%		{
+%		\seq_put_right:Nn\l_tmpb_seq{$\use:c{droite##1}$}
+%		}
+%	\seq_use:Nnnn\l_tmpb_seq{~et~}{,~}{~ et~}
+%	}
+%\NewDocumentCommand{\typedroites}{m}%
+%	{
+%	\mslf_droite_type:n{#1}
+%	}
+%
+%
+%
+\bool_new:N\l_mslf_droite_eqbeginbyx_bool
+\bool_new:N\l_mslf_droite_eqbeginbyy_bool
+\bool_new:N\l_mslf_droite_points_bool
+\fp_new:N\l_mslf_droite_coefdir_fp
+\fp_new:N\l_mslf_droite_absordorigine_fp
+\fp_new:N\l_mslf_droite_absorigine_fp
+\fp_new:N\l_mslf_droite_ordorigine_fp
+\cs_generate_variant:Nn\tl_if_blank:nTF{vTF}
+\cs_new:Npn\_mslf_droite_set:N#1
+%	#1  : seq contenant les données sur les droites
+	{
+	\int_zero:N\l_tmpa_int
+	\seq_map_inline:Nn#1
+		{
+		\int_incr:N\l_tmpa_int
+		\bool_set_false:N\l_mslf_droite_eqbeginbyx_bool
+		\bool_set_false:N\l_mslf_droite_eqbeginbyy_bool
+		\bool_set_false:N\l_mslf_droite_points_bool
+		\_mslf_droite_check:nNNN
+			{##1}
+			\l_mslf_droite_eqbeginbyy_bool
+			\l_mslf_droite_eqbeginbyx_bool
+			\l_mslf_droite_points_bool
+		 \bool_if:NT
+		 	\l_mslf_droite_eqbeginbyx_bool
+		 	{
+		 	\tl_if_blank:vTF%
+		 	    {l_mslf_droite_nom_\int_use:N\l_tmpa_int _tl}%
+		 	    {
+				\tl_set:cx{l_mslf_droite_nom_\int_use:N\l_tmpa_int _tl}{\tl_use:N\l_mslf_droite_nom_defaut_tl\int_eval:n{\l_tmpa_int}}               
+		 	    }%
+		 	    {}
+		     \_mslf_droite_save_result:ccn{l_mslf_droite_id_\int_use:N\l_tmpa_int _tl}{l_mslf_droite_nom_\int_use:N\l_tmpa_int _tl}{label}
+		 	\_mslf_droite_equation_beginbyx:nnNN
+		 		{##1}
+		 		{\tl_use:c{l_mslf_droite_id_\int_use:N\l_tmpa_int _tl}}
+		 		\l_mslf_droite_coefdir_tl
+		 		\l_mslf_droite_absorigine_tl
+			}
+		 \bool_if:NT
+		 	\l_mslf_droite_eqbeginbyy_bool
+		 	{
+		 	\tl_if_blank:vTF%
+		 	    {l_mslf_droite_nom_\int_use:N\l_tmpa_int _tl}%
+		 	    {
+				\tl_set:cx{l_mslf_droite_nom_\int_use:N\l_tmpa_int _tl}{\tl_use:N\l_mslf_droite_nom_defaut_tl\int_eval:n{\l_tmpa_int}}               
+		 	    }%
+		 	    {}
+		     \_mslf_droite_save_result:ccn{l_mslf_droite_id_\int_use:N\l_tmpa_int _tl}{l_mslf_droite_nom_\int_use:N\l_tmpa_int _tl}{label}
+		 	\_mslf_droite_equation_beginbyy:nnNN
+		 		{##1}
+		 		{\tl_use:c{l_mslf_droite_id_\int_use:N\l_tmpa_int _tl}}
+		 		\l_mslf_droite_coefdir_tl
+		 		\l_mslf_droite_ordorigine_tl
+		 	}
+		 \bool_if:NT
+		 	\l_mslf_droite_points_bool
+		 	{
+		 	\_mslf_droite_equation_points:nnNNn
+		 		{##1}
+				{\tl_use:c{l_mslf_droite_id_\int_use:N\l_tmpa_int _tl}}
+		 		\l_mslf_droite_coefdir_tl
+		 		\l_mslf_droite_absordorigine_tl
+		 		{\tl_use:c{l_mslf_droite_cdlabel_ \int_use:N\l_tmpa_int _tl}}
+%		 	\tl_if_empty:cTF%
+%		 	    {l_mslf_droite_nom_\int_use:N\l_tmpa_int _tl}%
+%		 	    {
+%		 	    \_mslf_droite_save_result:cxn{l_mslf_droite_id_\int_use:N\l_tmpa_int _tl}{\bigl(\tl_use:N\l_mslf_droite_ptA_tl\tl_use:N\l_mslf_droite_ptB_tl\bigr)}{label}
+%		 	    }%
+%		 	    {
+%		 	    \_mslf_droite_save_result:ccn{l_mslf_droite_id_\int_use:N\l_tmpa_int _tl}{l_mslf_droite_nom_\int_use:N\l_tmpa_int _tl}{label}
+%		 	    }
+            \cs_if_exist:cTF{l_mslf_droite_nom_\int_use:N\l_tmpa_int _tl}
+                {}
+                {\tl_set:cn{l_mslf_droite_nom_\int_use:N\l_tmpa_int _tl}{}}
+		 	\tl_if_blank:vTF%
+		 	    {l_mslf_droite_nom_\int_use:N\l_tmpa_int _tl}%
+		 	    {%
+				\tl_set:cx{l_mslf_droite_nom_\int_use:N\l_tmpa_int _tl}{\exp_not:N\droite{\tl_use:N\l_mslf_droite_ptA_tl\tl_use:N\l_mslf_droite_ptB_tl}}%{\bigl(\tl_use:N\l_mslf_droite_ptA_tl\tl_use:N\l_mslf_droite_ptB_tl\bigr)} 
+		 	    }%
+		 	    {}
+		     \_mslf_droite_save_result:ccn{l_mslf_droite_id_\int_use:N\l_tmpa_int _tl}{l_mslf_droite_nom_\int_use:N\l_tmpa_int _tl}{label}
+		 	}
+		}
+	}
+%
+%
+%
+\tl_const:Nn\c_mslf_droite_eq_x_tl{x}
+\tl_const:Nn\c_mslf_droite_eq_y_tl{y}
+%%%%
+%%%%
+%%%%
+%
+\cs_new:Npn\_mslf_droite_check_cartesien:n#1
+  {\_mslf_droite_check_cartesien_egal:w#1\q_stop}
+%
+\cs_new:Npn\_mslf_droite_check_cartesien_egal:w#1=#2\q_stop
+  {
+  \fp_set:Nn\_mslf_drte_cart_iimembre_fp{#2}
+  \fp_show:N\_mslf_drte_cart_iimembre_fp
+  \_mslf_droite_check_cartesien_sgn:w#1\q_stop
+  }
+%
+\cs_new:Npn\_mslf_droite_check_cartesien_sgn:w#1\q_stop
+  {
+  \_mslf_droite_check_cartesien_sgnplus:w#1+\q_stop
+  \_mslf_droite_check_cartesien_sgnmoins:w#1-\q_stop
+  }
+%
+\cs_new:Npn\_mslf_droite_check_cartesien_sgnplus:w#1+#2\q_stop
+  {
+  \if\relax\detokenize{#1}\relax
+   \_mslf_droite_check_cartesien_sgnplus:w{+}#2\q_stop
+  \else
+    \if\relax\detokenize{#2}\relax
+    \else
+      \_mslf_droite_check_cartesien_plus:w#1+#2\q_stop
+    \fi
+  \fi
+  }
+\cs_new:Npn\_mslf_droite_check_cartesien_plus:w#1+#2+\q_stop
+  {
+\_mslf_droite_check_cartesien_coefx:w#1xy\q_stop
+  \_mslf_droite_check_cartesien_coefy:w#2\q_stop
+  }
+\cs_new:Npn\_mslf_droite_check_cartesien_sgnmoins:w#1-#2\q_stop
+  {
+  \if\relax\detokenize{#1}\relax
+   \_mslf_droite_check_cartesien_sgnmoins:w{-}#2\q_stop
+  \else
+    \if\relax\detokenize{#2}\relax
+    \else
+      \_mslf_droite_check_cartesien_moins:w#1-#2\q_stop
+    \fi  
+  \fi
+  }
+\cs_new:Npn\_mslf_droite_check_cartesien_moins:w#1-#2-\q_stop
+  {\_mslf_droite_check_cartesien_coefx:w#1xy\q_stop
+  \_mslf_droite_check_cartesien_coefy:w-#2\q_stop
+  }
+\cs_new:Npn\_mslf_droite_check_cartesien_coefx:w#1x#2\q_stop
+  {\if\relax\detokenize{#2y}\relax
+    \_mslf_droite_check_cartesien_coefylast:w#1yx\q_stop
+  \else
+    \fp_set:Nn\_mslf_drte_cart_coefx_fp{#1}
+     \fp_show:N\_mslf_drte_cart_coefx_fp
+   \fi
+  }
+\cs_new:Npn\_mslf_droite_check_cartesien_coefxlast:w#1x#2\q_stop
+  {\if\relax\detokenize{#2y}\relax
+     \ERRORRRRRRRRRRRRRRRRRRRRRR
+  \else
+    \fp_set:Nn\_mslf_drte_cart_coefy_fp{#1}
+     \fp_show:N\_mslf_drte_cart_coefy_fp
+   \fi
+  }
+\cs_new:Npn\_mslf_droite_check_cartesien_coefy:w#1y#2\q_stop
+  {\if\relax\detokenize{#2x}\relax
+    \_mslf_droite_check_cartesien_coefxlast:w#1xy\q_stop
+  \else
+    \fp_set:Nn\_mslf_drte_cart_coefy_fp{#1}
+     \fp_show:N\_mslf_drte_cart_coefy_fp
+   \fi
+  }
+\cs_new:Npn\_mslf_droite_check_cartesien_coefylast:w#1y#2\q_stop
+  {\if\relax\detokenize{#2x}\relax
+    \ERRORRRRRRRRRRRRRRRRRRRRRR
+  \else
+    \fp_set:Nn\_mslf_drte_cart_coefx_fp{#1}
+     \fp_show:N\_mslf_drte_cart_coefx_fp
+   \fi
+  }
+  \def\testcartesien#1{\_mslf_droite_check_cartesien:n{#1}}
+%\testcartesien{2x+3y=12}% --> good
+%\testcartesien{2x+3y=-12}% --> good
+%\testcartesien{-2x+3y=12}% --> good
+%\testcartesien{-2x+3y=-12}% --> good
+%\testcartesien{2x-3y=12}% --> good
+%\testcartesien{2x-3y=-12}% --> good
+%\testcartesien{-2x-3y=12}% --> good
+%\testcartesien{-2x-3y=-12}% --> good
+%\testcartesien{222x-3333y=-13}% --> good
+%\testcartesien{-22x+333y=12}% --> good
+%\testcartesien{-22x-213y=12}% --> good
+% \testcartesien{2x+=12} DOIT DONNER UNE ERREUR
+%%%%
+%%%%
+%%%%
+\cs_new:Npn\_mslf_droite_check:nNNN#1#2#3#4
+% #1 : droite définie par eq ou par deux points
+% #2 : booléen (droite def par y=ax+b)
+% #3 : booléen (droite def par x=k) 
+% #4 : booléen (droite def par 2 points) 
+	{
+	\tl_set:Nx\l_tmpa_tl{\tl_head:n{#1}}
+	\tl_if_eq:NNTF
+		\l_tmpa_tl
+		\c_mslf_droite_eq_y_tl
+		{\bool_set_true:N#2}
+		{
+		\tl_if_eq:NNTF
+			\l_tmpa_tl
+			\c_mslf_droite_eq_x_tl
+			{\bool_set_true:N#3}
+			{
+			\_mslf_if_first_uppercase:NTF
+				\l_tmpa_tl
+				{\bool_set_true:N#4}
+				{error : parsing don't recognize the first token of an element of the csv's argument}%on admet que #1 est de la forme y=<nbr> i.e. on ne rentre pas de mauvais input
+			}
+		}
+	}
+%
+% egreg adaptation
+%
+\cs_generate_variant:Nn\str_set:Nn{Nf}
+\cs_generate_variant:Nn \str_upper_case:n { V }
+\prg_new_protected_conditional:Npnn \_mslf_if_first_uppercase:n #1 { T , F , TF }
+ {
+  \tl_set:Nx \l_mslf_testa_tl { \tl_item:nn { #1 } {1} }
+  \str_set:Nx\l_mslf_testa_str{\tl_use:N\l_mslf_testa_tl}
+  \str_set:Nx \l_mslf_testb_str { \str_upper_case:f{\tl_use:N \l_mslf_testa_tl }}
+  \str_if_eq:NNTF \l_mslf_testa_str \l_mslf_testb_str
+   { \prg_return_true: }
+   { \prg_return_false: }
+ }
+\prg_new_protected_conditional:Npnn \_mslf_if_first_uppercase:N #1 { T , F , TF }
+ {
+  \tl_set:Nx \l_mslf_testa_tl { \tl_item:Nn #1{1} }
+  \str_set:Nx\l_mslf_testa_str{\tl_use:N\l_mslf_testa_tl}
+  \str_set:Nx \l_mslf_testb_str { \str_upper_case:f{\tl_use:N \l_mslf_testa_tl }}
+  \str_if_eq:NNTF \l_mslf_testa_str \l_mslf_testb_str
+   { \prg_return_true: }
+   { \prg_return_false: }
+ }
+%
+%
+%
+\cs_new:Npn\_mslf_droite_equation_beginbyy:nnNN#1#2#3#4
+% #1 : y=ax+b
+% #2 : identifiant de la droite
+% #3 : tl stockant le coef dir
+% #4 : l'ordonnée a l'origine
+	{
+	\_mslf_droite_save_result:nnn{#2}{#1}{eq}
+	\_mslf_droite_equation_ybegin_aux:wNN #1 \q_stop#3#4
+	\_mslf_droite_save_result:nNn{#2}#3{coefdir}
+	\_mslf_droite_save_result:nNn{#2}#4{absordorigine}
+	}
+%
+%
+%
+\cs_new:Npn \_mslf_droite_equation_ybegin_aux:wNN y=#1 \q_stop #2#3
+% #1 : y=ax+b
+% #2 : tl stockant le coef dir
+% #3 : l'ordonnée a l'origine
+	{
+	\tl_if_in:nnTF
+		{#1}
+		{x}
+		{\_mslf_droite_equation_ybegin_withx_aux:wNN y=#1 \q_stop #2#3}
+		{\_mslf_droite_equation_ybegin_withoutx_aux:wNN y=#1 \q_stop #2#3}
+	}
+%
+%
+%
+\cs_new:Npn \_mslf_droite_equation_ybegin_withx_aux:wNN y=#1x#2 \q_stop #3#4
+% #1x#2 : <a>x<+b>
+% #3 : tl stockant le coef dir
+% #4 : l'ordonnée a l'origine
+	{
+	\tl_if_blank:nTF
+		{#1}
+		{\tl_set:Nn#3{1}}
+		{
+		\tl_if_eq:nnTF
+			{#1}
+			{-}
+			{\tl_set:Nn#3{-1}}
+			{\tl_set:Nx#3{#1}}
+		}
+	\tl_if_blank:nTF
+		{#2}
+		{\tl_set:Nn#4{0}}
+		{\tl_set:Nx#4{#2}}
+	}
+%
+%
+%
+%\cs_new:Npn\mslf_parse_expr:n#1
+%	{
+%	\__mslf_parse_expr:w#1\q_stop
+%	}
+%\cs_new:Npn\__mslf_parse_expr:w#1\q_stop
+%	{
+%	
+%	}
+%
+%
+%
+\cs_new:Npn \_mslf_droite_equation_ybegin_withoutx_aux:wNN y=#1 \q_stop #2#3
+% #1 : y=<nbr>
+% #2 : tl stockant le coef dir
+% #3 : l'ordonnée a l'origine
+	{
+	\fp_set:Nn#2{0}
+	\tl_if_blank:nTF
+		{#1}
+		{\fp_set:Nn#3{0}}
+		{\fp_set:Nx#3{#1}}
+	}
+%
+%
+%
+\cs_new:Npn\_mslf_droite_equation_beginbyx:nnNN#1#2#3#4
+% #1 : x=<nbr>
+% #2 : identifiant de la droite
+% #3 : tl stockant NaN (le coef dir)
+% #4 : l'abscisse a l'origine (abscisse du point de la droite d'ordonnée 0)
+	{
+	\_mslf_droite_save_result:nnn{#2}{#1}{eq}
+	\_mslf_droite_equation_xbegin_aux:wNN #1 \q_stop#3#4
+	\_mslf_droite_save_result:nNn{#2}#3{coefdir}
+	\_mslf_droite_save_result:nNn{#2}#4{absordorigine}
+	}
+%
+%
+%
+\cs_new:Npn \_mslf_droite_equation_xbegin_aux:wNN x=#1 \q_stop #2#3
+% #1 : le k de x=k
+% #2 : tl stockant nan (le coef dir)
+% #3 : l'abscisse a l'origine (abscisse du point de la droite d'ordonnée 0)
+	{
+	\fp_set:Nn#2{nan}%nan
+	\fp_set:Nx#3{#1}
+	}
+%
+%
+%
+\tl_new:N\l_mslf_droite_ptA_tl
+\tl_new:N\l_mslf_droite_ptB_tl
+\cs_new:Npn\_mslf_droite_equation_points:nnNNn#1#2#3#4#5
+% #1 : deux noms de points séparés par / (exple : A/B pour la droite passant par A et B)
+% #2 : identifiant de la droite
+% #3 : tl stockant le coef dir (ou NaN si droite parallèle à (Oy))
+% #4 : l'ordonnée a l'origine (ou l'abscisse à l'origine)
+% #5 : label du coef dir
+	{
+	\_mslf_droite_getpoints:nNN{#1}\l_mslf_droite_ptA_tl\l_mslf_droite_ptB_tl
+	\_mslf_droite_equation_points_aux:NNNN \l_mslf_droite_ptA_tl\l_mslf_droite_ptB_tl#3#4
+	\fp_compare:nNnTF {#3} ? { 0 }
+		{
+		\_mslf_droite_save_result:nNn{#2}#3{coefdir}
+		\_mslf_droite_save_result:nNn{#2}#4{absordorigine}	
+		} % #3 = nan
+		{
+		\_mslf_droite_save_result:nNn{#2}#3{coefdir}
+		\_mslf_droite_save_result:nNn{#2}#4{absordorigine}
+ 		} % #3 is not nan
+ 	\_mslf_droite_points_coefdir_redac:NNnn\l_mslf_droite_ptA_tl\l_mslf_droite_ptB_tl{#2}{#5}
+	\_mslf_droite_equation_points_redac:NNn\l_mslf_droite_ptA_tl\l_mslf_droite_ptB_tl{#2}
+	}
+%
+%
+%
+\cs_new:Npn \_mslf_droite_getpoints:nNN#1#2#3
+	{\_mslf_droite_getpoints_aux:wNN#1\q_stop#2#3}
+%
+%
+%
+\cs_new:Npn \_mslf_droite_getpoints_aux:wNN #1,#2\q_stop#3#4
+	{
+	\tl_set:Nx#3{#1}
+	\tl_set:Nx#4{#2}
+	}
+%
+%
+%
+\cs_new:Npn \_mslf_droite_equation_points_aux:NNNN #1#2#3#4
+% #1 : un des noms de points
+% #2 : l'autre nom de point
+% #3 : tl stockant le coef dir (ou NaN si droite parallèle à (Oy))
+% #4 : l'ordonnée a l'origine (ou l'abscisse à l'origine)
+	{
+	\fp_compare:nTF
+		{\use:c{rawx#2}=\use:c{rawx#1}}
+		{
+		\tl_set:Nn#3{nan}
+		\tl_set:Nx#4{\use:c{rawx#1}}
+		}
+		{
+%	\fp_set:Nx#3{(\use:c{rawy#2}-\use:c{rawy#1})/(\use:c{rawx#2}-\use:c{rawx#1})}
+		\tl_set:Nx#3{\fp_eval:n{(\use:c{rawy#2}-\use:c{rawy#1})/(\use:c{rawx#2}-\use:c{rawx#1})}}
+%		\fp_set:Nx#4{\use:c{rawy#2}-(#3)*(\use:c{rawx#2})}
+		\tl_set:Nx#4{\fp_eval:n{\use:c{rawy#2}-(#3)*(\use:c{rawx#2})}}
+		}
+	}
+%
+%
+%
+\cs_new:Npn \_mslf_droite_equation_points_redac:NNn#1#2#3
+% #1 : un des noms de points
+% #2 : l'autre nom de point
+% #3 : id
+	{
+	\fp_set:Nx\l_tmpa_fp{\use:c{rawx#1}}
+	\fp_set:Nx\l_tmpb_fp{\use:c{rawx#2}}
+	\fp_compare:nTF
+		{\l_tmpa_fp=\l_tmpb_fp}
+		{ \_mslf_droite_equation_points_redac_xegaux:NNNn#1#2\l_tmpa_tl{#3}}
+		{\_mslf_droite_equation_points_redac_xdifferents:NNNn#1#2\l_tmpa_tl{#3}}
+	\_mslf_droite_save_result:nNn{#3}\l_tmpa_tl{eqredac}
+	}
+%
+%
+%
+\cs_new:Npn \_mslf_droite_equation_points_redac_xegaux:NNNn#1#2#3#4
+% #1 : un des noms de points
+% #2 : l'autre nom de point
+% #3 : tl sauvant la redac
+% #4 : id
+	{
+	\tl_set:Nx#3
+		{
+%		$#1\cord{\use:c{rawx#1}/\use:c{rawy#1}}$~et~$#2\cord{\use:c{rawx#2}/\use:c{rawy#2}}$~donc~$x\c_math_subscript_token {#1}=x\c_math_subscript_token {#2}=\use:c{rawx#1}$:~l'équation~réduite~de~la~droite~\droite{\tl_use:N#1\tl_use:N#2}~est~alors~$x=\use:c{rawx#1}$.
+		$x\c_math_subscript_token {#1}=x\c_math_subscript_token {#2}$~donc~$\exp_not:N\droite{\tl_use:N#1\tl_use:N#2}$~est~parallèle~à~$\exp_not:N\Oy$~et~a~pour~équation~$x=x\c_math_subscript_token{#1}$~soit~$x=\use:c{rawx#1}$.
+		}
+	\tl_set:Nx\l_tmpe_tl{x=\use:c{rawx#1}}
+	\_mslf_droite_save_result:nNn{#4}\l_tmpe_tl{eq}
+	}
+%
+%
+%
+\cs_new:Npn \_mslf_print_sub:NN#1#2
+	{
+	\fp_compare:nTF
+		{#2<0}
+		{\num{#1}-(\num{#2})}
+		{\num{#1}-\num{#2}}
+	}
+\cs_new:Npn \_mslf_print_sub:nn#1#2
+	{
+	\fp_compare:nTF
+		{#2<0}
+		{\num{#1}-(\num{#2})}
+		{\num{#1}-\num{#2}}
+	}
+%
+%
+%
+\cs_new:Npn \_mslf_print_sign:N#1
+	{
+	\fp_compare:nTF
+		{#1<0}
+		{(\num{#1})}
+		{\num{#1}}
+	}
+\cs_new:Npn \_mslf_print_sign:n#1
+	{
+	\fp_compare:nTF
+		{#1<0}
+		{(\num{#1})}
+		{\num{#1}}
+	}%
+%
+%
+\cs_new:Npn \_mslf_print_coeftimes:w#1\times
+	{
+	\tl_if_eq:nnTF
+		{#1}{1}
+		{}
+		{
+		\tl_if_eq:nnTF
+			{#1}{-1}
+			{-}
+			{#1\times}
+		}
+	}
+\cs_new:Npn \_mslf_print_coeftimes:n#1
+	{
+	\tl_if_eq:nnTF
+		{#1}{1}
+		{}
+		{
+		\tl_if_eq:nnTF
+			{#1}{-1}
+			{-}
+			{#1\times}
+		}
+	}
+%
+\tl_set:Nn\_mslf_one_tl{1}
+\tl_set:Nn\_mslf_minusone_tl{-1}
+\tl_set:Nn\_mslf_zero_tl{0}
+%\cs_new:Npn \_mslf_print_coefx:N#1 x
+%	{
+%	\tl_if_eq:NNTF
+%		#1\_mslf_one_tl
+%		{x}
+%		{%
+%		\tl_if_eq:NNTF
+%			#1\_mslf_minusone_tl
+%			{-x}
+%			{%
+%			\tl_if_eq:NNTF
+%				#1\_mslf_zero_tl
+%				{\noexpand\@gobble}
+%				{%
+%				\num{\tl_use:N#1} x
+%				}
+%			}
+%		}
+%	}
+\cs_new:Npn \_mslf_print_coefx:n#1
+	{
+	\fp_compare:nTF
+		{#1=1}%\_mslf_one_tl
+		{x}
+		{%
+		\fp_compare:nTF
+			{#1=-1}%\_mslf_minusone_tl
+			{-x}
+			{%
+			\fp_compare:nTF
+				{#1=0}%\_mslf_zero_tl
+				{\exp_not:N\@gobbleplus}
+				{%
+				\num{#1} x
+				}
+			}
+		}
+	}
+\def\@gobbleplus#1{\tl_if_eq:nnTF{#1}{+}{}{#1}}
+\cs_generate_variant:Nn\_mslf_print_coefx:n{V}
+\cs_new:Npn \_mslf_print_plusmoins:n#1
+	{
+	\fp_compare:nTF
+		{#1<0}
+		{}
+		{
+		+
+		}
+	}
+\cs_generate_variant:Nn\_mslf_print_plusmoins:n{x}
+%
+%
+%
+\tl_new:N\l_mslf_droite_printcoefdir_tl
+\tl_new:N\l_mslf_droite_noprintcoefdir_tl
+\cs_new:Npn \_mslf_droite_equation_points_redac_xdifferents:NNNn#1#2#3#4
+% #1 : un des noms de points
+% #2 : l'autre nom de point
+% #3 : tl sauvant la redac
+% #4 : id
+	{
+	\tl_set:Nx\l_tmpb_tl
+	    {\fp_eval:n{(\use:c{rawy#2}-\use:c{rawy#1})}/(\fp_eval:n{(\use:c{rawx#2}-\use:c{rawx#1})})}
+	\tl_set:Nx\l_tmpc_tl
+		{
+		\xintPRaw
+			{\xintIrr
+				{
+				%\xintMul{\tl_use:N\l_tmpb_tl}{\use:c{x#1}}
+				\xinttheexpr (\tl_use:N\l_tmpb_tl)*(\use:c{rawx#1})\relax
+				}
+			}
+		}
+	\tl_set:Nx\l_tmpd_tl{\fp_eval:n{1000*\l_tmpb_tl}}
+	\tl_set:Nx\l_tmpe_tl{\fp_eval:n{(\use:c{rawy#1})-(\tl_use:N\l_tmpc_tl)}}
+	\tl_set:Nx\l_tmpf_tl{\fp_eval:n{10*\l_tmpe_tl}}
+	\xintifInt
+		{\tl_use:N\l_tmpd_tl}
+		{
+		\tl_set:Nx\l_mslf_droite_noprintcoefdir_tl{\fp_eval:n{\tl_use:N\l_tmpb_tl}}
+		\tl_set:Nx\l_mslf_droite_printcoefdir_tl
+			{\num{\tl_use:N\l_mslf_droite_noprintcoefdir_tl}}
+        \tl_set:Nx\l_tmpg_tl{y=\_mslf_print_coefx:V\l_mslf_droite_noprintcoefdir_tl}
+		}
+		{
+		\tl_set:Nx\l_mslf_droite_noprintcoefdir_tl{\xintIrr{\tl_use:N\l_tmpb_tl}}
+		\tl_set:Nx\l_mslf_droite_printcoefdir_tl
+			{\xintSignedFrac{\tl_use:N\l_mslf_droite_noprintcoefdir_tl}}
+			%{\exp_not:N\xintSignedFrac{\exp_not:N\xintIrr{\tl_use:N\l_tmpb_tl}}}
+        \tl_set:Nx\l_tmpg_tl{y=\l_mslf_droite_printcoefdir_tl x}
+		\_mslf_droite_save_result:nNn{#4}\l_mslf_droite_printcoefdir_tl{coefdir-fractionirred}
+		\_mslf_droite_save_result:nNn{#4}\l_mslf_droite_noprintcoefdir_tl{coefdir-fractionirred-forcomp}
+		}
+	\xintifInt
+		{\tl_use:N\l_tmpf_tl}
+		{
+		\tl_set:Nx\l_mslf_droite_printordorig_tl{\num{\fp_eval:n{\tl_use:N\l_tmpe_tl}}}
+		\tl_put_right:Nx\l_tmpg_tl{\_mslf_print_plusmoins:n{\tl_use:N\l_tmpe_tl}\num{\tl_use:N\l_tmpe_tl}}
+		\_mslf_droite_save_result:nNn{#4}\l_tmpg_tl{eq}		
+		}
+		{
+		\tl_set:Nx\l_mslf_droite_noprintordorig_tl{\xinttheexpr reduce((\use:c{rawy#1})-(\tl_use:N\l_tmpc_tl))\relax}	
+ 		\tl_set:Nx\l_mslf_droite_printordorig_tl
+			{\xintSignedFrac{\tl_use:N\l_mslf_droite_noprintordorig_tl}}
+		\_mslf_droite_save_result:nNn{#4}\l_mslf_droite_printordorig_tl{ordorig-fractionirred}
+		\_mslf_droite_save_result:nNn{#4}\l_mslf_droite_noprintordorig_tl{ordorig-fractionirred-forcomp}
+		\tl_put_right:Nx\l_tmpg_tl{\_mslf_print_plusmoins:n{\tl_use:N\l_tmpe_tl}\tl_use:N\l_mslf_droite_printordorig_tl}
+		\_mslf_droite_save_result:nNn{#4}\l_tmpg_tl{eq}
+		}
+	\tl_set:Nx#3
+		{%
+		$x\c_math_subscript_token{#1}\neq x\c_math_subscript_token{#2}$~donc~
+				l'équation~réduite~de~$\exp_not:N\droite{\tl_use:N#1\tl_use:N#2}$~est~de~la~forme~$y=\tl_use:N \l_mslf_droite_cd_label_tl x+\tl_use:N \l_mslf_droite_oo_label_tl$.	
+		\newline
+		$ \tl_use:N\l_mslf_droite_cd_label_tl$~est~le~coefficient~directeur~de~la~droite~donc~
+		$ \tl_use:N\l_mslf_droite_cd_label_tl	=\frac{y\c_math_subscript_token {#2}-y\c_math_subscript_token {#1}}
+				{x\c_math_subscript_token {#2}-x\c_math_subscript_token {#1}}
+			=\frac{\_mslf_print_sub:nn{\use:c{rawy#2}}{\use:c{rawy#1}}}
+				{\_mslf_print_sub:nn{\use:c{rawx#2}}{\use:c{rawx#1}}}
+			=
+			\xintifInt
+				{\tl_use:N\l_tmpd_tl}
+				{
+				\frac{\num{\fp_eval:n{(\use:c{rawy#2}-\use:c{rawy#1})}}}{\num{\fp_eval:n{(\use:c{rawx#2}-\use:c{rawx#1})}}}
+					=\num{\fp_eval:n{\tl_use:N\l_tmpb_tl}}
+				}
+				{
+				\num{\tl_use:N\l_mslf_droite_noprintcoefdir_tl}
+				}
+		$.\newline
+		Ainsi~$\exp_not:N\droite{\tl_use:N#1\tl_use:N#2}$~a~pour~équation~$y=\l_mslf_droite_printcoefdir_tl x+\tl_use:N\l_mslf_droite_oo_label_tl$.\newline 
+	$#1\exp_not:N\cord{\num{\use:c{rawx#1}};\num{\use:c{rawy#1}}}\in\exp_not:N\droite{\tl_use:N#1\tl_use:N#2}$~
+		donc~$y\c_math_subscript_token {#1}=\_mslf_print_coeftimes:w\tl_use:N\l_mslf_droite_printcoefdir_tl\times x\c_math_subscript_token {#1}+\tl_use:N\l_mslf_droite_oo_label_tl$~
+		soit~$\num{\use:c{rawy#1}}=\_mslf_print_coeftimes:w\tl_use:N\l_mslf_droite_printcoefdir_tl\times  \_mslf_print_sign:n{\use:c{rawx#1}}+\tl_use:N\l_mslf_droite_oo_label_tl$~
+		%d'où~$b=\num{\use:c{y#1}}\xintifSgn{\tl_use:N\l_tmpc_tl}{+\exp_not:N\xintSignedFrac{-\tl_use:N\l_tmpc_tl}}{}{-\exp_not:N\xintSignedFrac{\tl_use:N\l_tmpc_tl}}
+			d'où~\xintifInt
+				{\tl_use:N\l_tmpf_tl}
+				{
+$\tl_use:N\l_mslf_droite_oo_label_tl=\num{\use:c{rawy#1}}\xintifSgn{\tl_use:N\l_tmpc_tl}{+\num{\fp_eval:n{-\tl_use:N\l_tmpc_tl}}}{}{-\num{\tl_use:N\l_tmpc_tl}}
+			=\num{\tl_use:N\l_tmpe_tl}
+			$.%
+				}
+				{
+$\tl_use:N\l_mslf_droite_oo_label_tl=\num{\use:c{rawy#1}}\xintifSgn{\tl_use:N\l_tmpc_tl}{+\xintSignedFrac{\xinttheexpr0-(\tl_use:N\l_tmpc_tl)\relax}}{}{-\xintSignedFrac{\tl_use:N\l_tmpc_tl}}
+			=%\xintSignedFrac{\xintSub{\use:c{y#1}}{\tl_use:N\l_tmpc_tl}}%
+			\xintSignedFrac{\xinttheexpr (\use:c{rawy#1})-(\tl_use:N\l_tmpc_tl)\relax}
+			$.%
+				}
+%
+%		d'où~$b=\num{\use:c{rawy#1}}\xintifSgn{\tl_use:N\l_tmpc_tl}{+\xintSignedFrac{\xinttheexpr0-(\tl_use:N\l_tmpc_tl)\relax}}{}{-\xintSignedFrac{\tl_use:N\l_tmpc_tl}}
+%			=%\xintSignedFrac{\xintSub{\use:c{y#1}}{\tl_use:N\l_tmpc_tl}}%
+%			\xintSignedFrac{\xinttheexpr (\use:c{rawy#1})-(\tl_use:N\l_tmpc_tl)\relax}
+%			$.
+\newline
+	L'équation~réduite~ de~la~droite~$\exp_not:N\droite{\tl_use:N#1\tl_use:N#2}$~est~donc~$\tl_use:N\l_tmpg_tl$.
+		}
+	}%
+\cs_new:Npn\_mslf_gobble_times:w#1\times{#1}
+%
+%
+\cs_new:Npn \_mslf_droite_points_coefdir_redac:NNnn#1#2#3#4
+% #1 : un des noms de points
+% #2 : l'autre nom de point
+% #3 : id
+% #4 : label du coef dir
+	{
+	\fp_set:Nx\l_tmpa_fp{\use:c{rawx#1}}
+	\fp_set:Nx\l_tmpb_fp{\use:c{rawx#2}}
+	\fp_compare:nTF
+		{\l_tmpa_fp=\l_tmpb_fp}
+		{ \_mslf_droite_coefdir_points_redac_xegaux:NNN#1#2\l_tmpa_tl}
+		{\_mslf_droite_coefdir_points_redac_xdifferents:NNNnn#1#2\l_tmpa_tl{#3}{#4}}
+	\_mslf_droite_save_result:nNn{#3}\l_tmpa_tl{coefdirredac}
+	}
+%
+%
+%
+\cs_new:Npn \_mslf_droite_coefdir_points_redac_xegaux:NNN#1#2#3
+% #1 : un des noms de points
+% #2 : l'autre nom de point
+% #3 : tl sauvant la redac
+	{
+	\tl_set:Nx#3
+		{
+		$#1\exp_not:N\cord{\use:c{rawx#1};\use:c{rawy#1}}$~et~$#2\exp_not:N\cord{\use:c{rawx#2};\use:c{rawy#2}}$~donc~$x\c_math_subscript_token {#1}=x\c_math_subscript_token {#2}=\use:c{rawx#1}$:~la~droite~$\exp_not:N\droite{\tl_use:N#1\tl_use:N#2}$~n'a~pas~de~coefficient~directeur.
+		}
+	}
+
+\cs_new:Npn \_mslf_droite_coefdir_points_redac_xdifferents:NNNnn#1#2#3#4#5
+% #1 : un des noms de points
+% #2 : l'autre nom de point
+% #3 : tl sauvant la redac
+% #4 : id
+% #5 : lettre pour le coef dir dans la redac
+	{
+	\tl_set:Nx\l_tmpb_tl{\fp_eval:n{(\use:c{rawy#2}-\use:c{rawy#1})}/\fp_eval:n{(\use:c{rawx#2}-\use:c{rawx#1})}}
+	\tl_set:Nx\l_tmpc_tl
+		{
+		\xintIrr
+			{\xintPRaw
+				{
+				\xinttheexpr (\tl_use:N\l_tmpb_tl)*(\use:c{rawx#1})\relax
+				}
+			}
+		}
+	\tl_set:Nx\l_tmpd_tl{\fp_eval:n{1000*\l_tmpb_tl}}
+	\xintifInt
+		{\l_tmpd_tl}
+		{
+		\tl_set:Nx\l_mslf_droite_printcoefdir_tl{\fp_eval:n{\tl_use:N\l_tmpb_tl}}
+		\_mslf_droite_save_result:nNn{#4}\l_mslf_droite_printcoefdir_tl{coefdir}
+		}
+		{
+		\tl_set:Nx\l_mslf_droite_printcoefdir_tl
+			{\xintSignedFrac{\xintIrr{\tl_use:N\l_tmpb_tl}}}
+		\tl_set:Nx\l_mslf_droite_noprintcoefdir_tl{\xintIrr{\tl_use:N\l_tmpb_tl}}
+			%{\exp_not:N\xintSignedFrac{\exp_not:N\xintIrr{\tl_use:N\l_tmpb_tl}}}
+		\_mslf_droite_save_result:nNn{#4}\l_mslf_droite_printcoefdir_tl{coefdir-fractionirred}
+		\_mslf_droite_save_result:nNn{#4}\l_mslf_droite_noprintcoefdir_tl{coefdir-fractionirred-forcomp}
+		}
+	\tl_set:Nx#3% f au lieu de x ?
+		{%$#1\cord{\num{\use:c{rawx#1}}/\num{\use:c{rawy#1}}}$~et~$#2\cord{\num{\use:c{rawx#2}}/\num{\use:c{rawy#2}}}$~donc~
+%			$x\c_math_subscript_token {#1}\neq x\c_math_subscript_token {#2}$,~				le~coefficient~directeur~de~\droite{\tl_use:N#1\tl_use:N#2}~est~donc:\exp_not:N\newline
+			$x\c_math_subscript_token {#1}\neq x\c_math_subscript_token {#2}$~ donc~le~coefficient~directeur~de~$\exp_not:N\droite{\tl_use:N#1\tl_use:N#2}$~existe,~c'est~ }
+%	\tl_put_right:Nn#3{\nobreakspace\exp_not:N\hfill}   echec
+	\tl_put_right:Nx#3{% f au lieu de x
+			$#5	=\frac{y\c_math_subscript_token {#2}-y\c_math_subscript_token {#1}}
+				{x\c_math_subscript_token {#2}-x\c_math_subscript_token {#1}}
+			=\frac{\_mslf_print_sub:nn{\use:c{rawy#2}}{\use:c{rawy#1}}}
+				{\_mslf_print_sub:nn{\use:c{rawx#2}}{\use:c{rawx#1}}}
+			=
+			\xintifInt
+				{\tl_use:N\l_tmpd_tl}
+				{
+				\frac{\num{\fp_eval:n{(\use:c{rawy#2}-\use:c{rawy#1})}}}{\num{\fp_eval:n{(\use:c{rawx#2}-\use:c{rawx#1})}}}
+					=\num{\fp_eval:n{\tl_use:N\l_tmpb_tl}}
+				}
+				{
+				\frac{\num{\fp_eval:n{(\use:c{rawy#2}-\use:c{rawy#1})}}}{\num{\fp_eval:n{(\use:c{rawx#2}-\use:c{rawx#1})}}}
+					=\tl_use:N\l_mslf_droite_printcoefdir_tl
+				}
+		$}
+%	\tl_put_right:Nn#3{\l_tmpi_tl}
+	}%
+%
+%
+%
+\NewDocumentCommand{\alignementpoints}{O{}m}
+	{
+	\seq_set_split:Nnn\l_tmpa_seq{,}{#2}
+	\int_zero:N\l_tmpa_int
+	\seq_map_inline:Nn\l_tmpa_seq
+		{
+		\int_incr:N\l_tmpa_int
+		\tl_set:cn{l_pt\int_use:N\l_tmpa_int _tl}{##1}
+		}
+	\_mslf_droite_alignement_points:ccc{l_pt1_tl}{l_pt2_tl}{l_pt3_tl}
+	}
+\cs_new:Npn\_mslf_droite_alignement_points:ccc#1#2#3
+	{
+	\tl_set_eq:Nc\l_pta_tl{l_pt1_tl}
+	\tl_set_eq:Nc\l_ptb_tl{l_pt2_tl}
+	\tl_set_eq:Nc\l_ptc_tl{l_pt3_tl}
+	\_mslf_droite_coefdir_points_redac_xdifferents:NNNnn\l_pta_tl\l_ptb_tl\l_reda_tl{alignptsi}{a}
+	\_mslf_droite_coefdir_points_redac_xdifferents:NNNnn\l_pta_tl\l_ptc_tl\l_redb_tl{alignptsii}{a'}
+	\tl_use:N\l_reda_tl\newline
+	\tl_use:N\l_redb_tl	\newline
+	\_mslf_droite_if_parallele:nnTF {alignptsi}{alignptsii}
+		{Les~coefficients~directeurs~sont~égaux~donc~les~points~$\tl_use:N\l_pta_tl$,~$\tl_use:N\l_ptb_tl$~et~$\tl_use:N\l_ptc_tl$~sont~alignés.}
+		{Les~coefficients~directeurs~sont~différents~donc~les~points~$\tl_use:N\l_pta_tl$,~$\tl_use:N\l_ptb_tl$~et~$\tl_use:N\l_ptc_tl$~ne~sont~pas~alignés.}
+		}
+%\cs_generate_variant:Nn\_mslf_droite_alignement_points:NNN{ccc}
+%
+%
+%
+\cs_new:Npn\_mslf_droite_get_value:nnN#1#2#3
+% #1 : identifiant de la série
+% #2 : identifiant de la valeur
+% #3 : macro de sauvegarde
+	{\prop_get:cnN{g_droite_ #1 _prop}{#2}#3}
+%
+%
+%
+\cs_new:Npn\_mslf_droite_use_value:nn#1#2
+% #1 : identifiant de la série
+% #2 : identifiant de la valeur
+	{
+	\prop_get:cnN{g_droite_ #1 _prop}{#2}\l_tmpa_fp
+	\fp_eval:n{\l_tmpa_fp}
+	}
+\cs_new:Npn\_mslf_droite_expandableuse_value:nn#1#2
+% #1 : identifiant de la série
+% #2 : identifiant de la valeur
+	{\prop_item:cn{g_droite_ #1 _prop}{#2}}
+%
+%
+%
+\cs_new:Npn\_mslf_droite_get_prettyvalue:nnnN#1#2#3#4
+% #1 : options pour \num
+% #2 : identifiant de la série
+% #3 : identifiant de la valeur
+% #4 : macro de sauvegarde
+	{
+	\_mslf_droite_get_value:nnN{#2}{#3}\l_tmpa_tl
+	\fp_compare:nNnTF{0}? \l_tmpa_tl
+         {\tl_set:Nn#4{$\infty$}}
+         {
+         \tl_if_blank:nTF{#1}
+           {\tl_set:Nx#4{\num{\tl_use:N\l_tmpa_tl}}}
+           {\tl_set:Nx#4{\num[#1]{\tl_use:N\l_tmpa_tl}}}
+         }
+	}
+%
+%
+%o
+\NewDocumentCommand{\droitegetnum}{mmm}
+	{
+	\prop_get:cnN{g_droite_ #1 _prop}{#2}#3
+	}
+\NewDocumentCommand{\droiteprintnum}{O{}mm}% ne pas utiliser en mode math
+	{
+	\_mslf_droite_get_prettyvalue:nnnN{#1}{#2}{#3}\l_tmpb_tl
+	\tl_use:N\l_tmpb_tl
+%	\prop_get:cnN{g_droite_ #1 _prop}{#2}\l_tmpa_fp
+%	\fp_use:N\l_tmpa_fp
+	}
+%
+%
+%\NewDocumentCommand{\droiteusenum}{mm}
+%	{
+%	\_mslf_droite_use_value:nn{#1}{#2}
+%	}
+\DeclareExpandableDocumentCommand{\droiteusenum}{mm}
+	{
+	\fp_eval:n{\_mslf_droite_expandableuse_value:nn{#1}{#2}}
+	}
+%
+\NewDocumentCommand{\droiteprint}{mm}
+	{
+	\prop_get:cnN{g_droite_ #1 _prop}{#2}\l_tmpa_tl
+	\tl_use:N\l_tmpa_tl
+	}
+%
+%
+%
+\cs_new:Npn\_mslf_droite_save_result:nNn#1#2#3
+% #1 : statistical serie's id sous la forme d'une caine de char (sans \)
+% #2 : result to save
+% #3 : property list key's name
+	{\prop_gput:cnV{g_droite_ #1 _prop}{#3}#2}
+%
+\cs_new:Npn\_mslf_droite_save_result:NNn#1#2#3
+% #1 : implicit tl, statistical serie's id sous la forme d'une caine de char (sans \)
+% #2 : result to save
+% #3 : property list key's name
+	{\prop_gput:cnV{g_droite_ #1 _prop}{#3}#2}
+%
+\cs_generate_variant:Nn\_mslf_droite_save_result:NNn{ccn}
+%
+\cs_new:Npn\_mslf_droite_save_result:Nnn#1#2#3
+% #1 : statistical serie's id sous la forme d'une caine de char (sans \)
+% #2 : result to save
+% #3 : property list key's name
+	{\prop_gput:cnV{g_droite_ #1 _prop}{#3}{#2}}
+%
+\cs_generate_variant:Nn\_mslf_droite_save_result:Nnn{cxn}
+%
+\cs_new:Npn\_mslf_droite_save_result:nnn#1#2#3
+% #1 : statistical serie's id sous la forme d'une caine de char (sans \)
+% #2 : result to save
+% #3 : property list key's name
+	{\prop_gput:cnn{g_droite_ #1 _prop}{#3}{#2}}
+%
+%\cs_generate_variant:Nn\_mslf_droite_save_result:nNn{nnn}
+\cs_new_protected:Npn\_mslf_droite_save_resultt:nNn#1#2#3
+% #1 : statistical serie's id sous la forme d'une caine de char (sans \)
+% #2 : result to save
+% #3 : property list key's name
+	{
+	\prop_gput:cnV{g_droite_ #1 _prop}{#3}#2
+	}
+%
+%
+%
+\NewDocumentCommand{\findlinechar}{m}
+	{
+	\_mslf_droite_parse:NN #1\l_mslf_tmpa_clist
+	\clist_use:Nn\l_mslf_tmpa_clist{,}
+	}
+%
+%
+%
+\NewDocumentCommand{\setdroiteredac}{m}
+    {\keys_set:nn{droite-redac}{#1}%
+    }
+%
+%
+%
+\keys_define:nn {droite-redac}
+	{
+cd-label    .tl_set:N = \l_mslf_droite_cd_label_tl,
+cd-label    .default:n = {a},
+cd-label    .initial:n = {a},
+oo-label    .tl_set:N = \l_mslf_droite_oo_label_tl,
+oo-label    .default:n = {b},
+oo-label    .initial:n = {b},
+	}
+%
+%
+%
+\NewDocumentCommand{\droiteredac}{O{}mm}
+% #1 : line id
+% #1 : what is to be printed
+	{
+	\keys_set:nn{droite-redac}{#1}
+	\prop_get:cnN{g_droite_#2 _prop}{#3redac}\l_tmpa_tl
+	\tl_use:N\l_tmpa_tl
+	}%
+%
+%
+\NewDocumentCommand{\getlinechar}{m}
+% #1 : line id
+	{
+	\prop_get:cnN{g_droite_#1 _prop}{coefdir}\l_tmpa_fp
+	\prop_get:cnN{g_droite_#1 _prop}{absordorigine}\l_tmpb_fp
+	Droite~#1:~
+	\fp_compare:nNnTF {\l_tmpa_fp} ? { 0 }
+		{ ~est~parallèle~à~(Oy),~k=\fp_use:N\l_tmpb_fp} % <value> is nan
+		{
+		le~coef.~dir.~est~\prop_if_in:cnTF{g_droite_ #1 _prop}{coefdir-fractionirred}{\droitegetnum{#1}{coefdir-fractionirred}{\l_tmpa_tl}${\tl_use:N\l_tmpa_tl}$}{$\fp_use:N\l_tmpa_fp$}.~ L'ordonnée~à~l'origine~est~\fp_use:N\l_tmpb_fp
+ 		} % <value> is not nan
+	}
+%
+\cs_new:Npn\_mslf_droites_get_coefdir:nN#1#2
+% #1 : id droite
+% #1 : fp de sauvegarde
+	{
+	\prop_if_in:cnTF
+		{g_droite_ #1 _prop}
+		{coefdir-fractionirred}
+		{%
+		\prop_get:cnN{g_droite_ #1 _prop}{coefdir-fractionirred}#2
+%		\tl_set:Nx#2{\xintthefloatexpr#2\relax}
+		}
+		{\prop_get:cnN{g_droite_#1 _prop}{coefdir}#2
+%		\tl_set:Nx#2{\fp_eval:n{#2}}
+		}
+	%\prop_get:cnN{g_droite_#1 _prop}{coefdir}#2
+	}
+\cs_new:Npn\_mslf_droites_get_coefdir_approx:nN#1#2
+% #1 : id droite
+% #1 : fp de sauvegarde
+	{
+	\prop_get:cnN{g_droite_#1 _prop}{coefdir}#2
+	}
+\cs_new:Npn\_mslf_droites_get_coefdir_forcomp:nN#1#2
+% #1 : id droite
+% #1 : fp de sauvegarde
+	{
+	\prop_if_in:cnTF
+		{g_droite_ #1 _prop}
+		{coefdir-fractionirred}
+		{\prop_get:cnN{g_droite_#1 _prop}{coefdir-fractionirred-forcomp}#2
+%		\tl_set:Nx#2{\xintthefloatexpr#2\relax}
+		}
+		{\prop_get:cnN{g_droite_#1 _prop}{coefdir}#2
+		}
+	%\prop_get:cnN{g_droite_#1 _prop}{coefdir}#2
+	}
+%
+%
+%
+\prg_new_protected_conditional:Npnn \_mslf_droite_if_parallele:nn #1#2 { T , F , TF }
+ {
+	\_mslf_droites_get_coefdir_forcomp:nN{#1}\l_tmpa_tl
+	\_mslf_droites_get_coefdir_forcomp:nN{#2}\l_tmpb_tl
+	\xintifEq{\tl_use:N\l_tmpa_tl}0
+	%\fp_set:Nx\l_tmpa_fp{\l_tmpa_tl}\fp_set:Nx\l_tmpb_fp{\l_tmpb_tl}
+	%\fp_compare:nNnTF {\l_tmpa_fp} ? { 0 }
+		{
+		%\fp_compare:nNnTF {\l_tmpb_fp} ? { 0 }
+		\xintifEq{\tl_use:N\l_tmpb_tl}0
+			{ \prg_return_true:}
+			{\prg_return_false: }	
+		} % <value> is nan
+		{
+		\xintifEq{\tl_use:N\l_tmpa_tl}{\tl_use:N\l_tmpb_tl}
+		%\fp_compare:nTF {\l_tmpa_fp=\l_tmpb_fp}% a comparer avec xint pour comparaison exacte
+			{ \prg_return_true:}
+			{\prg_return_false: }
+%		\xintifEq{\tl_use:N\l_tmpa_tl}{\tl_use:N\l_tmpb_tl}{\prg_return_true:}{\prg_return_false:}
+		}
+ }
+%
+%
+\bool_new:N\l_mslf_coefdir_redac_bool
+\keys_define:nn {coefdir}
+	{
+% id des données (1 id pour éventuellement plusieurs droites)
+	redaction					.bool_set:N 	=	\l_mslf_coefdir_redac_bool,
+	redaction					.default:n	=	{false},	
+	redaction					.initial:n	=	{false},	
+	}
+\NewDocumentCommand{\coefdir}{O{}m}
+	{
+	\keys_set:nn{coefdir}{#1}
+	\bool_if:NTF\l_mslf_coefdir_redac_bool
+		{\droiteredac{#2}{coefdir}}%
+		{$\droiteprintnum[#1]{#2}{coefdir}$}
+	}
+%
+%
+\NewDocumentCommand{\droiteparallele}{O{}mm}
+	{
+	\_mslf_droites_get_coefdir:nN{#2}\l_tmpa_tl
+	\_mslf_droites_get_coefdir:nN{#3}\l_tmpb_tl	
+	\_mslf_droite_if_parallele:nnTF{#2}{#3}
+		{%
+		\_mslf_droite_if_parallele_redac:N\l_tmpa_tl%
+		}%{Les~droites~sont~parallèles}
+		{\_mslf_droite_if_notparallele_redac:NN\l_tmpa_tl\l_tmpb_tl}%{Les~droites~ne~sont~pas~parallèles}
+	}
+\cs_new:Npn\_mslf_droite_if_parallele_redac:N#1
+	{
+	Les~droites~ont~le~même~coefficient~directeur~($\tl_use:N#1$)~donc~elles~sont~parallèles.
+	}
+\cs_new:Npn\_mslf_droite_if_notparallele_redac:NN#1#2
+	{
+	Les~droites~ont~des~coefficients~directeurs~différents~$\left(\xintFrac{\tl_use:N#1}\text{~et~}\xintFrac{\tl_use:N#2}\right)$~donc~elles~sont~sécantes.
+	}
+%
+%\setpoints{A/1/2,B/10/4,C/1/-2,D/-2/1,E/1/-2,F/2/-2,G/2/3,H/3/4}
+%\setdroite[id=a]{A/B}
+%\setdroite[id=b]{C/D}
+%\setdroite[id=c]{E/F}
+%\setdroite[id=d]{G/H}
+%
+%\droiteparallele{a}{b}
+%
+%\droiteredac a{eq}
+%
+%\droiteredac b{eq}
+%
+%\droiteredac c{eq}
+%
+%\droiteredac d{eq}

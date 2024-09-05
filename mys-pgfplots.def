@@ -1,0 +1,65 @@
+%
+%
+%
+%####################################################
+%####################################################
+%
+%  Tangentes
+%
+%####################################################
+%####################################################
+%
+%
+%
+%\usepgfplotslibrary{fillbetween}
+%
+\def\parsenode[#1]#2\pgf@nil{%
+    \tikzset{label node/.style={#1}}
+    \def\nodetext{#2}
+    }%
+%
+%
+%
+\tikzset{%
+    add node at x/.style 2 args={%
+        name path global=plot line,%
+        /pgfplots/execute at end plot visualization/.append={%
+            \begingroup
+            \@ifnextchar[{\parsenode}{\parsenode[]}#2\pgf@nil
+            \path [name path global = position line #1-1]%
+                ({axis cs:#1,0}|-{rel axis cs:0,0}) -- ({axis cs:#1,0}|-{rel axis cs:0,1});%
+            \path [xshift=1pt, name path global = position line #1-2]%
+                ({axis cs:#1,0}|-{rel axis cs:0,0}) -- ({axis cs:#1,0}|-{rel axis cs:0,1});%
+            \path [%
+                name intersections={%
+                    of={plot line and position line #1-1},%
+                    name=left intersection%
+                },%
+                name intersections={%
+                    of={plot line and position line #1-2},%
+                    name=right intersection%
+                },%
+                label node/.append style={pos=1}%
+            ] (left intersection-1) -- (right intersection-1) node [label node]{\nodetext};
+            \endgroup
+        }%
+    }%
+}%
+%
+%
+%
+\pgfplotsset{%
+    tangent/.style={%
+        add node at x={#1}{%
+            [%
+            sloped,%
+            append after command={(\tikzlastnode.west) edge [thick,black] (\tikzlastnode.east)},%
+            minimum width=0.2\textwidth%
+            ]%
+        }%
+    }%
+}%
+%
+% Usage
+%
+% \addplot[color=black,smooth, tangent/.list={2,3}] coordinates {(-5,-5) (-3,-4)  (-2,-1)  (0,0)  (1,2)  (2,3)  (3,3)  (4,1)};

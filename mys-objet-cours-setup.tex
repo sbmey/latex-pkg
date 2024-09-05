@@ -1,0 +1,160 @@
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    PACKAGES NÉCESSAIRES
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+\@ifpackageloaded{mys-objet}%
+    {\typeout{Essai de chargement multiple du package mys-objet.}}%
+    {\RequirePackage{mys-objet}}%
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    Objets
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%======================================
+%
+%---   Niveau
+%
+%======================================
+%
+\Objet{niveau}{%
+    1/1\textsuperscript{re}% première
+    ,2/2\textsuperscript{nde}%seconde
+    ,t/T\textsuperscript{le}%terminale
+    }%
+%
+%======================================
+%
+%---   Spécialité
+%
+%======================================
+%
+\Objet*{specialite}{%
+    g/Générale%
+    ,stmg/STMG%
+    ,st2s/ST2S%
+    ,sm/Spé Math%
+    ,snt/S.N.T.%
+    ,spe/Spécialité%
+    ,opt/Option%
+    ,comp/Math. Compl.%
+    }%
+%
+%======================================
+%
+%---   Division
+%
+%======================================
+%
+%\Objet*{division}{%
+%    ...
+%    }%
+%
+%======================================
+%
+%---   Genre
+%
+%======================================
+%
+\Objet{genre}{%
+    c/Cours%
+    ,a/Activités%
+    ,a*/Activité%
+    ,e/Exercices%
+    ,e*/Exercice%
+    ,mth/Méthodes%
+    ,mth*/Méthode%
+    ,p/Programme%
+    ,i/Illustration%
+    ,corr*/correction%
+    ,corr/corrections%
+    ,Corr*/Correction%
+    ,Corr/Corrections%
+    ,r/Rappels%
+    ,R/Rappels%
+    ,arch/Archive%
+    }%
+%
+%======================================
+%
+%---   Sous-Genre
+%
+%======================================
+%
+\Objet*{sousgenre}{%
+    corr*/correction%
+    ,corr/corrections%
+    ,Corr*/Correction%
+    ,Corr/Corrections%
+    ,i/~(illustration)%
+    ,ess/L'essentiel%
+    ,comp/Compléments%
+    ,mth/Méthodes%
+    ,mth*/Méthode%
+    }%
+%
+%======================================
+%
+%---   Sous-Sous-Genre
+%
+%======================================
+%
+\Objet*{soussousgenre}{%
+    corr/correction%
+    ,i/~(illustration)%
+    ,comp/compléments%
+    }%
+%
+%======================================
+%
+%---   Matière
+%
+%======================================
+%
+\Objet{matiere}{%
+    m/Mathématique%
+    ,snt/S.N.T.%
+    ,nsi/N.S.I.%
+    }%
+%
+%======================================
+%
+%---   Partie
+%
+%======================================
+%
+\Objet*{partie}{%
+    ap/Aide personnalisée%
+    ,alg/Algèbre%
+    ,anl/Analyse%
+    ,auto/Automatismes
+    ,geo/Géométrie%
+    ,prb/Probabilités% et statistiques%
+    ,algo/Algorithmique et programmation%
+    ,prg/Programmation%
+    ,fct/Fonctions%
+    ,trig/Trigonométrie%
+    ,suite/Suites%
+    ,deriv/Dérivation%
+    ,res/Réseaux%
+    ,stat/Statistiques%
+    ,ic/Information chiffrée%
+    ,photo/Photographie numérique%
+    ,go/Grand Oral
+    }%
+%
+\NumObj{2}{partie}{alg,fct,geo,prb,ic,stat}
+\NumObj{109}{partie}{alg,geo,fct,prb,suite}
+\NumObj{101}{partie}{alg,suite,prb,fct,geo}
+%\NumObj{109}{partie}{anl,suite,deriv,prb}
+\NumObj{t}{partie}{fct,suite,prb,stat,go}
+%\NumObj{txx}{partie}{fct,suite,prb,stat,go}
+%

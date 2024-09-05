@@ -1,0 +1,2334 @@
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Déclaration package
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\NeedsTeXFormat{LaTeX2e}%
+\ProvidesPackage{mys-environments}% Après hyperref
+	[2014/08/18 \space 0.0 \space do the job]%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+\@ifpackageloaded{tcolorbox}%
+    {\typeout{Essai de chargement multiple du package tcolorbox.}}%
+    {\RequirePackage{tcolorbox}}%
+%
+\tcbuselibrary{theorems,skins,breakable}
+%
+\usetikzlibrary{calc}
+%
+\@ifpackageloaded{cleveref}%
+    {\typeout{Essai de chargement multiple du package cleveref.}}%
+    {\RequirePackage{cleveref}}%
+%
+\@ifpackageloaded{scontents}%
+    {\typeout{Essai de chargement multiple du package scontents.}}%
+    {\RequirePackage{scontents}}%
+%
+\@ifpackageloaded{tabu}% pour OOocalc
+    {\typeout{Essai de chargement multiple du package tabu.}}%
+    {\RequirePackage{tabu}}%
+%
+\@ifpackageloaded{colortbl}% pour \cellcolor
+    {\typeout{Essai de chargement multiple du package colortbl.}}%
+    {\RequirePackage{colortbl}}%
+%
+\@ifpackageloaded{fancyvrb}% voir jvlisting
+    {\typeout{Essai de chargement multiple du package fancyvrb.}}%
+    {\RequirePackage{fancyvrb}}%
+%
+\@ifpackageloaded{environ}% voir jvlisting
+    {\typeout{Essai de chargement multiple du package environ.}}%
+    {\RequirePackage{environ}}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% theoreme
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% style de numérotation commun aux environnements issus de newtcbtheorem
+%
+%\ifcounter{@num@chap}{}{\newcounter{@num@chap}}
+%
+\tcbset{%
+    new/mystheoremnumberingstyle/.style={%
+        use counter=#1%
+        % ,number within=@num@chap%  utile ?
+        ,number freestyle={\noexpand\arabic{\tcbcounter}}%
+        ,list inside=#1%
+        }%
+    }%
+%
+%
+%
+\tcbset{%
+    mystheoremstyle/.style 2 args=%
+    % #1 = dec hor du titre -> \hdectitre
+    % #2 = epaisseur trait -> \epaisseurcoin
+    {%
+    breakable,%
+    box align=top,%
+    bottom=0ex,%
+    top=0mm,
+    boxsep=0pt,%
+    grow to left by=4mm,%
+    grow to right by=4mm,%
+    before={\par\pagebreak[0]\medskip\noindent},%
+    after={\par\medskip},%
+%    after={\par\nobreak\medskip\noindent\ignorespaces}
+    ignore nobreak=false,% mis à true localement peut être utile
+    skin=enhanced,% jigsaw,%
+    frame hidden,%
+    interior hidden,%   
+    boxrule=0pt,% 
+    attach boxed title to top left=%
+        {%
+        xshift=#1%
+        %,yshift=-\tcboxedtitleheight/2
+        %,yshifttext=-\tcboxedtitleheight/4%
+        },%
+    boxed title style={%
+        enhanced,%
+        boxrule=0pt,%
+        left=4mm,%
+        right=4mm,%
+        top=1mm,%
+        bottom=1mm,%
+        frame hidden,%
+        interior code=%
+            {%
+            \draw[gray,rounded corners=2mm,line width=#2] ([yshift=-(#2)/2]frame.west)|-(frame.north east)--(frame.east);
+            },%
+        },%
+    underlay unbroken={%
+%        \path[draw=gray,rounded corners=5mm,line width=#2]%
+%            (title.west) -|(interior.south west)--([xshift=#1]interior.south west);
+        \path[outer sep=0pt,inner sep=0pt,draw=gray,rounded corners=5mm,line width=#2]%
+            (title.west) -|(interior.south west);%--([xshift=#1]interior.south west);
+        %\path[draw=gray,line width=#2]%
+            %(interior.north east)--(interior.south east);
+        },%
+    underlay last={%
+        \path[draw=gray,rounded corners=5mm,line width=#2]%
+            (frame.north west) |-(frame.south west);
+%    \path[draw=gray,line width=#2]%
+%        (frame.north east)--(frame.south east);
+        },%
+    underlay first={%
+        \path[draw=gray,rounded corners=5mm,line width=#2]%
+            (title.west) -|(interior.south west);
+%      \path[draw=gray,line width=#2]%
+%        (frame.north east)--(frame.south east);
+        },%
+%
+%** frame : bordure du corps de l'environnement
+%
+    outer arc=5mm,% arc extérieurs des coins
+    arc=3mm,% arc intérieur des coins
+    coltext=black,%
+    coltitle=black,%
+    fonttitle={\bfseries},%\sffamily
+%    top=1cm,%
+    separator sign none,%
+    description delimiters parenthesis,%
+    theorem name and number,%
+    before skip=10pt plus 2pt minus 2pt,%
+    after skip=10pt plus 2pt minus 2pt%
+    }%
+}%
+%
+%
+%
+\def\epaisseurcointhr{1mm}
+\def\hdectitrethr{1cm}
+\tcbset{theoremstyle/.style={mystheoremstyle={\hdectitrethr}{\epaisseurcointhr}}}%
+%
+%
+%
+\newcounter{thr}
+%
+\newtcbtheorem%
+    [%
+    mystheoremnumberingstyle={thr}%
+    ,crefname={théorème}{théorèmes}%
+    ,Crefname={Théorème}{Théorèmes}%
+    ]%
+    {thraux}%
+    {Théorème}%
+    {theoremstyle}%
+    {theo}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% definition
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\epaisseurcoindef{1mm}
+\def\hdectitredef{1cm}
+%
+\tcbset{definitionstyle/.style={mystheoremstyle={\hdectitredef}{\epaisseurcoindef}}}%
+%
+\newcounter{dfn}
+%
+\newtcbtheorem%
+    [%
+    mystheoremnumberingstyle={dfn}%
+    ,crefname={définition}{définitions}%
+    ,Crefname={Définition}{Définitions}%
+  ]%
+  {dfnaux}%
+  {Définition}%
+  {definitionstyle}%
+  {def}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% propriete
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\cadreunbrokenprp#1#2#3{%
+%       \path[draw=gray,rounded corners=1.6mm,line width=#2] ($(interior.west)!0.5!(interior.north west)$)|-([xshift=#1,yshift=1ex]interior.north west);
+%      \path[draw=gray,rounded corners=3.8mm,line width=#2]%
+%        ($(interior.west)!0.5!(interior.north west)$) |-([xshift=#1]interior.south west);
+       \path[draw=gray,rounded corners=#3,line width=#2] ([xshift=#1] interior.north west) -| (interior.west) |- ([xshift=#1]interior.south west);%
+      }
+%
+%
+%
+\def\cadrelastprp#1#2#3{
+%        \path[draw=gray,rounded corners=4mm,line width=#2] (interior.north west)|-([xshift=#1]interior.south west);
+        \path[draw=gray,rounded corners=#3,line width=#2] (interior.north west)   |-([xshift=#1]interior.south west);%
+        }
+%
+%
+%
+\def\cadremiddleprp#1{
+        %\path[draw=gray,line width=#2] ([xshift=#1,yshift=1ex]interior.north west)--([xshift=#1]interior.south west);
+        \path[draw=gray,line width=#1] (interior.north west)--(interior.south west);%
+        }
+%
+%
+%
+\def\cadrefirstprp#1#2#3{%
+%    \path[draw=gray,rounded corners=1.6mm,line width=#2] ([xshift=#1,yshift=1ex]interior.north west)-|(interior.south west);%
+    \path[draw=gray,rounded corners=#3,line width=#2] ([xshift=#1]interior.north west)-|(interior.south west);%
+    }
+%
+%
+%
+\def\epaisseurcoinprp{1mm}
+\def\hdectitreprp{0cm}
+%
+%
+%
+\tcbset{%
+    proprietestyle/.style n args={3}{%
+        box align=top,%
+        bottom=0ex,%
+        top=0ex,%
+        boxsep=0mm,%
+        grow to left by=4mm,%
+        grow to right by=4mm,%
+        before={\par\pagebreak[0]\medskip\parindent=0pt\vspace{1ex}},%
+        after={\par\medskip},%
+        ignore nobreak=false,% mis à true localement peut être utile
+        skin=enhanced,% jigsaw,%
+        frame hidden,%
+        interior hidden,%   
+        boxrule=0pt,% 
+%    attach boxed title to top left,%=%
+%      {%
+%      yshift=-\tcboxedtitleheight/2,
+%      yshifttext=-\tcboxedtitleheight/4%
+%      },%
+        attach title to upper={\quad},%
+        boxed title style={%
+            enhanced,%
+            boxsep=0mm,%
+            boxrule=0pt,%
+            left=4mm,%
+            right=4mm,%
+            top=2mm,%
+            bottom=1mm,%
+            frame hidden,%
+            interior code=%
+                {%
+ %       \draw[gray,rounded corners=2mm,line width=#2] ([yshift=-(#2)/2]frame.west)|-(frame.north east)--(frame.east);
+                },%
+            },%
+    underlay unbroken={\cadreunbrokenprp{#1}{#2}{#3}},%
+    underlay last={\cadrelastprp{#1}{#2}{#3}},%
+    underlay middle={\cadremiddleprp{#2}},%
+    underlay first={\cadrefirstprp{#1}{#2}{#3}},%
+%
+%** frame : bordure du corps de l'environnement
+%
+    outer arc=5mm,% arc extérieurs des coins
+    arc=3mm,% arc intérieur des coins
+    coltext=black,%
+    coltitle=black,%
+    fonttitle={\bfseries},%
+    separator sign none,%
+    description delimiters parenthesis,%
+    theorem name and number,%
+    before skip=\topsep,%10pt plus 2pt minus 2pt,%
+    after skip=\topsep,%10pt plus 2pt minus 2pt%
+        }%
+    }%
+%
+\newcounter{prp}
+%
+%
+%
+\newtcbtheorem%
+    [%
+    mystheoremnumberingstyle=prp%
+    ,crefname={propriété}{propriétés}%
+    ,Crefname={Propriété}{Propriétés}%
+    ]%
+    {prpaux}%
+    {Propriété}%
+    {proprietestyle={5pt}{1mm}{2.5pt}}%
+    {prop}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% remarque
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\cadrermq{%
+      \draw%
+        [%
+        line width=1.5pt%
+        ,gray%
+        ]%
+        (interior.north west) -- (interior.south west);%
+%        ($(interior.south west)!(title.base west)!(interior.north west)$) -- (interior.south west);%
+        }%
+%
+\tcbset%
+  {%
+  remarkstyle/.style=%
+    {%
+    theorem style=plain%
+    ,enhanced jigsaw,%
+    ,boxsep=0mm%
+    ,top=0mm%
+    ,bottom=0ex%
+    ,before=\par\pagebreak[0]\smallskip%
+    ,after=\par\nointerlineskip\smallskip%
+    ,ignore nobreak=false% mis à true localement peut être utile
+    ,frame hidden%
+    ,interior hidden%
+    ,coltitle=black%
+%    ,separator sign none%
+%    ,separator sign={\ :~}%
+    ,description delimiters parenthesis%
+    ,theorem name and number%
+    ,oversize=0mm%
+    ,frame code={\cadrermq}%
+    }%
+  }%
+%
+\newcounter{rmq}
+%
+\newtcbtheorem%
+  [%
+  mystheoremnumberingstyle=rmq%
+  ,crefname={remarque}{remarques}%
+  ,Crefname={Remarque}{Remarques}%
+  ]%
+  {rmqaux}%
+  {Remarque}%
+  {remarkstyle}%
+  {rmq}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Analogie
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%\ExplSyntaxOff
+%
+\def\cadrecorpsanl{%
+      \draw%
+        [%
+        rounded corners=2.5pt,%
+        thick,%
+        black%
+        ]%
+        ([xshift=5pt]title.west)--(frame.north west)%
+          -- (frame.south west)%
+          --([xshift=5pt]frame.south west);%
+      }%
+%
+\tcbset%
+  {%
+  analogiestyle/.style=%
+    {%
+    top=0mm,bottom=0.75ex,boxsep=0pt%
+    ,enhanced jigsaw%
+    ,size=small%
+    ,theorem name and number%
+    ,fonttitle=\bfseries%
+    ,separator sign none%
+    ,description delimiters parenthesis%
+    ,breakable%
+    ,width=\linewidth%
+    ,attach boxed title to top left={xshift=-1.2mm,yshift=-2mm},%
+    ,coltitle=black%
+    ,boxed title style={empty}%
+    ,boxrule=0pt%
+    ,interior hidden%
+    ,frame hidden%
+    ,underlay={\cadrecorpsanl}%
+    ,oversize%
+    }%
+  }%
+%
+\newcounter{anl}%
+%
+\newtcbtheorem%
+  [%
+  mystheoremnumberingstyle=anl%
+  ,crefname={analogie}{analogies}%
+  ,Crefname={Analogie}{Analogies}%
+  ]%
+  {anlaux}%
+  {Analogie}%
+  {analogiestyle={0cm}{1.5pt}}% on n'utilise pas notationstyle
+  {ana}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% axiome
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\cadrecorpsaxm{%
+      \draw%
+        [%
+        line width=3pt%
+        ,rounded corners=2.5pt%5pt%
+        ,gray%
+        ]%
+        (title.west)%
+          -|(interior.south west)%
+          -- ($(interior.south west)!(title.south)!(interior.south east)$);%
+          }%
+%
+\def\cadreteteaxm{%
+        \draw%
+          [%
+          rounded corners=2.5pt%
+          ,line width=3pt%
+          ,gray%
+          ]%
+          (interior.west)%
+            --(interior.south west)%
+            -- (interior.south east)%
+            -- (interior.east);%
+        \draw%
+          [%
+          rounded corners=2.5pt%
+          ,line width=1pt%
+          ,gray%
+          ]%
+          (interior.west)%
+            --(interior.north west)%
+            -- (interior.north east)%
+            -- (interior.east);%
+      }%
+\tcbset%
+  {%
+  axiomestyle/.style=%
+    {%
+    enhanced jigsaw%
+    ,fonttitle=\bfseries%
+    ,separator sign none%
+    ,description delimiters parenthesis%
+    ,breakable%
+    ,width=\linewidth%
+    ,theorem name and number%
+    ,attach boxed title to top left=%
+      {%
+      xshift=1cm%
+%      ,yshift*=\tcboxedtitleheight/2%
+      }%
+    ,coltitle=black%
+    ,boxed title style=%
+      {%
+      ,enhanced%
+%      ,colframe=blue!50!green%
+%      ,colframe=white!80!blue%
+      ,colframe=white%
+      ,boxrule=0pt%
+      ,interior code={\cadreteteaxm}%
+      }%
+    ,frame code={\cadrecorpsaxm}%
+    ,interior code={}%
+    ,top=0.75ex%
+    ,bottom=0.75ex,boxsep=0mm,boxrule=0mm%
+    ,oversize%
+    }%
+  }%
+%
+\newcounter{axm}
+%
+\newtcbtheorem%
+  [%
+  mystheoremnumberingstyle=axm%
+ ,crefname={axiome}{axiomes}%
+ ,Crefname={Axiome}{Axiomes}%
+  ]%
+  {axmaux}%
+  {Axiome}%
+  {axiomestyle}%
+  {axi}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% corollaire
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\cadrecorpsfirstcrl{%
+      \draw%
+        [%
+        line width=3pt%
+        ,rounded corners=2mm%5pt%
+        ,gray%
+        ]%
+        (title.south west)--(interior.north west)%
+          --(interior.south west);%
+      }%
+%
+\def\cadrecorpsmiddlecrl{%
+      \draw%
+        [%
+        line width=3pt%
+        ,rounded corners=2mm%5pt%
+        ,gray%
+        ]%
+        (interior.north west)%
+          --(interior.south west);%
+      }%
+%
+\def\cadrecorpslastcrl{%
+      \draw%
+        [%
+        line width=3pt%
+        ,rounded corners=2mm%5pt%
+        ,gray%
+        ]%
+        (interior.north west)%
+          --(interior.south west)%
+          -- ($(interior.south west)!(title.south)!(interior.south east)$);%
+      }%
+%
+\def\cadrecorpsunbrokencrl{%
+      \draw%
+        [%
+        line width=3pt%
+        ,rounded corners=2mm%5pt%
+        ,gray%
+        ]%
+         ([xshift=5pt]interior.north west)--%
+        (interior.north west)%
+          --(interior.south west)%
+          -- ($(interior.south west)!(title.south)!(interior.south east)$);%
+      }%
+%
+\def\cadretetecrl{%
+        \draw%
+          [%
+          rounded corners=2mm%
+          ,line width=3pt%
+          ,gray%
+          ]%
+          (interior.north east)%
+            --(interior.north west)%
+            -- (interior.south west)%
+            -- ([xshift=5pt]interior.south west);%--cycle;%
+        }%
+%
+\tcbset%
+  {%
+  corollairestyle/.style=%
+    {%
+   bottom=0.75ex,%
+    top=0.75ex,boxsep=0mm,%
+    grow to left by=4mm,%
+    grow to right by=4mm,%
+    before={\par\pagebreak[0]\medskip\parindent=0pt},%
+    after={\par\medskip},%
+    ignore nobreak=false,% mis à true localement peut être utile
+    skin=enhanced,% jigsaw,%
+    frame hidden,%
+    interior hidden,%   
+    boxrule=0pt,% 
+    attach boxed title to top left,%=%
+%      {%
+%      yshift=-\tcboxedtitleheight/2,
+%      yshifttext=-\tcboxedtitleheight/4%
+%      },%
+    boxed title style=%
+      {%
+      enhanced,%
+      boxsep=0mm,%
+      boxrule=0pt,%
+      left=4mm,%
+      right=4mm,%
+      top=1mm,%
+      bottom=1mm,%
+      frame hidden,%
+      interior code={\cadretetecrl},%
+      },%
+    underlay unbroken={\cadrecorpsunbrokencrl}%
+    ,underlay last={\cadrecorpslastcrl}%
+    ,underlay middle={\cadrecorpsmiddlecrl}%
+   ,underlay first={\cadrecorpsfirstcrl},%
+%
+%** frame : bordure du corps de l'environnement
+%
+    outer arc=5mm,% arc extérieurs des coins
+    arc=3mm,% arc intérieur des coins
+    coltext=black,%
+    coltitle=black,%
+    fonttitle={\bfseries},%
+%    top=1cm,%
+    separator sign none,%
+    description delimiters parenthesis,%
+    theorem name and number,%
+    }%
+  }%
+%
+%
+\newcounter{crl}
+%
+\newtcbtheorem%
+  [%
+  mystheoremnumberingstyle=crl%
+ ,crefname={corollaire}{corollaires}%
+ ,Crefname={Corollaire}{Corollaires}%
+  ]%
+  {crlaux}%
+  {Corollaire}%
+  {corollairestyle}%
+  {cor}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% lemme
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\cadrecorpsfirstlmm{%
+      \draw%
+        [%
+        line width=3pt%
+        ,rounded corners=2.5pt%5pt%
+        ,gray%
+        ]%
+        (title.south west)--(interior.north west)%
+          --(interior.south west);%
+      }%
+%
+\def\cadrecorpsmiddlelmm{%
+      \draw%
+        [%
+        line width=3pt%
+        ,rounded corners=2.5pt%5pt%
+        ,gray%
+        ]%
+        (interior.north west)%
+          --(interior.south west);%
+      }%
+%
+\def\cadrecorpslastlmm{%
+      \draw%
+        [%
+        line width=3pt%
+        ,rounded corners=2.5pt%5pt%
+        ,gray%
+        ]%
+        (interior.north west)%
+          --(interior.south west)%
+          -- ($(interior.south west)!(title.south)!(interior.south east)$);%
+      }%
+%
+\def\cadrecorpsunbrokenlmm{%
+      \draw%
+        [%
+        line width=3pt%
+        ,rounded corners=2.5pt%5pt%
+        ,gray%
+        ]%
+        (title.south)--(interior.north west)%
+          --(interior.south west)%
+          -- ($(interior.south west)!(title.south)!(interior.south east)$);%
+      }%
+%
+\def\cadretetelmm{%
+        \draw%
+          [%
+          rounded corners=2.5pt%
+          ,line width=3pt%
+          ,gray%
+          ]%
+          (interior.north west)%
+            --(interior.south west)%
+            -- (interior.south east)%
+            -- (interior.north east)--cycle;%
+        }%
+%
+\tcbset%
+  {%
+  lemmestyle/.style=%
+    {%
+   bottom=0.75ex,%
+    top=0.75ex,boxsep=0mm,%
+    grow to left by=4mm,%
+    grow to right by=4mm,%
+    before={\par\pagebreak[0]\medskip\parindent=0pt},%
+    after={\par\medskip},%
+    ignore nobreak=false,% mis à true localement peut être utile
+    skin=enhanced,% jigsaw,%
+    frame hidden,%
+    interior hidden,%   
+    boxrule=0pt,% 
+    attach boxed title to top left,%=%
+%      {%
+%      yshift=-\tcboxedtitleheight/2,
+%      yshifttext=-\tcboxedtitleheight/4%
+%      },%
+    boxed title style=%
+      {%
+      enhanced,%
+      boxsep=0mm,%
+      boxrule=0pt,%
+      left=4mm,%
+      right=4mm,%
+      top=1mm,%
+      bottom=1mm,%
+      frame hidden,%
+      interior code={\cadretetelmm},%
+      },%
+    underlay unbroken={\cadrecorpsunbrokenlmm}%
+    ,underlay last={\cadrecorpslastlmm}%
+    ,underlay middle={\cadrecorpsmiddlelmm}%
+   ,underlay first={\cadrecorpsfirstlmm},%
+%
+%** frame : bordure du corps de l'environnement
+%
+    outer arc=5mm,% arc extérieurs des coins
+    arc=3mm,% arc intérieur des coins
+    coltext=black,%
+    coltitle=black,%
+    fonttitle={\bfseries},%
+%    top=1cm,%
+    separator sign none,%
+    description delimiters parenthesis,%
+    theorem name and number,%
+    }%
+  }%
+%
+%
+\newcounter{lmm}
+%
+\newtcbtheorem%
+  [%
+  mystheoremnumberingstyle=lmm%
+ ,crefname={lemme}{lemmes}%
+ ,Crefname={Lemme}{Lemmes}%
+  ]%
+  {lmmaux}%
+  {Lemme}%
+  {lemmestyle}%
+  {lmm}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% vocabulaire
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\cadrecorpsunbrokenvcb#1{%
+%     \path[draw=gray,rounded corners=5pt,line width=#1]%
+%        (title.base west) -|([xshift=-4mm]interior.south west)--(interior.south west);%
+     \path[draw=gray,rounded corners=2.5pt,line width=#1]%
+        ([xshift=5pt]$(interior.south west)!(title.base west)!(interior.north west)$) -|(interior.west)|-([xshift=5pt,yshift=0pt]interior.south west);%
+    }%
+%
+\def\cadrecorpslastvcb#1{%
+      \path[draw=gray,rounded corners=2.5pt,line width=#1]%
+        ([xshift=-4mm]interior.north west) |-([xshift=-4mm]interior.south west)--(interior.south west);%
+    }%
+%
+\def\cadrecorpsfirstvcb#1{%
+      \path[draw=gray,rounded corners=2.5pt,line width=#1]%
+        (title.west) -|([xshift=-4mm]interior.south west)--(interior.south west);%
+    }%
+%
+\tcbset%
+  {%
+  vocabulairestyle/.style 2 args=%
+  % #1 = dec hor du titre -> \hdectitre
+  % #2 = epaisseur trait -> \epaisseurcoin
+    {%
+    boxsep=0mm,%
+    boxrule=0pt,%
+    top=0mm,%
+    bottom=0ex,%0mm,%
+%    grow to left by=4mm,%4mm,%
+    right=0mm,%
+    grow to left by=5mm,%
+    before={\par\pagebreak[0]\smallskip\noindent},%\parindent=0pt
+    after={\par\smallskip},%
+    ignore nobreak=false,% mis à true localement peut être utile
+    skin=enhanced,% jigsaw,%
+    fonttitle={\bfseries},%\sffamily
+    separator sign none,%
+    description delimiters parenthesis,%
+%    oversize,% ??????????
+    frame hidden,%
+    interior hidden,%   
+    attach boxed title to top left=%
+      {%
+      xshift=#1,
+      yshift*=-\tcboxedtitleheight/2,%
+      },%
+    ,boxed title style=%
+      {%
+      frame hidden,%
+      interior hidden,%
+      boxsep=0mm,left=4mm,bottom=0.75ex%
+      %
+      },%
+    theorem name and number,%
+    underlay unbroken={\cadrecorpsunbrokenvcb{#2}},%
+    underlay last={\cadrecorpslastvcb{#2}},%
+    underlay first={\cadrecorpsfirstvcb{#2}},%
+%
+%** frame : bordure du corps de l'environnement
+%
+    coltext=black,%
+    coltitle=black,%
+    }%
+  }%
+%        rounded corners=5pt,%
+%        thick,%
+%
+\newcounter{vcb}
+%
+\newtcbtheorem%
+  [%
+  mystheoremnumberingstyle=vcb,%
+  crefname={vocabulaire}{vocabulaire},% utilisation du pluriel possible ?
+  Crefname={Vocabulaire}{Vocabulaire}%
+  ]%
+  {vcbaux}%
+  {Vocabulaire}%
+  {vocabulairestyle={0cm}{1.5pt}}%
+  {voc}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% notation
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\cadrentt{%
+          \draw%
+            [%
+            rounded corners=2.5pt,%
+            line width=1pt,%
+            black%
+            ]%
+            (interior.west)--(interior.south west)%
+              -- (interior.south east)%
+              -- (interior.east);%
+    }%
+%
+\def\cadrecorpsntt{%
+      \draw%
+        [%
+        rounded corners=2.5pt,%
+        thick,%
+        black%
+        ]%
+        (title.west)--(frame.north west)%
+          -- (frame.south west)%
+          --([xshift=0.5cm]frame.south west);%
+      }%
+%
+\tcbset%
+  {%
+  notationstyle/.style=%
+    {%
+    top=0mm,bottom=0.75ex,boxsep=0pt%
+    ,enhanced jigsaw%
+    ,size=small%
+    ,theorem name and number%
+    ,fonttitle=\bfseries%
+    ,separator sign none%
+    ,description delimiters parenthesis%
+    ,breakable%
+    ,width=\linewidth%
+    ,attach boxed title to top left=%
+      {%
+      xshift=0.5cm,
+      yshift*=-\tcboxedtitleheight/2},%
+      coltitle=black,%
+      boxed title style=%
+        {%
+        enhanced%
+        ,colframe=white%
+        ,boxrule=0pt%
+        ,interior code={\cadrentt},%
+        }%
+    ,boxrule=0pt%
+,interior hidden%
+,frame hidden%
+%    ,colback=white%
+ %   ,colframe=white%
+    ,underlay={\cadrecorpsntt}%
+    ,oversize%
+    }%
+  }%
+%
+\newcounter{ntt}%
+%
+\newtcbtheorem%
+  [%
+  mystheoremnumberingstyle=ntt%
+  ,crefname={notation}{notations}%
+  ,Crefname={Notation}{Notations}%
+  ]%
+  {nttaux}%
+  {Notation}%
+  {vocabulairestyle={0cm}{1.5pt}}% on n'utilise pas notationstyle
+  {not}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% cas particulier
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\newcounter{csp}
+%
+%
+\newtcbtheorem%
+  [%
+  mystheoremnumberingstyle=csp%
+  ,crefname={cas particulier}{cas particuliers}%
+  ,Crefname={Cas particulier}{Cas particuliers}%
+  ]%
+  {cspaux}%
+  {Cas particulier}%
+  {vocabulairestyle={0cm}{1.5pt}}%
+  {casp}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% preuve
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\cadreprv{%
+      \draw%
+        [%
+        line width=1.5pt%
+        ,gray%
+        ]%
+        (title.west)%
+          -- (interior.south west);%
+    }%
+\def\cadrecorpsfirstprv{%
+      \draw%
+        [%
+        line width=1.5pt%
+        ,gray%
+        ]%
+        (title.south west)--(interior.north west)%
+          --(interior.south west);%
+      }%
+%
+\def\cadrecorpsmiddleprv{%
+      \draw%
+        [%
+        line width=1.5pt%
+        ,gray%
+        ]%
+        (interior.north west)%
+          --(interior.south west);%
+      }%
+%
+\def\cadrecorpslastprv{%
+      \draw%
+        [%
+        line width=1.5pt%
+        ,gray%
+        ]%
+        (interior.north west)%
+          --(interior.south west)%
+          -- ($(interior.south west)!(title.south)!(interior.south east)$);%
+      }%
+%
+\def\cadrecorpsunbrokenprv{%
+      \draw%
+        [%
+        line width=1.5pt%
+        ,gray%
+        ]%
+       (interior.north west)%
+          --(interior.south west)%
+          -- ($(interior.south west)!(title.south)!(interior.south east)$);%
+      }%
+%
+\tcbset%
+%  {%
+%  preuvestyle/.style=%
+%    {%
+%    top=0.75ex%
+%    ,enhanced jigsaw%
+%    ,fonttitle=\bfseries%
+%    ,theorem name%
+%    ,separator sign none%
+%    ,description delimiters parenthesis%
+%    ,breakable%
+%    ,width=\linewidth%
+%%    ,attach boxed title to top left={yshift*=-\tcboxedtitleheight/2}%
+%    ,coltitle=black%
+%    ,boxrule=0pt%
+%    ,colback=white%
+%    ,colframe=white%
+%    ,overlay=%
+%      {%
+%      \draw%
+%        [%
+%        rounded corners=5pt,%
+%        thick,%
+%        black%
+%        ]%
+%        (frame.north west)--(frame.south west);%
+%      }%
+%    ,oversize%
+%    ,top=0pt%
+%    ,bottom=0.75ex%
+%    ,boxsep=0mm%
+%    }%
+  {%
+   preuvestyle/.style=%
+    {enhanced jigsaw,%
+    ,top=0.75ex%
+     ,oversize%
+   ,fonttitle=\bfseries%
+    ,bottom=0.75ex%
+    ,ignore nobreak=false% mis à true localement peut être utile
+    ,boxsep=0mm%
+    ,boxrule=0pt%
+    ,frame hidden%
+    ,interior hidden%
+    ,coltitle=black%
+    ,breakable%
+    ,separator sign none%
+    ,description delimiters parenthesis%
+    ,theorem name%
+    ,oversize=0mm%
+    ,colback=white%
+    ,colframe=white%
+%    ,frame code={\cadreprv}%
+    ,underlay unbroken={\cadrecorpsunbrokenprv}%
+    ,underlay last={\cadrecorpslastprv}%
+    ,underlay middle={\cadrecorpsmiddleprv}%
+   ,underlay first={\cadrecorpsfirstprv}%
+    }%
+ }%%
+%
+\newcounter{prv}
+%
+\newtcbtheorem%
+  [%
+  mystheoremnumberingstyle=prv%
+  ,crefname={preuve}{preuves}%
+  ,Crefname={Preuve}{Preuves}%
+  ]%
+  {prvaux}%
+  {Preuve}%
+  {preuvestyle}%
+  {pre}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% environnement align en \textstyle plutôt qu'en \displaystyle 
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% \textstyle dans \begin{aligned} (sinon tout est en \displastyle)
+% Usage : \begin{taligned}[t]{...}
+%
+\let\textdisplaystyle\displaystyle%
+%
+\def\displaytotextstyle%
+  {\textstyle\let\displaystyle\textdisplaystyle}%
+%
+\newenvironment{taligned}%
+  {\let\displaystyle\displaytotextstyle\aligned}%
+  {\endaligned}%
+%
+\newenvironment{taligned*}%
+  {\let\displaystyle\displaytotextstyle\csname aligned*\endcsname}%
+  {\endaligned}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% centered
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\newenvironment{centered}[1][0cm]%
+    {\begin{list}%
+    {}%
+    {%
+    \setlength{\leftmargin}{0cm}%
+    \setlength{\parsep}{\parskip}%
+    \setlength{\topsep}{#1}%
+    }%
+%    \ignorespaces% eliminate undesirable white space in front the environment
+    \centering\item\relax%
+    }%
+    {%
+    \end{list}%
+    \ignorespacesafterend% eliminate undesirable white space following the environment
+    }%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% parties
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\newcounter{parties}%
+%
+\renewcommand{\theparties}{\Alph{parties}}%
+%
+\newcommand{\partielabel}[1]{\bfseries Partie~#1.\mbox{}\\}
+%
+\newlist{parties}{enumerate}{1}
+\setlist[parties, 1]{label ={\bfseries Partie~\Alph*.},wide, itemsep =0pt}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% attention
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%======================================
+%
+%     https://tex.stackexchange.com/questions/165418/prevent-page-break-after-first-line-of-example
+%
+%======================================
+%
+\ifdefined \nolistbreak \else
+\newcommand{\nolistbreak}{%
+  \let\oldpar\par\def\par{\oldpar\nobreak}% Any \par issues a \nobreak
+  \@nobreaktrue% Don't break with first \item
+}%
+\fi
+%
+\newcounter{att}%[@num@chap]% utile ?????????
+\setcounter{att}{0}%
+%
+\newenvironment{att}%
+  {%
+  \par\vspace{\topsep}
+  \refstepcounter{att}%
+  \noindent\textbf{Attention  \quad}\nolistbreak%
+  }%
+  {\par\vspace{\topsep}}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% exemple
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\newcounter{exm}%[@num@chap]% % utile ?????????
+\setcounter{exm}{0}%
+%
+\newenvironment{exm}%
+  {%
+  \par
+  \refstepcounter{exm}%
+  \@exm@start
+  \textbf{~\theexm \quad}%
+  }%
+  {\@exm@finnish}%
+%
+\newenvironment{exm*}%
+  {%
+  \par
+  \@exm@start%
+  }%
+  {\@exm@finnish}%
+%
+\def\@exm@start{\noindent\textbf{Exemple}}
+\def\@exm@finnish{\par\nobreak\vskip0.75\baselineskip}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% rappels
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\newcounter{rpp}%[@num@chap]% % utile ?????????
+\setcounter{rpp}{0}%
+%
+\pgfkeys{%
+    /mys/environm/rpp/.cd,%
+    label/.store in = \mys@env@rpp@label,%
+    label-font-style/.store in = \mys@env@rpp@label@font@style,%
+    label-font-family/.store in = \mys@env@rpp@label@font@family,%
+    font-size/.store in = \mys@env@rpp@font@size,%
+    sep/.store in=\mys@env@rpp@sep,%
+    after-skip/.store in=\mys@env@rpp@after@skip,%
+    before-skip/.store in=\mys@env@rpp@before@skip,%
+    }%
+%
+%
+%
+\pgfkeys{%
+    /mys/environm/rpp/.cd,%
+    label=Rappel,%
+    sep=\quad,%
+    label-font-style=\bfseries,%\normalfont
+    label-font-family=\rmfamily,%
+    font-size=\normalsize,%
+    after-skip=2ex,%
+    before-skip=2ex,%
+    }%
+%
+%
+%
+\NewDocumentEnvironment{rpp}{O{}}
+    {%
+    \IfNoValueTF{#1}%
+        {}
+        {\pgfkeys{/mys/environm/rpp/.cd,#1}}
+    \par\addvspace{\mys@env@rpp@before@skip}\noindent
+    \refstepcounter{rpp}%
+    \mys@env@rpp@font@size%
+    \noindent%
+    {\mys@env@rpp@label@font@family\mys@env@rpp@label@font@style \mys@env@rpp@label~\therpp \mys@env@rpp@sep}%
+%    \par\nobreak\noindent\ignorespaces
+    }%
+    {\par\addvspace{\mys@env@rpp@after@skip}\ignorespacesafterend}%\expandafter\vskip\mys@env@rpp@after@skip
+%
+\NewDocumentEnvironment{rpp*}{O{}}
+    {%
+    \IfNoValueTF{#1}%
+        {}
+        {\pgfkeys{/mys/environm/rpp/.cd,#1}}
+    \par\addvspace{\mys@env@rpp@before@skip}\noindent
+    \mys@env@rpp@font@size%
+    \noindent%
+    {\mys@env@rpp@label@font@family\mys@env@rpp@label@font@style\mys@env@rpp@label~\mys@env@rpp@sep}%
+%    \par\nobreak\noindent\ignorespaces
+    }%
+    {\par\addvspace{\mys@env@rpp@after@skip}\ignorespacesafterend}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Interprétation graphique
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\newcounter{intgr}%[@num@chap]% utile ?????????
+\setcounter{intgr}{0}%
+%
+\newenvironment{intgr}[1]%
+  []%
+  {%
+%    \nobreak\par\noindent\null
+  \par
+  \refstepcounter{intgr}%
+  \noindent%
+  \textbf%
+    {%
+    Interprétation~graphique~\theintgr \quad%
+    \ifblank{#1}{}{\textbf{(#1)}\quad}%
+    \nopagebreak%
+    }%
+  }%
+  {\par\addvspace{2ex}}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Méthode
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%\newcounter{mth}%[@num@chap]% utile ?????????
+%\setcounter{mth}{0}%
+%%
+%\newenvironment{mth}[1]%
+%  []%
+%  {%
+%  \refstepcounter{mth}%
+%  \noindent%
+%  \textbf%
+%    {%
+%    Méthode~\themth \quad%
+%    \ifblank{#1}{}{\textbf{(#1)}\quad}%
+%    }%
+%  }%
+%  {\par\vskip2ex}%
+%\newenvironment{mth*}[1]%
+%  []%
+%  {%
+%  \noindent%
+%  \textbf%
+%    {%
+%    Méthode%
+%    \ifblank{#1}{}{\textbf{(#1)}\quad}%
+%    }%
+%  }%
+%  {\par\vskip2ex}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% règle
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\newcounter{rgl}%
+\setcounter{rgl}{0}%
+%\numberwithin{rgl}{@num@chap}% utile ?????????
+%
+\renewcommand{\thergl}{\arabic{rgl}}%
+%
+\newenvironment{rgl}[1]%
+  []%
+  {%
+  \refstepcounter{rgl}%
+  \noindent%
+  \textbf%
+    {%
+    Règle~\thergl%
+    \ifblank{#1}{\quad}{\quad {\textbf(#1)}\quad}%
+    }%
+  }%
+  {\par\nobreak\vskip0.75\baselineskip}%
+%
+%####################################################
+%
+% corrections
+%
+%####################################################
+%
+\newcounter{corr}%[@num@chap]% utile ?????????
+\setcounter{corr}{0}%
+%
+\newenvironment{corr}%
+  {%
+  \refstepcounter{corr}%
+  \noindent%
+  \textbf{Exercice \thecorr{} (corrigé)\quad}%
+  }%
+  {\par}%
+%
+\newenvironment{noter}[1]%
+  []%
+  {%
+  \noindent%
+  \textbf%
+    {%
+    Faire noter \quad%
+    }%
+  }%
+  {\par\vskip1.5\baselineskip}%
+%
+\newenvironment{dire}[1]%
+  []%
+  {%
+  \par\noindent%
+  \textbf%
+    {%
+    \`A dire \quad%
+    }%
+  }%
+  {\par\vskip1.5\baselineskip}%\vskip2ex}%
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% tester
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%\newcounter{tester}%[@num@chap]% utile ?????????
+%\setcounter{tester}{0}%
+%%
+%\newenvironment{tester}[1]%
+%  []%
+%  {%
+%  \refstepcounter{tester}%
+%  \noindent%
+%  \textbf%
+%    {%
+%    Tester \theact \quad%
+%    \ifblank{#1}{}{\textbf{(#1)}\quad}%
+%    }%
+%  }%
+%  {\par\vskip2ex}%
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% algo et prog
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%\DefineVerbatimEnvironment{algo}{Verbatim}{frame=single,numbers=left,label=\textbf{Algorithme}}%
+%%
+%\DefineVerbatimEnvironment{prog}{Verbatim}{frame=single,numbers=left,label=\textbf{Programme}}%
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% programme officiel
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%\newenvironment{progofficiel}{\textbf{Programme officiel : }}{}
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% énoncé
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%\newenvironment{enonce}{\textbf{\'Enoncé : }}{}
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% correction
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%\newenvironment{correction}{\textbf{Correction : }}{}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% exercices
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\newcounter{exr}%
+\setcounter{exr}{0}%
+\renewcommand{\theexr}{\arabic{exr}}%
+%
+\ExplSyntaxOn
+%
+\def\mys@exr@opt@livre #1p#2\@nil{\keys_set:nn{mys/exr}{count=#1,name={p.~#2},sep-after-name={},sep-before-name={},esp-before-sep-name={\ }}}
+%
+\def\mys@sepname@distribution#1,#2\finmysfct{\keys_set:nn{mys/exr}{sep-before-name={#1}}\keys_set:nn{mys/exr}{sep-after-name={#2}}}
+\def\mys@sepname@distribution#1#2{\keys_set:nn{mys/exr}{sep-before-name={#1}}\keys_set:nn{mys/exr}{sep-after-name={#2}}}
+%
+\keys_define:nn{mys/exr}
+  {
+  no-body  .bool_set:N = \l__mys_exr_nobody_bool,
+  no-body  .initial:n      = false,
+  no-body  .default:n    = true,
+% 
+  title .tl_set:N=\l__mys_exr_title_tl,
+  title  .initial:n={Exercice},
+% 
+  title-color .tl_set:N=\l__mys_exr_title_col_tl,
+  title-color  .initial:n={black},
+% 
+  points  .tl_set:N = \l__mys_exr_points_tl,
+  points  .initial:n={},
+%
+  name  .tl_set:N = \l__mys_exr_name_tl,
+  name  .initial:n={},
+% 
+  esp-at-end    .skip_set:N = \l__mys_esp_at_end_skip,
+  esp-at-end  .initial:n=0cm,  
+  esp_at_end  .default:n=0.5cm,
+% 
+  num_bl  .bool_set:N = \l__mys_exr_num_bool,
+  num_bl .initial:n=true,
+% 
+  inline  .bool_set:N = \l__mys_exr_inline_bool,
+  inline  .initial:n=true,
+% 
+  newline .meta:n={inline=false},
+%
+  esp-before-body .tl_set:N= \l__mys_exr_esp_before_body_tl,
+  esp-before-body .default:n=\quad,
+  esp-before-body .initial:n=\quad,
+%
+  count_int  .int_set:N = \l__mys_exr_cnt_int,
+  count_int  .default:n = -1,
+  count_int  .initial:n = -1,
+%
+  num .meta:n={num_bl=true,count_int=#1},
+%
+  nonum .meta:n={num_bl=false},
+%
+  count .meta:n={num=#1},
+%
+  esp-before-sep-name .tl_set:N= \l__mys_exr_esp_before_sep_name_tl,
+  esp-before-sep-name .default:n=\c_space_token,
+  esp-before-sep-name .initial:n=\c_space_token,
+%
+  esp-after-sep-name .tl_set:N= \l__mys_exr_esp_after_sep_name_tl,
+  esp-after-sep-name .default:n=\quad,
+  esp-after-sep-name .initial:n=\quad,
+%
+  esp-before-name .tl_set:N= \l__mys_exr_esp_before_name_tl,
+  esp-before-name .default:n=\empty,%\c_space_token,
+  esp-before-name .initial:n=\empty,%\c_space_token,
+%
+  esp-after-name .tl_set:N= \l__mys_exr_esp_after_name_tl,
+  esp-after-name .default:n=\empty,
+  esp-after-name .initial:n=\empty,
+%
+  sep-before-name .tl_set:N= \l__mys_exr_sep_before_name_tl,
+  sep-before-name .initial:n=(,
+  sep-before-name .default:n=(,
+%
+  sep-after-name .tl_set:N= \l__mys_exr_sep_after_name_tl,
+  sep-after-name .initial:n=),
+  sep-after-name .default:n=),
+%
+  sep-name  .code:n = {\mys@sepname@distribution#1},%
+%
+  showname   .bool_set:N = \l__mys_exr_showname_bool,
+  showname  .initial:n=true,
+  showname  .default:n=true,
+%
+  showpoints   .bool_set:N = \l__mys_exr_showpts_bool,
+  showpoints  .initial:n=false,
+  showpoints  .default:n=true,
+% 
+  pts .meta:n={points={\numprint{#1}~pt\ifnum\fpeval{#1<=1?0:1}=1s\fi}},
+%
+  nopoints .meta:n={showpoints=false},
+  noname .meta:n={showname=false},
+%
+  livre  .code:n=\mys@exr@opt@livre#1\@nil,
+%
+  newpage   .bool_set:N = \l__mys_exr_newpage_bool,
+  newpage  .initial:n=false,
+  newpage  .default:n=true,
+%
+  end-vspace .bool_set:N = \l__mys_exr_endvspace_bool,
+  end-vspace .initial:n = true,
+%
+  noendspace .meta:n={end-vspace=false},
+  nospaceafter .meta:n={end-vspace=false},
+  nospaceatend .meta:n={end-vspace=false},
+  }
+%
+\def\mysexrlabel#1{\textbf{Exercice~#1}}% pour être utilisé ailleurs que dans l'environnement exr : par exemple dans l'environnement GrillleEval
+%
+\NewDocumentEnvironment{exr}
+    {O{}}
+    {%
+    \par\addvspace{0.75\baselineskip}%
+%    \par\addvspace{\medskipamount}
+    \noindent
+    \keys_set:nn{mys/exr}{#1}% label : foireux
+    \tl_if_blank:VT \l__mys_exr_name_tl{\keys_set:nn{mys/exr}{showname=false}}%
+%    \tl_if_blank:VTF \l__mys_exr_name_tl%
+%      {%
+%      \bool_if:NTF\l__mys_exr_num_bool%
+%        {%
+%        \int_compare:nT{\l__mys_exr_cnt_int>-1}{\setcounter{exr}{\int_eval:n{\l__mys_exr_cnt_int-1}}}%
+%        \refstepcounter{exr}%
+%        \textbf{\color{\tl_use:N\l__mys_exr_title_col_tl}\tl_use:N\l__mys_exr_title_tl{}~\theexr}%
+%        \def\@currentlabel{\theexr}%
+%        }%
+%        {%
+%        \let\oldtheexr\theexr%
+%        \def\theexr{}%
+%        \textbf{\color{\tl_use:N\l__mys_exr_title_col_tl}\tl_use:N\l__mys_exr_title_tl}%
+%        }%
+%      }%
+%      {%
+      \bool_if:NTF\l__mys_exr_num_bool%
+        {%
+        \int_compare:nT{\l__mys_exr_cnt_int>-1}{\setcounter{exr}{\int_eval:n{\l__mys_exr_cnt_int-1}}}%
+        \refstepcounter{exr}%
+        \textbf{
+            \color{\tl_use:N\l__mys_exr_title_col_tl}
+            \tl_use:N\l__mys_exr_title_tl{}~\theexr
+            \bool_lazy_or:nnT{\l__mys_exr_showname_bool}{\l__mys_exr_showpts_bool}%
+                {\l__mys_exr_esp_before_sep_name_tl
+                \l__mys_exr_sep_before_name_tl
+                \l__mys_exr_esp_before_name_tl
+                \bool_if:NT\l__mys_exr_showname_bool{\tl_use:N\l__mys_exr_name_tl}
+                \bool_lazy_and:nnT{\l__mys_exr_showname_bool}{\l__mys_exr_showpts_bool}{\c_space_token-\c_space_token}
+                \bool_if:NT\l__mys_exr_showpts_bool{\tl_use:N\l__mys_exr_points_tl}
+                \l__mys_exr_esp_after_name_tl
+                \l__mys_exr_sep_after_name_tl
+                }%
+            }
+        \def\@currentlabel{\theexr}%
+%        \protected@edef\@currentlabel{\value{exr}}
+        }
+        {
+        \let\oldtheexr\theexr
+        \def\theexr{}
+        \textbf{\color{\tl_use:N\l__mys_exr_title_col_tl}
+            \tl_use:N\l__mys_exr_title_tl
+            \l__mys_exr_esp_before_sep_name_tl
+            \bool_lazy_or:nnT{\l__mys_exr_showname_bool}{\l__mys_exr_showpts_bool}%
+                {\l__mys_exr_esp_before_sep_name_tl
+                \l__mys_exr_sep_before_name_tl
+                \l__mys_exr_esp_before_name_tl
+                \bool_if:NT\l__mys_exr_showname_bool{\tl_use:N\l__mys_exr_name_tl}
+                \bool_lazy_and:nnT{\l__mys_exr_showname_bool}{\l__mys_exr_showpts_bool}{\c_space_token-\c_space_token}
+                \bool_if:NT\l__mys_exr_showpts_bool{\tl_use:N\l__mys_exr_points_tl}
+                \l__mys_exr_esp_after_name_tl
+                \l__mys_exr_sep_after_name_tl
+                }%
+            }
+        }%
+%      }%
+    \nopagebreak
+    \bool_if:NTF\l__mys_exr_inline_bool%
+        {\l__mys_exr_esp_before_body_tl}%
+        {%
+%        \par\vspace{\baselineskip}\noindent\ignorespaces%
+        \par\nobreak\noindent% \ignorespaces utile ?
+        }%
+    \ignorespaces%
+%    \bool_if:NTF\l__mys_exr_nobody_bool{\setupsc{print-all=false}}{\setupsc{print-all=true}}
+%    \ExplSyntaxOff
+%    \begin{scontents}
+    }%
+    {%
+%    \end{scontents}  
+% 
+%    \ExplSyntaxOn
+    \let\theexr\oldtheexr %
+    \dim_compare:nTF{\l__mys_esp_at_end_skip=0pt}{}{\vspace*{\l__mys_esp_at_end_skip}}%
+    \bool_if:NTF\l__mys_exr_newpage_bool %
+        {\newpage}%
+        {\par\nobreak\addvspace{0.75\baselineskip}}%{\par\bool_if:NT\l__mys_exr_endvspace_bool{\vspace{0.5\baselineskip}\noindent}}%
+        % \mdskipamount ?
+    \ignorespacesafterend %
+%    \group_end:
+    }%
+%    {\let\theexr\oldtheexr\par\nobreak\vskip0.75\baselineskip} \par peut poser un problème d'espacement trop grand (cf ex.50 dans 1st2s-prcnt-evolutions-e-corr.tex
+%
+\NewDocumentCommand\setenvexr{+m}{ \keys_set:nn{mys/exr}{#1}}
+\let\Setexr\setenvexr
+\let\SetExr\setenvexr
+%
+%
+%
+%\cs_generate_variant:Nn\tl_if_blank:nTF{vTF}
+%\cs_generate_variant:Nn\tl_if_blank:vTF{cTF}
+%
+\newcommand\createenvexr[2]{%
+    \newcounter{#1}%
+    \setcounter{#1}{0}%
+    \expandafter\renewcommand\csname the#1\endcsname{\arabic{#1}}%
+    \expandafter\def\csname mys@#1@opt@livre\endcsname##1p##2\@nil{%
+        \keys_set:nn{mys/#1}{count=##1,name={p.~##2},sep-after-name={},sep-before-name={},esp-before-sep-name={\ }}%
+        }%
+    \keys_define:nn{mys/#1}%
+        {%
+        title .tl_set:c={l__mys_#1_title_tl},%
+        title  .initial:n={#2},%
+%
+        title-color .tl_set:c={l__mys_#1_title_col_tl},%
+        title-color  .initial:n={black},%
+%
+        name  .tl_set:c = {l__mys_#1_name_tl},%
+        name  .initial:n={},%
+%
+        esp-at-end    .skip_set:N = \l__mys_esp_at_end_skip,
+        esp-at-end  .initial:n=0cm,  
+        esp_at_end  .default:n=0.5cm,
+%
+        pts .meta:n={esp-before-name=\quad,name={(\numprint{##1}~pt\ifnum\fpeval{##1<1?0:1}=1s\fi})},%
+        num  .bool_set:c = {l__mys_#1_num_bool},%
+        num  .initial:n=true,%
+%
+  num .meta:n={num_bl=true,count_int=#1},
+%
+        inline  .bool_set:c = {l__mys_#1_inline_bool},%
+        inline  .initial:n=true,%
+%
+        newline .meta:n={inline=false},%
+%
+        esp-before-body .tl_set:c= {l__mys_#1_esp_before_body_tl},%
+        esp-before-body .default:n=\quad,%
+        esp-before-body .initial:n=\quad,%
+%
+        nonum .meta:n={num=false},%
+%
+        count  .int_set:c = {l__mys_#1_cnt_int},%
+        count  .default:n = -1,%
+        count  .initial:n = -1,%
+%
+        esp-before-sep-name .tl_set:c= {l__mys_#1_esp_before_sep_name_tl},%
+        esp-before-sep-name .default:n=\c_space_token,%
+        esp-before-sep-name .initial:n=\c_space_token,%
+%
+        esp-before-name .tl_set:c= {l__mys_#1_esp_before_name_tl},%
+        esp-before-name .default:n=\empty,%\c_space_token,
+        esp-before-name .initial:n=\empty,%\c_space_token,
+%
+        esp-after-name .tl_set:c= {l__mys_#1_esp_after_name_tl},%
+        esp-after-name .default:n=\;,%
+        esp-after-name .initial:n=\;,%
+%
+        sep-before-name .tl_set:c= {l__mys_#1_sep_before_name_tl},%
+        sep-before-name .default:n=(,%
+%
+        sep-after-name .tl_set:c= {l__mys_#1_sep_after_name_tl},%
+        sep-after-name .default:n=),%
+%
+        sep-name  .code:n = {\mys@sepname@distribution#1},%
+%
+        livre  .code:n=\use:c{mys@#1@opt@livre##1\@nil},%
+%
+        newpage   .bool_set:c = {l__mys_#1_newpage_bool},%
+        newpage  .initial:n=false,%
+        newpage  .default:n=true,%
+%
+        hidden   .bool_set:c = {l__mys_#1_hidden_bool},%
+        hidden  .initial:n=false,%
+        hidden  .default:n=true,%
+%
+        nopoints .meta:n={hidden=true},%
+%
+        end-vspace .bool_set:c = {l__mys_#1_endvspace_bool},%
+        end-vspace .initial:n = true,%
+%
+        noendspace .meta:n={end-vspace=false},
+        noblankafter .meta:n={end-vspace=false},
+        nospaceatend .meta:n={end-vspace=false},
+        }%
+    \expandafter\NewDocumentCommand\expandafter{\csname Set#1\endcsname}%
+        {+m}%
+        {\keys_set:nn{mys/#1}{##1}}%
+    %
+    \NewDocumentEnvironment{#1}%
+        {O{}}%
+        {%
+        \par\addvspace{0.75\baselineskip}%
+        \noindent
+        \keys_set:nn{mys/#1}{##1}% label : foireux
+        \expandafter\tl_if_blank:nTF\expandafter{\csname l__mys_#1_name_tl\endcsname}% n ou v ?
+            {%
+            \bool_if:cTF{l__mys_#1_num_bool}%
+                {%
+                \int_compare:cT{l__mys_#1_cnt_int>-1}{\setcounter{#1}{\int_eval:c{l__mys_#1_cnt_int-1}}}%
+                \refstepcounter{#1}%
+                \textbf{\color{\tl_use:c{l__mys_#1_title_col_tl}}\tl_use:c{l__mys_#1_title_tl}{}~\csname the#1\endcsname}%
+                \expandafter\def\expandafter\@currentlabel\expandafter{\csname the#1\endcsname}%
+                }%
+                {%
+                \csletcs{oldthe#1}{the#1}%
+                \expandafter\def\csname the#1\endcsname{}%
+                \textbf{\color{\tl_use:c{l__mys_#1_title_col_tl}\tl_use:c{l__mys_#1_title_tl}}}%
+                }%
+            }%
+            {%
+            \bool_if:cTF{l__mys_#1_num_bool}%
+                {%
+                \int_compare:nT{\int_use:c{l__mys_#1_cnt_int}>-1}{\setcounter{#1}{\int_eval:n{\int_use:c{l__mys_#1_cnt_int}-1}}}%
+                \refstepcounter{#1}%
+                \textbf{%
+                    \color{\tl_use:c{l__mys_#1_title_col_tl}}%
+                    \tl_use:c{l__mys_#1_title_tl}{}~\csname the#1\endcsname%
+                    \bool_if:cF{l__mys_#1_hidden_bool}%
+                        {%
+                        \tl_use:c{l__mys_#1_esp_before_sep_name_tl}
+                        \tl_use:c{l__mys_#1_sep_before_name_tl}
+                        \tl_use:c{l__mys_#1_esp_before_name_tl}
+                        \tl_use:c{l__mys_#1_name_tl}
+                        \tl_use:c{l__mys_#1_esp_after_name_tl}
+                        \tl_use:c{l__mys_#1_sep_after_name_tl}
+                        }%
+                    }
+                \expandafter\def\expandafter\@currentlabel\expandafter{\csname the#1\endcsname}%
+%                \protected@edef\@currentlabel{\value{#1}}
+                }
+                {
+                \csletcs{oldthe#1}{the#1}
+                \expandafter\def\csname the#1\endcsname{}
+                \textbf{%
+                    \color{\tl_use:c{l__mys_#1_title_col_tl}}%
+                    \tl_use:c{l__mys_#1_title_tl}%
+                    \tl_use:c{l__mys_#1_esp_before_sep_name_tl}%
+                    \bool_if:cF{l__mys_#1_hidden_bool}%
+                        {%
+                        \tl_use:c{l__mys_#1_sep_before_name_tl}
+                        \tl_use:c{l__mys_#1_esp_before_name_tl}
+                        \tl_use:c {l__mys_#1_name_tl}
+                        \tl_use:c{l__mys_#1_esp_after_name_tl}
+                        \tl_use:c{l__mys_#1_sep_after_name_tl}
+                        }%
+                     }
+                }%
+            }
+        \nopagebreak
+        \bool_if:cTF{l__mys_#1_inline_bool}%
+            {\tl_use:c{l__mys_#1_esp_before_body_tl}}%
+            {\par\nobreak\noindent}% \ignorespaces utile ?
+        \ignorespaces %
+        }
+        {
+        \csletcs{the#1}{oldthe#1}
+        \dim_compare:nTF{\l__mys_esp_at_end_skip=0pt}{}{\vspace*{\l__mys_esp_at_end_skip}}
+        \bool_if:cTF{l__mys_#1_newpage_bool}%
+            {\newpage}%
+            {\par\nobreak\addvspace{0.75\baselineskip}}%
+%            {\par\nobreak\addvspace{0.75\baselineskip}}
+        \ignorespacesafterend %
+        }%
+    }%
+%
+%
+%
+%
+\newcommand\createenv[2]{%
+    \newcounter{#1}%
+    \setcounter{#1}{0}%
+    \expandafter\renewcommand\csname the#1\endcsname{\arabic{#1}}%
+    \expandafter\def\csname mys@#1@opt@livre\endcsname##1p##2\@nil{%
+        \keys_set:nn{mys/#1}{count=##1,name={p.~##2},sep-after-name={},sep-before-name={},esp-before-sep-name={\ }}%
+        }%
+    \keys_define:nn{mys/#1}%
+        {%
+        title .tl_set:c={l__mys_#1_title_tl},%
+        title  .initial:n={#2},%
+%
+        title-color .tl_set:c={l__mys_#1_title_col_tl},%
+        title-color  .initial:n={black},%
+%
+        name  .tl_set:c = {l__mys_#1_name_tl},%
+        name  .initial:n={},%
+%
+        num  .bool_set:c = {l__mys_#1_num_bool},%
+        num  .initial:n=true,%
+%
+        inline  .bool_set:c = {l__mys_#1_inline_bool},%
+        inline  .initial:n=true,%
+%
+        newline .meta:n={inline=false},%
+%
+        esp-before-body .tl_set:c= {l__mys_#1_esp_before_body_tl},%
+        esp-before-body .default:n=\quad,%
+        esp-before-body .initial:n=\quad,%
+%
+        nonum .meta:n={num=false},%
+%
+        count  .int_set:c = {l__mys_#1_cnt_int},%
+        count  .default:n = -1,%
+        count  .initial:n = -1,%
+%
+        esp-before-sep-name .tl_set:c= {l__mys_#1_esp_before_sep_name_tl},%
+        esp-before-sep-name .default:n=\c_space_token,%
+        esp-before-sep-name .initial:n=\c_space_token,%
+%
+        esp-before-name .tl_set:c= {l__mys_#1_esp_before_name_tl},%
+        esp-before-name .default:n=\empty,%\c_space_token,
+        esp-before-name .initial:n=\empty,%\c_space_token,
+%
+        esp-after-name .tl_set:c= {l__mys_#1_esp_after_name_tl},%
+        esp-after-name .default:n=\quad,%
+        esp-after-name .initial:n=\quad,%
+%
+        sep-before-name .tl_set:c= {l__mys_#1_sep_before_name_tl},%
+        sep-before-name .default:n=(,%
+%
+        sep-after-name .tl_set:c= {l__mys_#1_sep_after_name_tl},%
+        sep-after-name .default:n=),%
+%
+        no-sep  .meta:n={sep-before-name={},sep-after-name={}},%
+%
+        livre  .code:n=\use:c{mys@#1@opt@livre##1\@nil},%
+%
+        newpage   .bool_set:c = {l__mys_#1_newpage_bool},%
+        newpage  .initial:n=false,%
+        newpage  .default:n=true,%
+%
+        hidden   .bool_set:c = {l__mys_#1_hidden_bool},%
+        hidden  .initial:n=false,%
+        hidden  .default:n=true,%
+%
+        end-vspace .bool_set:c = {l__mys_#1_endvspace_bool},%
+        end-vspace .initial:n = true,%
+%
+        noparbefore .bool_set:c = {l__mys_#1_noparbefore_bool},%
+        noparbefore .initial:n = true,%
+%
+        noparbeforebody .bool_set:c = {l__mys_#1_noparbeforebody_bool},%
+        noparbeforebody .initial:n = true,%
+%
+        vspacebefore .dim_set:c={l__mys_#1_vspacebefore_dim},%
+        vspacebefore .initial:n=0.75\baselineskip,%
+        vspacebefore .default:n=0.75\baselineskip,%
+%
+        vspaceafter .dim_set:c={l__mys_#1_vspaceafter_dim},%
+        vspaceafter .initial:n=0\baselineskip,%
+        vspaceafter .default:n=0\baselineskip,%
+%
+        noendspace .meta:n={end-vspace=false},%
+        noblankafter .meta:n={end-vspace=false},%
+        nospaceatend .meta:n={end-vspace=false},%
+        }%
+    \expandafter\NewDocumentCommand\expandafter{\csname Set#1\endcsname}%
+        {+m}%
+        {\keys_set:nn{mys/#1}{##1}}%
+    \NewDocumentEnvironment{#1}%
+        {O{}}%
+        {%
+        \bool_if:cTF{l__mys_#1_noparbefore_bool}{}{\par\vspace*{\dim_use:c{l__mys_#1_vspacebefore_dim}}\noindent}
+        \keys_set:nn{mys/#1}{##1}% label : foireux
+        \expandafter\tl_if_blank:nTF\expandafter{\csname l__mys_#1_name_tl\endcsname}%
+            {%
+            \bool_if:cTF{l__mys_#1_num_bool}%
+                {%
+                \int_compare:cT{l__mys_#1_cnt_int>-1}{\setcounter{#1}{\int_eval:c{l__mys_#1_cnt_int-1}}}%
+                \refstepcounter{#1}%
+                \textbf{\color{\tl_use:c{l__mys_#1_title_col_tl}}\tl_use:c{l__mys_#1_title_tl}{}~\csname the#1\endcsname}%
+                \expandafter\def\expandafter\@currentlabel\expandafter{\csname the#1\endcsname}%
+                }%
+                {%
+                \csletcs{oldthe#1}{the#1}%
+                \expandafter\def\csname the#1\endcsname{}%
+                \textbf{\color{\tl_use:c{l__mys_#1_title_col_tl}\tl_use:c{l__mys_#1_title_tl}}}%
+                }%
+            }%
+            {%
+            \bool_if:cTF{l__mys_#1_num_bool}%
+                {%
+                \int_compare:nT{\int_use:c{l__mys_#1_cnt_int}>-1}{\setcounter{#1}{\int_eval:n{\int_use:c{l__mys_#1_cnt_int}-1}}}%
+                \refstepcounter{#1}%
+                \textbf{%
+                    \color{\tl_use:c{l__mys_#1_title_col_tl}}
+                    \tl_use:c{l__mys_#1_title_tl}{}~\csname the#1\endcsname%
+                    \bool_if:cF{l__mys_#1_hidden_bool}%
+                        {%
+                        \tl_use:c{l__mys_#1_esp_before_sep_name_tl}
+                        \tl_use:c{l__mys_#1_sep_before_name_tl}
+                        \tl_use:c{l__mys_#1_esp_before_name_tl}
+                        \tl_use:c{l__mys_#1_name_tl}
+                        \tl_use:c{l__mys_#1_esp_after_name_tl}
+                        \tl_use:c{l__mys_#1_sep_after_name_tl}
+                        }%
+                    }
+                \expandafter\def\expandafter\@currentlabel\expandafter{\csname the#1\endcsname}%
+%                \protected@edef\@currentlabel{\value{#1}}
+                }
+                {
+                \csletcs{oldthe#1}{the#1}
+                \expandafter\def\csname the#1\endcsname{}
+                \textbf{%
+                    \color{\tl_use:c{l__mys_#1_title_col_tl}}
+                    \tl_use:c{l__mys_#1_title_tl}
+                    \tl_use:c{l__mys_#1_esp_before_sep_name_tl}
+                    \bool_if:cF{l__mys_#1_hidden_bool}%
+                        {%
+                        \tl_use:c{l__mys_#1_sep_before_name_tl}
+                        \tl_use:c{l__mys_#1_esp_before_name_tl}
+                        \tl_use:c {l__mys_#1_name_tl}
+                        \tl_use:c{l__mys_#1_esp_after_name_tl}
+                        \tl_use:c{l__mys_#1_sep_after_name_tl}
+                        }%
+                     }
+                }%
+            }
+        \nopagebreak
+        \bool_if:cTF{l__mys_#1_inline_bool}%
+            {\tl_use:c{l__mys_#1_esp_before_body_tl}}%
+            {\bool_if:cTF{l__mys_#1_noparbeforebody_bool}{}{\par\nobreak\noindent\ignorespaces}}% \ignorespaces utile ?
+        \ignorespaces
+        }
+        {
+        \csletcs{the#1}{oldthe#1}
+        \bool_if:cTF{l__mys_#1_newpage_bool}%
+            {\newpage}%
+            {\par\addvspace{{\dim_use:c{l__mys_#1_vspaceafter_dim}}}}%
+        \ignorespacesafterend
+        }
+    }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Raccourci : exercice du livre n° ... page ...
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\exrlivre#1{\begin{exr}[livre=#1]\end{exr}}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Question
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\createenvexr{question}{Question}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% activité
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\createenvexr{act}{\textsc{Activité}}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% automatisme
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\createenvexr{auto}{Automatisme}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Méthode
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\createenvexr{mth}{Méthode}
+%
+\ExplSyntaxOff
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% tcb environment to xparse environment
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\ExplSyntaxOn
+\keys_define:nn{mys/environ}
+  {
+  opt         .tl_set:N = \l__mys_tcbenv_opt_tl,
+  name     .tl_set:N = \l__mys_tcbenv_name_tl,
+  name     .initial:n={},
+  label       .tl_set:N = \l__mys_tcbenv_lbl_tl,
+  label       .initial:n={},
+  count      .int_set:N = \l__mys_tcbenv_cnt_int,
+  count      .default:n = -1,
+  count      .initial:n = -1,  
+  newline   .bool_set:N = \l__mys_tcbenv_newline_bool,
+  newline   .initial:n=false,
+  newline   .default:n=true,
+  skip-before   .skip_set:N = \l__mys_tcbenv_before_skip,
+  skip-before   .initial:n=0pt,
+  skip-before   .default:n=0pt,
+  }%
+%
+\cs_new:Npn\__tmp_begin:nnnn#1#2#3#4{\begin{#1aux}[#2]{#3}{#4}}
+\cs_new:Npn\__tmp_begin_i:nnn#1#2#3{[#1]{#2}{#3}}
+%
+\cs_generate_variant:Nn\__tmp_begin_i:nnn{VVV}
+%
+\clist_map_inline:nn{thr,dfn,prp,rmq,axm,crl,vcb,ntt,csp,prv,anl,lmm}
+  {
+%    \expandafter\NewDocumentCommand\expandafter{\csname Set#1\endcsname}%
+%        {+m}%
+%        {\keys_set:nn{mys/environ}{##1}}%  
+  \NewDocumentEnvironment
+    {#1}
+    {O{}}
+    {
+    \keys_set:nn{mys/environ}{##1}% label : foireux
+    \int_compare:nF{\l__mys_tcbenv_cnt_int=-1}{\setcounter{#1}{\int_eval:n{\l__mys_tcbenv_cnt_int-1}}}
+    \def\tmp{\begin{#1aux}}
+    \cs_set:Nn\__mys_tmp:{\exp_last_unbraced:Nx\tmp{[\tl_use:N\l__mys_tcbenv_opt_tl]}}
+    \vspace{-\dim_use:N\l__mys_tcbenv_before_skip}
+    \exp_args:NVV\__mys_tmp:
+      \l__mys_tcbenv_name_tl
+      \l__mys_tcbenv_lbl_tl
+    \bool_if:NT\l__mys_tcbenv_newline_bool%
+        {\par\nobreak\noindent\ignorespaces}%
+    }
+    {\end{#1aux}}
+%
+%\begin{machin}[opt={options}]
+% --> \begin{machinaux}[options]
+%
+  \NewDocumentEnvironment
+    {#1*}
+    {O{}}
+    {
+    \group_begin:
+    \keys_set:nn{mys/environ}{##1}
+    \def\tmp{\begin{#1aux*}}
+    \tl_if_empty:NTF\l__mys_tcbenv_opt_tl
+        {\cs_set_eq:NN\__mys_tmp:\tmp}
+        {\cs_set:Nn\__mys_tmp:{\exp_last_unbraced:Nx\tmp{[\tl_use:N\l__mys_tcbenv_opt_tl]}}}
+    \exp_args:NVV\__mys_tmp:
+      \l__mys_tcbenv_name_tl
+      \l__mys_tcbenv_lbl_tl
+    \bool_if:NT\l__mys_tcbenv_newline_bool%
+        {\par\nobreak\noindent\ignorespaces}%
+    }
+    {\end{#1aux*}\group_end:}
+  }
+\ExplSyntaxOff
+
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% OOcalc (pompé)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\usepackage{calc}
+\newcount\cntlin
+\newcount\cntcol
+%
+\newtoks\t@b
+%
+\long\def\ifremain@lines#1\\#2\@nil%
+  {%
+  \csname%
+    @\ifx\@empty#2\@empty second\else first\fi oftwo%
+  \endcsname%
+  }%
+%
+\long\def\subst@eol#1\\#2\@nil%
+  {%
+  \addtot@b{#1\\\cline{1-1}\hline}%\hdashline}%
+  \ifremain@lines#2\\\@nil%
+    {\addtot@b&\subst@eol#2\@nil}%
+    {\addtot@b{#2\end{tabular}}}%
+  }%
+%
+\long\def\collect@bodySB#1\end{\subst@eol#1\@nil\end}
+%
+\newcommand\addtot@b[1]{\t@b\expandafter{\the\t@b#1}}
+%
+\newcommand\edftot@b[1]%
+  {%
+  \edef\temp@{#1}%
+  \expandafter\addtot@b\expandafter{\temp@}%
+  }%
+%
+\newcommand{\cellstart}{\rule{0pt}{\heightof{A}+0.5ex}}
+\newcommand{\cellfinish}{\rule{0pt}{0.5ex}}
+%
+%
+\newenvironment{OOocalcorig}[2][1.5cm]%
+  {% #1=largeur colonnes #2 = nombre de colonnes
+  \newcolumntype w{>{\centering\arraybackslash}m{#1}}%
+  \arrayrulewidth0.4pt%
+  \arrayrulewidth0.4pt%
+%  \dashlinedash0.75pt\relax%
+%  \dashlinegap0pt%
+  \global\cntlin\m@ne%
+  \global\cntcol\z@%
+  \tabfont%
+  \tabcolsep0pt%
+  \t@b%
+    {%
+    \begin{tabular}%
+      {%
+      |>%
+        {%
+        \cellcolor{tabheadcolor}%
+        \global\cntcol\z@%
+        \global\advance\cntlin\@ne%
+        \centering\arraybackslash%
+        \ifnum\cntlin>\z@%
+          \tableheadformat\number\cntlin%
+        \fi%
+        }%
+     >{\cellstart} m{2em}<{\cellfinish}|*{#2}{w|}%w:
+      }%
+    \hline
+    \rowcolor{tabheadcolor}%
+    }%
+  \loop
+  \ifnum\cntcol<#2
+    \advance\cntcol\@ne
+    \addtot@b{&\multicolumn{1}{>\centering m{#1}|}}%
+    \edftot@b{{\noexpand\tableheadformat\@Alph\cntcol}}%
+  \repeat
+  \addtot@b{\\\hline&}%
+  \collect@bodySB%
+  }%
+  {\the\t@b}%
+%
+% commandes de personnalisation de OOcalc
+%
+\newcommand*\tabfont%
+  {\fontfamily{phv}\selectfont\footnotesize}% police du tableau (helvetica ici)
+%
+\newcommand*\tableheadformat{\bfseries}% police des en-têtes du tableau (en gras)
+%
+\colorlet{tabheadcolor}{gray!40}% couleur de font des en-têtes du tableau
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% OOcalc (modifié)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\newcommand\falseverb[1]{\texttt{\detokenize{#1}}}
+%
+\newcount\mslfcntlin
+\newcount\mslfcntcol
+%
+\newtoks\mslft@b
+%
+\long\def\mslfifremain@lines#1\\#2\@nil%
+  {%
+  \csname%
+    @\ifx\@empty#2\@empty second\else first\fi oftwo%
+  \endcsname%
+  }%
+%
+\long\def\mslfsubst@eol#1\\#2\@nil%
+  {%
+  \addtomslft@b{#1\\}%
+  \mslfifremain@lines#2\\\@nil%
+    {\addtomslft@b&\mslfsubst@eol#2\@nil}%
+    {\addtomslft@b{#2\end{tabu}}}%
+  }%
+%
+\long\def\mslfcollect@bodySB#1\end%
+  {\mslfsubst@eol#1\@nil\end}%
+%
+\newcommand\addtomslft@b[1]%
+  {\mslft@b\expandafter{\the\mslft@b#1}}%
+%
+\newcommand\edftomslft@b[1]%
+  {%
+  \edef\temp@{#1}%
+  \expandafter\addtomslft@b\expandafter{\temp@}%
+  }%
+%
+\newtabulinestyle{styleOOcalc=.4pt on 0.75pt  off 0pt}%
+%
+%
+% commandes de personnalisation de OOcalc
+%
+\newcommand*\mslftabfont%
+  {\fontfamily{phv}\selectfont\footnotesize}% police du tableau (helvetica ici)
+%
+\newcommand*\mslftableheadformat{\bfseries}% police des en-têtes du tableau (en gras)
+%
+\colorlet{mslftabheadcolor}{gray!40}% couleur de font des en-têtes du tableau
+%
+%
+%
+\newenvironment{OOocalc}[2][1.5cm]%
+  {% #1=largeur colonnes #2 = nombre de colonnes
+  \global\mslfcntlin\m@ne%
+  \global\mslfcntcol\z@%
+  \mslftabfont%
+  \tabcolsep0pt%
+  \mslft@b%
+    {%
+    \let\origwrite\write%
+    \begin{tabu}%
+      {%
+      |>%
+        {%
+        \cellcolor{mslftabheadcolor}%
+        \global\mslfcntcol\z@%
+        \ifx\origwrite\write%
+          \global\advance\mslfcntlin\@ne%
+        \fi
+        \centering
+        \ifnum\mslfcntlin>\z@%
+          \mslftableheadformat\number\mslfcntlin%
+        \fi%
+        }%
+      m{2em}|*{#2}{>{\centering}m{#1}|}%
+      }%
+    \tabucline[styleOOcalc]-%
+    \everyrow{\tabucline[styleOOcalc]-}%
+%    \rowcolor{mslftabheadcolor}%
+%    \taburowcolors2{mslftabheadcolor..white}%
+    }%
+  \loop
+  \ifnum\mslfcntcol<#2
+    \advance\mslfcntcol\@ne%
+    \addtomslft@b{&\multicolumn{1}{>\centering m{#1}|}}%
+    \edftomslft@b%
+      {{\noexpand\mslftableheadformat\@Alph\mslfcntcol}}%
+  \repeat
+  \addtomslft@b{\\&}%
+  \mslfcollect@bodySB%
+  }%
+  {\the\mslft@b}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\listeenvessentiel{%
+    thr,%
+    dfn,%
+    prp,%
+    axm,%
+    crl,%
+    ntt,%
+    vcb,%
+    lmm,%
+    mth,%
+    rgl%
+    }%
+%
+%
+%
+\def\listeenvcomplements{%
+    rpp,%
+    att,%
+    anl,%
+    prv,%
+    rmq,%
+    csp,%
+    intgr,%
+    exm%
+    }%
+%
+%
+%
+\def\listeenvsupp{%
+    taligned,%
+    centered,%
+    parties,%
+    corr,%
+    exr,%
+    act,%
+    OOOocalcorig,%
+    OOocalc,%
+%    tester,%
+%    algo,%
+%    prog,%
+    auto,%
+    %progofficiel,%
+    %enonce,%
+    %correction,%
+    }%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\endinput

@@ -1,0 +1,115 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-notation-complexe}%
+    [2019/07/07 v0.0 to do the job]%
+%
+%####################################################
+%
+\@ifpackageloaded{mys-code-tool}%
+    {\typeout{Essai de chargement multiple du package mys-code-tool.}}%
+    {\RequirePackage{mys-code-tool}}%
+%
+\@ifpackageloaded{mathtools}%
+    {\typeout{Essai de chargement multiple du package mathtools.}}%
+    {\RequirePackage{mathtools}}%
+%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%####################################################
+%
+%---   nombre d'euler
+%
+\@ifundefined{E}{\newcommand*{\E}{\mathrm{e}}}{}%
+%
+%####################################################
+%
+%---   Le i des complexes
+%
+\newcommand*{\I}{\mathrm{i}}%
+%
+%####################################################
+%
+%---   Exponentielle imaginaire
+%
+\newcommand*{\expimag}[1]%
+  {%
+  \mys@if@minus{#1}%
+    {\E^{-\I\mys@gobble@one#1\mys@stop}}%
+    {%
+    \E^{\I#1}%
+    }%
+  }%
+%
+%####################################################
+%
+%---   Conjugué
+%
+\newcommand*\Conj[1]{\overline{#1}}%
+%
+\let\conj\Conj%
+%
+%####################################################
+%
+%---   Module
+%
+\DeclarePairedDelimiter\Module{\lvert}{\rvert}%
+%
+\let\module\Module%
+%
+%####################################################
+%
+%---   Argument
+%
+%   ---   operateur
+%
+\DeclareMathOperator\Arg{arg}%
+%
+%   ---   user macro
+%
+\let\arg\relax%
+\DeclarePairedDelimiterXPP{\arg}[1]{\Arg}(){}{#1}%
+%
+%####################################################
+%
+%---   Partie imaginaire
+%
+\let\Im\relax%
+%
+%   ---   operateur
+%
+\DeclareMathOperator\Im{Im}%
+%
+%   ---   user macro
+%
+\DeclarePairedDelimiterXPP{\im}[1]{\Im}(){}{#1}%
+%
+%####################################################
+%
+%---   Partie réelle
+%
+\let\Re\relax%
+%
+%   ---   operateur
+%
+\DeclareMathOperator\Re{Re}%
+%
+%   ---   user macro
+%
+\DeclarePairedDelimiterXPP{\re}[1]{\Re}(){}{#1}%
+%
+\endinput

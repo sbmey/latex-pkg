@@ -1,0 +1,120 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-notation-arith}%
+    [2019/07/07 v0.0 to do the job]%
+%
+%####################################################
+%
+%
+\@ifpackageloaded{mathtools}%
+    {\typeout{Essai de chargement multiple du package mathtools.}}%
+    {\RequirePackage{mathtools}}%
+%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%
+%####################################################
+%
+%--- PGCD, PPCM
+%
+%####################################################
+%
+%   ---   opérateur
+\DeclareMathOperator{\pgcd}{PGCD}%
+\DeclareMathOperator{\ppcm}{PPCM}%
+%
+%   ---   user macro
+%
+\DeclarePairedDelimiterXPP\PGCD[1]{\pgcd}(){}{\mys@arith@pgcdppcm@parse#1,\mys@stop}%
+%
+\DeclarePairedDelimiterXPP\PPCM[1]{\ppcm}(){}{\mys@arith@pgcdppcm@parse#1,\mys@stop}%
+%
+\def\mys@arith@pgcdppcm@parse#1,#2\mys@stop{%
+    \ifx\relax#2\relax #1 \else #1\,;\mys@arith@pgcdppcm@parse#2\mys@stop\fi%
+    }%
+%
+%####################################################
+%
+%--- Congru (mod)
+%
+%####################################################
+%
+%   ---   operator
+%
+\DeclareMathOperator{\Mod}{mod}%
+%
+%   --- user macro
+%
+\newcommand*\congru[1]{\expandafter\mys@congru@aux\expanded{#1},\Mod\mys@stop}%
+%
+%   ---   aux
+%
+\let\mys@arith@congru@eq\equiv
+\def\mys@congru@aux#1,#2,#3,#4\mys@stop{#1\mys@arith@congru@eq#2#4{#3}}%
+%
+%   ---   choix du signe d'équivalence
+%
+\newcommand*\SetCongruEq[1]{\def\mys@arith@congru@eq{#1}}
+%
+%####################################################
+%
+%--- Congru (parenthèses)
+%
+%####################################################
+%
+%   ---   delimiteur
+%
+\DeclarePairedDelimiterXPP\Pmod[1]{\if@display\mkern18mu\else\mkern8mu\fi}(){}{#1}%
+%
+%   --- user macro
+%
+\newcommand*\congrup{\@ifstar\mys@arith@congrup@star\mys@arith@congrup@}
+%
+%   --- aux
+%
+\def\mys@arith@congrup@{\@ifnextchar[\mys@arith@congrup@nostar@opt\mys@arith@congrup@nostar@noopt}%
+\def\mys@arith@congrup@nostar@noopt#1{\expandafter\mys@congru@aux\expanded{#1},\Pmod\mys@stop}%
+%
+\def\mys@arith@congrup@nostar@opt[#1]#2{\expandafter\mys@congru@aux\expanded{#2},\Pmod[#1]\mys@stop}%
+%
+\def\mys@arith@congrup@star#1{\expandafter\mys@congru@aux\expanded{#1},\Pmod*\mys@stop}%
+%
+%####################################################
+%
+%--- Congru (crochets)
+%
+%####################################################
+%
+%   ---   delimiteur
+%
+\DeclarePairedDelimiterXPP\Bmod[1]{\if@display\mkern18mu\else\mkern8mu\fi}[]{}{#1}
+%
+%   --- user macro
+%
+\newcommand*\congrub{\@ifstar\mys@arith@congrub@star\mys@arith@congrub@}
+%
+%   --- aux
+%
+\def\mys@arith@congrub@{\@ifnextchar[\mys@arith@congrub@nostar@opt\mys@arith@congrub@nostar@noopt}%
+\def\mys@arith@congrub@nostar@noopt#1{\expandafter\mys@congru@aux\expanded{#1},\Bmod\mys@stop}%
+%
+\def\mys@arith@congrub@nostar@opt[#1]#2{\expandafter\mys@congru@aux\expanded{#2},\Bmod[#1]\mys@stop}%
+%
+\def\mys@arith@congrub@star#1{\expandafter\mys@congru@aux\expanded{#1},\Bmod*\mys@stop}%
+%
+\endinput

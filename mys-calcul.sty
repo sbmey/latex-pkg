@@ -1,0 +1,350 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\ProvidesExplPackage%
+    {mys-calcul}%
+    {2019/07/07}
+    {0.0}
+    {to do the job}%
+%
+%####################################################
+%
+%
+\@ifpackageloaded{mys-calcul-outil}%
+    {\typeout{Essai de chargement multiple du package mys-calcul-outil.}}%
+    {\RequirePackage{mys-calcul-outil}}%
+%
+\@ifpackageloaded{xintfrac}%
+    {\typeout{Essai de chargement multiple du package xintfrac.}}%
+    {\RequirePackage{xintfrac}}%
+%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%
+%####################################################
+%
+%--- Valeur absolue
+%
+%####################################################
+%
+%   ---   user macro
+%
+\newcommand*\valabs[1]{\numprint{\fp_eval:n{abs(#1)}}}%
+%
+%####################################################
+%
+%--- calculs
+%
+%####################################################
+%
+%   ---   options de la macro \calculer
+%
+\int_new:N\l_mslf_calc_round_int
+\bool_new:N\l_mslf_calc_eqorsimeq_bool
+%
+\keys_define:nn {calc}
+  {
+% 0 pour arrondir à l'entier le plus proche, 1 pour arrondir au dixième, ..., -1 pour arrondir à la dizaine
+  precision    .int_set:N = \l_mslf_calc_round_int,
+  precision    .initial:n = 2,
+  precision    .default:n = 2,
+%
+  noprec   .meta:n = {precision=9},
+%
+  bold  .bool_set:N =  \l_mslf_calc_bold_bool,
+  bold        .initial:n = {false},
+  bold        .default:n = {false},
+%
+  eq-upperlim  .fp_set:N = \l_mslf_calc_eq_uplim_fp,
+  eq-upperlim  .initial:n = 1e-9,
+%  
+  eq           .bool_set:N = \l_mslf_calc_eqorsimeq_bool,
+  eq	       .initial:n = {false},
+  eq           .default:n = {true},
+ simeq        .meta:n={eq=true},
+%
+  store        .tl_set:N = \l_mslf_calc_store_tl,
+  store        .initial:n = {res},
+  store        .default:n={res},
+%
+  print        .bool_set:N = \l_mslf_calc_print_bool,
+  print        .initial:n = {true},
+  print        .default:n = {true},
+%
+  noprint    .meta:n={print=false},
+%
+  prcnt        .bool_set:N = \l_mslf_calc_print_prcnt_bool,
+  prcnt        .initial:n = {false},
+  prcnt        .default:n = {true}
+  }
+%
+%   ---   main macro
+%
+\NewDocumentCommand{\calculer}{O{}m}%
+  {
+  \group_begin:
+  \keys_set:nn{calc}{#1}
+  \fp_set:Nx\l_tmpa_fp{\fp_eval:n{#2}}
+  \fp_set:Nx\l_tmpb_fp
+    {
+    \fp_eval:n{\__mslf_round:nN{#2}\l_mslf_calc_round_int}
+    }
+  \bool_if:NTF\l_mslf_calc_print_bool
+    {
+    \bool_if:NT\l_mslf_calc_eqorsimeq_bool
+      {\_mslf_eq_or_simeq:VV\l_tmpa_fp\l_tmpb_fp}
+    \bool_if:NTF \l_mslf_calc_print_prcnt_bool
+      {\bool_if:NTF\l_mslf_calc_bold_bool
+        {\symbf{\prcnt{\fp_use:N\l_tmpb_fp}}}
+        {\__mslf_calc_prcnt:n{\fp_use:N\l_tmpb_fp}}
+      }% foireux pour l'espace avant le signe pourcent
+      {\bool_if:NTF\l_mslf_calc_bold_bool
+        {\symbf{\numprint{\fp_use:N\l_tmpb_fp}}}
+        {\numprint{\fp_use:N\l_tmpb_fp}}
+      }
+    }
+   {\bool_if:NT\l_mslf_calc_eqorsimeq_bool{\_mslf_eq_or_simeq:VV\l_tmpa_fp\l_tmpb_fp}}
+  \bool_if:NTF \l_mslf_calc_print_prcnt_bool
+    {%
+    \cs_gset:cx{mslf_\tl_use:N\l_mslf_calc_store_tl _print :}
+      {\noexpand\__mslf_calc_prcnt:n{\fp_use:N\l_tmpa_fp}}%
+    }
+    {%
+    \cs_gset:cx{mslf_\tl_use:N\l_mslf_calc_store_tl _print :}
+      {\noexpand\numprint{\fp_use:N\l_tmpa_fp}}%
+    }
+  \cs_gset:cx{mslf_\tl_use:N\l_mslf_calc_store_tl _rounded_print :}
+    {\noexpand\numprint{\fp_use:N\l_tmpb_fp}}
+  \cs_gset:cx{mslf_\tl_use:N\l_mslf_calc_store_tl _rounded_use :}
+    {\fp_use:N\l_tmpb_fp}
+  \cs_gset:cx{mslf_\tl_use:N\l_mslf_calc_store_tl _use :}
+    {\fp_use:N\l_tmpa_fp}
+    \group_end:	
+  }
+%
+%   ---   ?
+%
+ \NewDocumentCommand\bcalculer{O{bold=true}m}{\calculer[#1,bold=true]{#2}}%
+ %
+ %
+ %
+ \cs_new:Npn\__mslf_calc_prcnt:n#1{\numprint{#1}\ \%}
+%
+%   ---   set options
+%
+\NewDocumentCommand{\SetCalculer}{m}
+  {\keys_set:nn{calc}{#1}}
+%
+%   ---   Access macro
+%
+\NewDocumentCommand{\printcalc}{m}
+  {\use:c{mslf_#1_print:}}
+%
+\NewDocumentCommand{\printroundedcalc}{m}
+  {\use:c{mslf_#1_rounded_print:}}
+%
+\NewExpandableDocumentCommand{\useroundedcalc}{m}
+  {\use:c{mslf_#1_rounded_use:}}
+%
+\DeclareExpandableDocumentCommand{\usecalc}{m}
+  {\use:c{mslf_#1_use:}}
+%
+%####################################################
+%
+%  definir des valeurs et les stocker dans des variables pour les appeler par leurs noms de var
+%
+%####################################################
+%
+%   ---   messages d'erreurs
+%
+\msg_new:nnnn{var}{definition-obligatoire}{La~variable~#1~n'existe~pas~\msg_line_context:}{la~créer~avec ~\newvar{#1}~avant~de~l'utiliser~avec~#2}
+% ATTENTION : Le second texte n'apparait pas lorsqu'on l'appelle (h dans le prompt lors de la compilation !
+% 
+\msg_new:nnnn{var}{creation-interdite}{La~variable~#1~existe~déjà~\msg_line_context:}{la~token~list~l_mys_var_#1_tl~est~déjà~crée~avec ~\newvar{#1}}
+% ATTENTION : Le second texte n'apparait pas lorsqu'on l'appelle (h dans le prompt lors de la compilation !
+%
+%   ---   Définition d'une variable
+%
+%  \newvar{a} pour définir une token list, si c'est possible, représentant la variable a
+% A utiliser pour s'assurer qu'on n'utilise pas une variable déjà crée et contenant éventuellement quelque résultat non voulu
+\def\newvar#1{\tl_if_exist:cTF{l_mys_var_#1_tl}{\msg_critical:nnn{var}{creation-interdite}{#1}}{\tl_new:c{l_mys_var_#1_tl}\tl_new:c{l_mys_var_orig_#1_tl}}}
+% \newvar{a}\newvar{a} renvoie une erreur ... mais 
+% La variable a ne contient rien mais un rien utilisable : \usevar{a} ne renvoie pas d'erreur et aucun signe n'est imprimé
+%
+%   ---   Vider une variable
+%
+% \clearvar{a} pour vider une variable déjà existante, la variable existe mais ne contient rien, comme après sa définition
+\def\clearvar#1{\tl_if_exist:cTF{l_mys_var_#1_tl}{\tl_clear:c{l_mys_var_#1_tl}\tl_clear:c{l_mys_var_orig_#1_tl}}{\msg_critical:nnnn{var}{definition-obligatoire}{#1}{\clearval}}}
+% \clearvar{a} renvoie une erreur si pas de \newvar{a} précédent
+%
+%   ---   Affecter une valeur à une variable
+%
+%
+%      ---   aux
+%
+\cs_new:Npn\__mys_var_calc_set:N#1{\cs_set_eq:NN\__mys_var_calculator:n#1}
+%
+%      ---   clés
+%
+\keys_define:nn {setvar}
+  {
+  engine    .code:n = {\__mys_var_calc_set:N#1},
+  engine    .initial:n={\fptotlcalc},
+  engine    .default:n={\fptotlcalc},
+  calc        .tl_set:N = \l__mys_var_calc_tl
+  }
+%
+%      ---   user macro
+%
+% \setvar{a}{b} pour affecter une valeur à la variable si cette variable existe
+%\def\setvar#1#2{\tl_if_exist:cTF{l_mys_var_#1_tl}{\tl_set:cn{l_mys_var_#1_tl}{#2}}{\msg_critical:nnn{var}{creation-obligatoire}{#1}}}
+% POUR AUTORISER LES CALCULS
+%
+\NewDocumentCommand\setvar{O{}mm}
+    {
+    \group_begin:
+    \keys_set:nn{setvar}{#1}
+    \tl_if_exist:cTF{l_mys_var_#2_tl}
+        {
+        \tl_set:cn{l_mys_var_orig_#2_tl}{#3}
+        \tl_set:cf{l_mys_var_#2_tl}{\__mys_var_calculator:n{#3}}
+        \tl_set:cf{l_mys_var_#2_tl}{\use:c{l_mys_var_#2_tl}}
+        }
+        {\msg_critical:nnnn{var}{definition-obligatoire}{#2}{\setvar}}
+    \group_end:
+    }
+% \setvar{a} renvoie une erreur si pas de \newvar{a} précédent
+%
+% Inutile, \calcvar à rechercher et virer dans les sources des documents
+\let\calcvar\setvar
+%
+%
+%
+%
+%-------------------
+%
+% Créer et affecter une valeur à une variable
+% 
+%-------------------
+%
+% \setnewvar{a}{b} pour créer une variable et y affecter une valeur
+\def\setnewvar#1#2{\newvar{#1}\setvar{#1}{#2}}
+% \setnewvar{a}{b} renvoie une erreur si il existe un \newvar{a} précédent
+%
+%-------------------
+%
+% Utiliser la valeur (éventuellement calculée) d'une variable
+% 
+%-------------------
+%
+%% \usevar{a} pour utiliser la valeur de la variable (valeur telle que saisie, pas de mise en forme)
+\def\usevar#1{\tl_if_exist:cTF{l_mys_var_#1_tl}{\tl_use:c{l_mys_var_#1_tl}}{\msg_critical:nnnn{var}{definition-obligatoire}{#1}{\usevar}}}
+%
+%-------------------
+%
+% Utiliser la valeur d'une variable telle que saisie lors de la définition
+% 
+%-------------------
+%
+%% \origvar{a} pour obtenir la valeur de la variable (valeur telle que saisie, pas de mise en forme)
+\def\origvar#1{\tl_if_exist:cTF{l_mys_var_#1_tl}{\tl_use:c{l_mys_var_orig_#1_tl}}{\msg_critical:nnnn{var}{definition-obligatoire}{#1}{\origvar}}}
+%
+%-------------------
+%
+% debug
+%
+%-------------------
+%
+\def\showorigvar#1{\tl_show:c{l_mys_var_orig_#1_tl}}
+\def\showvar#1{\tl_show:c{l_mys_var_#1_tl}}
+%
+%-------------------
+%
+% Mise en forme pour impression de la valeur d'une variable
+% 
+%-------------------
+%
+\keys_define:nn {printvar}
+  {
+  opt-siu        .tl_set:N = \l_mslf_printvar_optsi_tl,
+  orig   .bool_set:N = \l_mslf_printvar_orig_bool,
+  orig       .initial:n={false},
+  orig        .default:n={true},
+  }
+%
+
+%\cs_new:Npn\__mys_var_exprtoprint:n#1{\str_set:Nn\l_mys_var_tmp_str{#1}\str_replace_all:Nnn\l_mys_var_tmp_str{*}{\times}}
+\NewDocumentCommand{\printvar}{om}
+  {
+  \IfNoValueTF{#1}
+    {\num{\usevar{#2}}}
+    {
+    \keys_set:nn{printvar}{#1}%raw=false,
+%    \cs_set:Nx\_mslf_printvar_tmp:{\exp_not:N\num[\tl_use:N\l_mslf_printvar_optsi_tl]\usevar{#2}}\_mslf_printvar_tmp:
+    \cs_set:Npx\_mslf_printvar_tmp:n##1{\exp_not:N\num[\tl_use:N\l_mslf_printvar_optsi_tl]{##1}}
+    \bool_if:NTF\l_mslf_printvar_orig_bool
+      {\exp_args:Nf\_mslf_printvar_tmp:n{\origvar{#2}}}
+      {\_mslf_printvar_tmp:n{\usevar{#2}}}
+    }
+  }
+%
+%\def\rawval#1{\tl_use:c{l_mys_setvar_#1_tl}}
+%
+%####################################################
+%
+%  Fraction réduite
+%
+%####################################################
+%
+\newcommand*\simplifyfrac[2]{\xintTeXFrac{\xintIrr{(#1)/(#2)}}}%
+\let\fracred\simplifyfrac
+\let\reducedfrac\simplifyfrac
+\let\reducefrac\simplifyfrac
+%
+%####################################################
+%
+%  Arrondi
+%
+%####################################################
+%
+\newcommand\arrondi[2][0]{\fp_eval:n{sign(#2)*floor(abs(#2)/(10^(#2))+0.5)*10^(#2)}}
+%
+%####################################################
+%
+%  Ordre grandeur
+%
+%####################################################
+%
+\int_new:N\l_ordregrandeur_int
+\newcommand\ordregrandeur[1]{%
+    \int_set:Nn\l_ordregrandeur_int{0}
+    \fp_compare:nNnTF{abs(#1)}<{1}%
+        {\fp_do_while:nNnn{abs(#1)*10^(-\l_ordregrandeur_int)}<{1}{\int_decr:N\l_ordregrandeur_int}}
+        {\fp_until_do:nNnn{abs(#1)*10^(-\l_ordregrandeur_int)}<{10}{\int_incr:N\l_ordregrandeur_int}}
+    \int_use:N\l_ordregrandeur_int
+    }%
+%
+% Test
+%\ordregrandeur{1000000}\newline% -->6
+%\ordregrandeur{2310}\newline% -->3 (10^3)
+%\ordregrandeur{502.3}\newline%--> 2 (centaines)
+%\ordregrandeur{92.31}\newline%--> 1 (dizaines) 
+%\ordregrandeur{9.231}\newline%--> 0 (unités)
+%\ordregrandeur{1.2}\newline% --> 0
+%\ordregrandeur{1}\newline % --> 0
+%\ordregrandeur{0.234}\newline% --> -1
+%\ordregrandeur{0.0234}\newline% -->-2
+%\ordregrandeur{0.0001}\newline% -->-4
+%
+\endinput

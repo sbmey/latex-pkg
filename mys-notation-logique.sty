@@ -1,0 +1,49 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-notation-logique}%
+    [2019/07/07 v0.0 to do the job]%
+%
+%####################################################
+%
+\@ifpackageloaded{mathtools}%
+    {\typeout{Essai de chargement multiple du package mathtools.}}%
+    {\RequirePackage{mathtools}}%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%====================================================
+%
+%   Équivalence
+%
+%====================================================
+%
+% User macro : \ssi
+% étoilée : si, et seulement si
+% non étoilée : symbole mathématique en math mode ou "ssi" sinon
+%
+\newcommand*{\ssi}{\@ifstar\mys@logique@ssi@star\mys@logique@ssi@nostar}
+%
+\def\mys@logique@ssi@nostar{\ifmmode\mys@logique@ssi@math\else\mys@logique@ssi@text@abbr\fi}%
+%
+\def\mys@logique@ssi@star{\ifmmode\textrm{ \mys@logique@ssi@text\ }\else\mys@logique@ssi@text\fi}
+%
+\def\mys@logique@ssi@text{si, et seulement si,}
+\def\mys@logique@ssi@text@abbr{ssi }
+%
+\let\mys@logique@ssi@math\Longleftrightarrow
+%
+\endinput

@@ -1,0 +1,437 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-notation-geometrie}%
+    [2019/07/07 v0.0 to do the job]%
+%
+%####################################################
+%
+\@ifpackageloaded{mys-notation-vect}%
+    {\typeout{Essai de chargement multiple du package mys-notation-vect.}}%
+    {\RequirePackage{mys-notation-vect}}%
+%
+\@ifpackageloaded{xparse}%
+    {\typeout{Essai de chargement multiple du package xparse.}}%
+    {\RequirePackage{xparse}}%
+%
+\@ifpackageloaded{mys-code-tool}%
+    {\typeout{Essai de chargement multiple du package mys-code-tool.}}%
+    {\RequirePackage{mys-code-tool}}%
+%
+\@ifpackageloaded{mys-delimiteur}%
+    {\typeout{Essai de chargement multiple du package mys-delimiteur.}}%
+    {\RequirePackage{mys-delimiteur}}%
+%
+\@ifpackageloaded{mleftright}%
+    {\typeout{Essai de chargement multiple du package mleftright.}}%
+    {\RequirePackage{mleftright}}%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%====================================================
+%
+%\let\left\mleft
+%\let\right\mright
+%
+%====================================================
+%
+%---   Parallélisme
+%
+%====================================================
+%
+\newcommand{\parallele}{\mathbin{\!/\mkern-5mu/\!}}%
+%\NewDocumentCommand{\parallele}{}{/\kern-2pt/}
+%
+%====================================================
+%
+%---   Cercles
+%
+%====================================================
+%
+\let\mys@font@cercle\mathcal%
+%
+%   ---   version sans prime : nom entre parenthèse et en romain
+%         avec une étoile   --->   taille auto des parenthèses
+%         avec un paramètre optionnel   --->   taille des parenthèses changée
+%
+\let\mys@geo@cercle@inpar\inparen%
+%
+%   ---   version avec prime : nom calligraphié
+%
+\def\mys@geo@cercle@prime#1{%
+    \expandafter\mys@font@cercle\expandafter{\expandafter\MakeUppercase\expandafter{#1}}%
+    }%
+%
+%   ---   user macro
+%
+\newcommand*\cercle{%
+    \@ifnextchar'%
+        {\expandafter\mys@geo@cercle@prime\mys@gobble}%
+        {\mys@geo@cercle@inpar}%
+    }%
+%
+%====================================================
+%
+%---   Droites
+%
+%====================================================
+%
+\let\mys@font@droite\mathcal%
+%
+%   ---   version sans prime : nom entre parenthèse et en romain
+%         avec une étoile   --->   taille auto des parenthèses
+%         avec un paramètre optionnel   --->   taille des parenthèses changée
+%
+\let\mys@geo@droite@noprime\inparen%
+%
+%   ---   version avec prime : nom calligraphié
+%
+\def\mys@geo@droite@prime{%
+    \@ifnextchar'%
+        {\expandafter\mys@geo@droite@biprime\mys@gobble}%
+        {\mys@geo@droite@prime@format}%
+    }%
+%
+\def\mys@geo@droite@prime@format#1{%
+    \expandafter\mys@font@droite\expandafter{\expandafter\MakeUppercase\expandafter{#1}}%
+    }%
+%
+%   ---   version avec double prime : <nom d'un point de la droite ; vecteur directeur de la droite (sans la commande donnant la flêche)> 
+%         avec une étoile   --->   taille auto des parenthèses
+%         avec un paramètre optionnel   --->   taille des parenthèses changée
+%
+\def\mys@droite@nonetoile@biprime@format#1,#2\mys@stop{#1\,;#2}%
+%
+\def\mys@droite@nonetoile@biprime@noopt#1{%
+    \inparen{\mys@droite@nonetoile@biprime@format#1\mys@stop}%
+    }%
+%
+\def\mys@geo@droite@biprime@etoile#1{%
+    \expandafter\inparen\expandafter*\expandafter{\mys@droite@nonetoile@biprime@format#1\mys@stop}%
+    }%
+%
+\def\mys@droite@nonetoile@biprime@opt[#1]#2{%
+    \inparen[#1]{\mys@droite@nonetoile@biprime@format#2\mys@stop}%
+    }%
+%
+\def\mys@geo@droite@biprime{%
+    \@ifnextchar*%
+        {\expandafter\mys@geo@droite@biprime@etoile\mys@gobble}%
+        {%
+        \@ifnextchar[%
+            {\mys@droite@nonetoile@biprime@opt}%
+            {\mys@droite@nonetoile@biprime@noopt}%
+        }%
+    }%
+%
+%   ---   user macro
+%
+\newcommand*\droite{%
+    \@ifnextchar'%
+        {\expandafter\mys@geo@droite@prime\mys@gobble}%
+        {\mys@geo@droite@noprime}%
+    }%
+%
+%   ---   raccourcis
+%
+\newcommand*{\Ox}{\mys@geo@droite@noprime{Ox}}%
+\newcommand*{\Oy}{\mys@geo@droite@noprime{Oy}}%
+\newcommand*\axe[2][O]{\mys@geo@droite@noprime{#1#2}}%
+\let\drt\axe%   A VIRER DÉS QUE POSSIBLE
+%
+%   ---   UTILE ????????????????????
+%
+\newcommand*{\droitenom}[1]{\mys@font@droite{#1}}%
+%
+%====================================================
+%
+%---   Demi-droites
+%
+%====================================================
+%
+\DeclarePairedDelimiter\demidroite{[}{)}%
+\DeclarePairedDelimiter\demidroiteo{]}{)}%
+%
+%
+%====================================================
+%
+%---   Plans
+%
+%====================================================
+%
+\let\mys@font@plan\mathcal%
+%
+%   ---   version sans prime : nom entre parenthèse et en romain
+%         avec une étoile   --->   taille auto des parenthèses
+%         avec un paramètre optionnel   --->   taille des parenthèses changée
+%
+\let\mys@geo@plan@noprime\inparen%
+%
+%   ---   version avec prime : nom calligraphié
+%
+\def\mys@geo@plan@prime{%
+    \@ifnextchar'%
+        {\expandafter\mys@geo@plan@biprime\mys@gobble}%
+        {\mys@geo@plan@prime@format}%
+    }%
+%
+\def\mys@geo@plan@prime@format#1{%
+    \expandafter\mys@font@plan\expandafter{\expandafter\MakeUppercase\expandafter{#1}}%
+    }%
+%
+%   ---   version avec double prime : <nom d'un point du plan ; 2 vecteurs directeurs du plan (sans la commande donnant la flêche)> 
+%         avec une étoile   --->   taille auto des parenthèses
+%         avec un paramètre optionnel   --->   taille des parenthèses changée
+%
+\def\mys@plan@nonetoile@biprime@format#1,#2,#3\mys@stop{#1\,;#2\,,#3}%
+%
+\def\mys@plan@nonetoile@biprime@noopt#1{%
+    \inparen{\mys@plan@nonetoile@biprime@format#1\mys@stop}%
+    }%
+%
+\def\mys@geo@plan@biprime@etoile#1{%
+    \expandafter\inparen\expandafter*\expandafter{\mys@plan@nonetoile@biprime@format#1\mys@stop}%
+    }%
+%
+\def\mys@plan@nonetoile@biprime@opt[#1]#2{%
+    \inparen[#1]{\mys@plan@nonetoile@biprime@format#2\mys@stop}%
+    }%
+%
+\def\mys@geo@plan@biprime{%
+    \@ifnextchar*%
+        {\expandafter\mys@geo@plan@biprime@etoile\mys@gobble}%
+        {%
+        \@ifnextchar[%
+            {\mys@plan@nonetoile@biprime@opt}%
+            {\mys@plan@nonetoile@biprime@noopt}%
+        }%
+    }%
+%
+%   ---   user macro
+%
+\newcommand*\plan{%
+    \@ifnextchar'%
+        {\expandafter\mys@geo@plan@prime\mys@gobble}%
+        {\mys@geo@plan@noprime}%
+    }%
+%
+%   ---   raccourcis
+%
+\newcommand*{\ABC}{\mys@geo@plan@noprime{ABC}}%
+\newcommand*{\planOIJ}{\mys@plan@nonetoile@biprime@noopt{O,\vect{OI},\vect{OJ}}}%
+\newcommand*{\planOij}{\mys@plan@nonetoile@biprime@noopt{O,\vect{i},\vect{j}}}%
+\newcommand*\planpts[3][O]{\mys@geo@plan@noprime{#1#2#3}}%
+%
+%====================================================
+%
+%---   Segments
+%
+%====================================================
+%
+\newcommand*\segment{\insquarebracket}%
+%
+%====================================================
+%
+%--- Coordonnées
+%
+%====================================================
+%
+\def\mys@cord@process@arg@element#1{}%
+%
+\def\mys@cord@process@arg#1{\mys@cord@process@arg@#1;\mys@stop}%/
+%
+\def\mys@cord@process@arg@#1;#2\mys@stop{%
+    \ifx\relax#2\relax\let\mys@cord@process@arg@\mys@emptying\mys@cord@process@arg@element{#1}\else\mys@cord@format@\mys@cord@process@arg@element{#1};\fi%
+     \mys@cord@process@arg@#2\mys@stop%
+    }%
+%
+\def\mys@cord@format@h#1;{#1\mathclose{}\mathpunct{};\mathclose{}\mathpunct{}}%
+\def\mys@cord@format@h#1;{#1\,;}%
+\def\mys@cord@format@v#1;{#1\\}%
+%
+\newcommand*\cord{\mys@ifprime{\mys@geo@cord@v}{\mys@geo@cord@h}}%
+%
+\def\mys@geo@cord@h{\let\mys@cord@format@\mys@cord@format@h\@ifstar\mys@geo@cord@h@star\mys@geo@cord@h@nostar}%
+%
+\def\mys@geo@cord@h@star{\inparenprocess*\mys@cord@process@arg}%
+%
+\def\mys@geo@cord@h@nostar{\@ifnextchar[\mys@geo@cord@h@nostar@opt\mys@geo@cord@h@nostar@noopt}%
+%
+\def\mys@geo@cord@h@nostar@opt[#1]#2{\inparenprocess[#1]\mys@cord@process@arg{#2}}%
+%
+\def\mys@geo@cord@h@nostar@noopt#1{\inparenprocess\mys@cord@process@arg{#1}}%
+%
+\def\mys@geo@cord@v{\let\mys@cord@format@\mys@cord@format@v\@ifnextchar[\mys@geo@cord@v@nostar@opt\mys@geo@cord@v@nostar@noopt}%
+%
+\def\mys@geo@cord@v@nostar@opt[#1]#2{%
+    \begin{#1matrix}\mys@cord@process@arg{#2}\end{#1matrix}%
+    }%
+%
+\def\mys@geo@cord@v@nostar@noopt#1{\begin{pmatrix}\mys@cord@process@arg{#1}\end{pmatrix}}%
+%
+\def\cordvdots{\vbox{\baselineskip4\p@ \lineskiplimit\z@
+    \kern3\p@\hbox{.}\hbox{.}\hbox{.}\kern3\p@}}%
+%
+\NewDocumentCommand\SetCordProcessing{m}{\let\mys@cord@process@arg@element#1}%
+\NewDocumentCommand\ResetCordProcessing{}{\let\mys@cord@process@arg@element\relax}%
+\ResetCordProcessing%
+%
+%\ExplSyntaxOn
+%%
+%\NewDocumentCommand{\cord}{sO{}t'O{}m}
+%% #1 :	if star	-> vertical coordinates
+%%		if not 	-> horizontal coordinates
+%% #2 :	point's name
+%% #3 :	if prime	->	#4 is applied
+%%		if not		->	#4 is not applied
+%%		if prime and no #4 -> only parenthesis (no \left or \big) in horizontal coordinates
+%% #4 :	in vertical coordinates	->	kind of matrix (p=parenthesis)
+%%		in horizontal coordinates	-> 	if prime : \big, \Big, ... in front of parenthesis
+%%										if no prime : \left and right	
+%  {
+%  \IfBooleanTF{#1}%
+%    {
+%    #2
+%    \IfBooleanTF{#3}
+%      {\vector_main:nnnn { #4 } { \\ } { / } { #5 }}
+%      {\vector_main:nnnn { p } { \\ } { / } { #5 }}
+%    }%
+%    {%
+%    #2%	
+%    \IfBooleanTF{#3}
+%      {\mathopen{}#4(\coord_print:n {#5}#4)\mathclose{}}
+%      {\mathopen{}\mleft(\coord_print:n {#5}\mright)\mathclose{}}
+%    }
+%  }
+%%
+%%
+%%
+%\seq_new:N \l_coord_list_seq
+%\tl_new:N \l_coord_last_tl
+%%
+%\cs_new_protected:Npn \coord_print:n #1
+%  {
+%  \seq_set_split:Nnn \l_coord_list_seq { / } { #1 }
+%  \seq_map_inline:Nn \l_coord_list_seq 
+%    	{\seq_put_right:Nn\l_tmpa_seq{\__mys_vector_arg_format:n{##1}} }
+%  \seq_set_eq:NN \l_coord_list_seq\l_tmpa_seq
+%    \seq_use:Nn\l_coord_list_seq { \mathclose{}\mathpunct{}\,; \mathclose{}\mathpunct{} } 
+%  }
+%%
+%% http://tex.stackexchange.com/questions/39051/typesetting-a-row-vector?rq=1
+%% egreg
+%%
+%\seq_new:N \l__vector_arg_seq
+%%
+%\cs_new:Npn\__mys_vector_arg_format_orig:n#1{#1}
+%\cs_new_protected:Npn \vector_main:nnnn #1 #2 #3 #4
+%  {
+%  \seq_set_split:Nnn \l__vector_arg_seq { #3 } { #4 }
+%  \seq_map_inline:Nn \l__vector_arg_seq 
+%    	{\seq_put_right:Nn\l_tmpa_seq{\__mys_vector_arg_format:n{##1}} }
+%  \seq_set_eq:NN \l__vector_arg_seq\l_tmpa_seq
+%  \begin{#1matrix}
+%    \seq_use:Nnnn \l__vector_arg_seq { #2 } { #2 } { #2 }
+%  \end{#1matrix}
+%  }
+%\NewDocumentCommand\SetCordProcessing{m}{\cs_set_eq:NN\__mys_vector_arg_format:n#1}
+%\NewDocumentCommand\ResetCordProcessing{}{\cs_set_eq:NN\__mys_vector_arg_format:n\__mys_vector_arg_format_orig:n}
+%\ResetCordProcessing
+%
+%\ExplSyntaxOff
+%
+%====================================================
+%
+%---   Repères
+%
+%====================================================
+%
+\newcommand*\repere{\mys@ifprime{\mys@geo@repr@prime}{\mys@geo@repr@}}%
+%
+\def\mys@repr@process@arg@element#1{#1}%
+\def\mys@repr@process@arg@element@#1{\vect{#1}}%
+%
+\def\mys@repr@process@arg#1{\mys@repr@process@arg@#1,;\mys@stop}%
+%
+\def\mys@repr@process@arg@#1;#2\mys@stop{%
+    \ifx\relax#2\relax \mys@repr@process@arg@ O;#1;\mys@stop\else#1%
+    \,;\mys@repr@process@arg@@#2\mys@stop\fi%
+    }%
+%
+\def\mys@repr@process@arg@@#1,#2\mys@stop{%
+    \ifx;#2\let\mys@repr@process@arg@@\mys@emptying\mys@repr@process@arg@element{#1}\else\mys@repr@format@\mys@repr@process@arg@element{#1},\fi%
+     \mys@repr@process@arg@@#2\mys@stop%
+    }%
+%
+\def\mys@repr@format@#1,{#1\mathclose{}\mathpunct{},\mathclose{}\mathpunct{}}%
+\def\mys@repr@format@#1,{#1\,,}%
+%
+%
+\def\mys@geo@repr@{\@ifstar\mys@geo@repr@star\mys@geo@repr@nostar}%
+%
+\def\mys@geo@repr@star{\inparenprocess*\mys@repr@process@arg}%
+%
+\def\mys@geo@repr@nostar{\@ifnextchar[\mys@geo@repr@nostar@opt\mys@geo@repr@nostar@noopt}%
+%
+\def\mys@geo@repr@nostar@opt[#1]#2{\inparenprocess[#1]\mys@repr@process@arg{#2}}%
+%
+\def\mys@geo@repr@nostar@noopt#1{\inparenprocess\mys@repr@process@arg{#1}}%
+%
+\def\mys@geo@repr@prime{\let\mys@repr@process@arg@element\mys@repr@process@arg@element@\mys@geo@repr@}%
+%
+%---------- Fainéant
+%
+\newcommand*\OIJ{\repere{O;I,J}}%
+\newcommand*\Oij{\repere'{O;i,j}}%
+\newcommand*\Ouv{\repere'{O;u,v}}%
+\newcommand*{\Oijk}{\repere'{O;i,j,k}}
+\newcommand*{\OIJK}{\repere{O;I,J,K}}%
+%
+%====================================================
+%
+%---   Base
+%
+%====================================================
+%
+\newcommand*\base{\mys@ifprime{\mys@geo@base@prime}{\mys@geo@base@}}%
+%
+\def\mys@base@process@arg@element#1{#1}%
+\def\mys@base@process@arg@element@#1{\vect{#1}}%
+%
+\def\mys@base@process@arg#1{\mys@base@process@arg@#1,\mys@stop}%
+%
+\def\mys@base@process@arg@#1,#2\mys@stop{%
+    \ifx\relax#2\relax\let\mys@base@process@arg@\mys@emptying\mys@base@process@arg@element{#1}\else\mys@base@format@\mys@base@process@arg@element{#1},\fi%
+     \mys@base@process@arg@#2\mys@stop%
+    }%
+%
+\def\mys@base@format@#1,{#1\mathclose{}\mathpunct{},\mathclose{}\mathpunct{}}%
+\def\mys@base@format@#1,{#1\,,}%
+%
+%
+\def\mys@geo@base@{\@ifstar\mys@geo@base@star\mys@geo@base@nostar}%
+%
+\def\mys@geo@base@star{\inparenprocess*\mys@base@process@arg}%
+%
+\def\mys@geo@base@nostar{\@ifnextchar[\mys@geo@base@nostar@opt\mys@geo@base@nostar@noopt}%
+%
+\def\mys@geo@base@nostar@opt[#1]#2{\inparenprocess[#1]\mys@base@process@arg{#2}}%
+%
+\def\mys@geo@base@nostar@noopt#1{\inparenprocess\mys@base@process@arg{#1}}%
+%
+\def\mys@geo@base@prime{\let\mys@base@process@arg@element\mys@base@process@arg@element@\mys@geo@base@}
+%
+\endinput

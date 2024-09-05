@@ -1,0 +1,144 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-notation-ens-nbre}%
+    [2019/07/07 v0.0 to do the job]%
+%
+%####################################################
+%
+\@ifpackageloaded{amsfonts}% Pour \mathbb
+    {\typeout{Essai de chargement multiple du package amsfonts.}}%
+    {\RequirePackage{amsfonts}}%
+%%
+\@ifpackageloaded{mys-code-tool}%
+    {\typeout{Essai de chargement multiple du package mys-code-tool.}}%
+    {\RequirePackage{mys-code-tool}}%
+%%
+\@ifpackageloaded{xparse}%
+    {\typeout{Essai de chargement multiple du package xparse.}}%
+    {\RequirePackage{xparse}}%
+%%
+%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%
+%####################################################
+%
+%---   Fonte
+%
+\def\mys@number@set@font#1{\mathbb{#1}}%
+%
+\def\mys@number@set@aux#1{\mys@number@set@font{#1}}%
+%
+%####################################################
+%
+%---   Entiers naturels
+% Usage : \N
+%
+\newcommand*{\N}{\mys@number@set@aux{N}}%
+%
+%####################################################
+%
+%---   Entiers relatifs
+%
+\newcommand*{\Z}{\mys@number@set@aux{Z}}%
+%
+%####################################################
+%
+%---   Décimaux
+%
+\newcommand*{\D}{\mys@number@set@aux{D}}%
+%
+%####################################################
+%
+%---   Rationnels
+%
+\newcommand*{\Q}{\mys@number@set@aux{Q}}%
+%
+%####################################################
+%
+%---   Réels
+%
+\def\mys@R{\mys@number@set@aux{R}}%
+%
+\begingroup%
+\catcode`_=8%
+\expandafter\gdef\csname mys@R@+\endcsname{\mys@R_+}%
+\expandafter\gdef\csname mys@R@-\endcsname{\mys@R_-}%
+\expandafter\gdef\csname mys@R@*\endcsname{\mys@R^*}%
+\expandafter\gdef\csname mys@R@+*\endcsname{\mys@R_+^*}%
+\expandafter\gdef\csname mys@R@-*\endcsname{\mys@R_-^*}%
+\endgroup%
+%
+\NewDocumentCommand{\R}{t+t-t*}%
+  {%
+    \IfBooleanTF{#1}%
+      {%
+      \IfBooleanTF{#3}%
+        {\mys@csuse{mys@R@+*}}%
+        {\mys@csuse{mys@R@+}}%
+      }%
+      {%
+      \IfBooleanTF{#2}%
+        {%
+        \IfBooleanTF{#3}%
+          {\mys@csuse{mys@R@-*}}%
+          {\mys@csuse{mys@R@-}}%			
+        }%
+        {%
+        \IfBooleanTF{#3}%
+          {\mys@csuse{mys@R@*}}%
+          {\mys@R}%
+        }%
+      }%
+  }%
+%
+\newcommand*{\Rplus}{\mys@csuse{mys@R@+}}%
+%
+\newcommand*{\Rmoins}{\mys@csuse{mys@R@-}}%
+%
+\newcommand*{\Rplusetoile}{\mys@csuse{mys@R@+*}}%
+%
+\newcommand*{\Rmoinsetoile}{\mys@csuse{mys@R@-*}}%
+%
+\newcommand*{\Retoile}{\mys@csuse{mys@R@*}}%
+%
+%####################################################
+%
+%---   Corps K
+%
+\newcommand*{\K}{\mys@number@set@aux{K}}%
+%
+%####################################################
+%
+%---   Complexes
+%
+\def\mys@C{\mys@number@set@aux{C}}%
+%
+\let\C\relax%
+%
+\def\C{\@ifnextchar{*}{\mys@C^*\mys@gobble}{\mys@C}}%
+%
+%####################################################
+%
+%---   Corps K
+%
+\newcommand*{\U}{\mys@number@set@aux{U}}%
+%
+%####################################################
+%
+\endinput

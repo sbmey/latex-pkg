@@ -1,0 +1,1477 @@
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     Version de \@ifpackagewith qui checke aussi les options globales 
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\ExplSyntaxOn
+%
+\NewDocumentCommand{\packageoptionsTF}{mmmm}%
+    {\stanton_package_options:nnTF { #1 } { #2 } { #3 } { #4 }}%
+%
+%
+\cs_new_protected:Nn \stanton_package_options:nnTF
+    {%
+    \clist_map_inline:nn { #2 }%
+        {%
+        \clist_if_in:cnTF { opt@#1.sty }%
+            { ##1 }%
+            { #3 }% it's a local option
+            {%
+            \clist_if_in:cnTF { @classoptionslist } { ##1 }%
+                { #3 }% it's a global option
+                { #4 }%
+            }%
+        }%
+    }%
+%
+\ExplSyntaxOff
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     babel    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%\packageoptionsTF{babel}{french}%
+%    {%
+%    \DecimalMathComma
+%    \frenchsetup
+%        {%
+%        StandardLists=true						% n°4 	Si true : annulation des actions de frenchb sur les listes (cf n°1, n°2 et n°3). Utile en cas de conflit avec une autre extension ou classe
+%%        ,ItemLabels={\small \textbullet}			% n°3	Marqueurs des items des listes itemize
+%        ,ItemLabeli={\small \textbullet}			%
+%        ,ItemLabelii=\ding{43}					%
+%        ,ItemLabeliii=\textendash					%
+%        ,ItemLabeliv={\footnotesize \textbullet}	% \ding{43}% load pifont
+%        ,IndentFirst=false							% Indentation(retrait) du 1er paragraphe des sections de \parindent
+%        ,PartNameFull=false						%\part donne alors "partie I" sinon on obtient "première partie"
+%        ,INGuillSpace=true						%
+%        }%
+%    \listindentFB=0pt%
+%    \@ifclassloaded{cours}
+%        {%
+%        \AtEndPreamble{%
+%            \addto\captionsfrench{%
+%                \expandafter\renewcommand\expandafter\frenchpartname\expandafter{\@cours@partie@nom}%
+%                \expandafter\renewcommand\expandafter\frenchchaptername\expandafter{\@cours@chapitre@nom}%
+%                }%
+%            }%
+%        }%
+%        {}%
+%    \AtEndPreamble{\addto\extrasfrench{\sisetup{locale = FR}}}%
+%    }%
+%    {}%
+%
+%
+%
+%\ifluatex
+%    \@ifpackageloaded{babel}{}{\def\og{<<}\def\fg{>>}}%
+%\fi
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     couleurs    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\definecolor{almond}{rgb}{0.94, 0.87, 0.8}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     siunitx    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\sisetup{%
+    locale=FR 										%
+%    ,load=abbr										%
+    ,inter-unit-product = \ensuremath{{}\cdot{}}	% ou seulement {.} ?
+    ,output-decimal-marker={,}						%
+    }%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     enumitem    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\newlist{partie}{enumerate}{1}%
+%
+%
+%
+\setlist[partie,1]%
+    {% general list settings (enumitem's itemize, enumerate, and description)
+    nosep,							%
+    align=left,						% left-aligned enumerate
+    topsep=0mm,					% space before enumerate
+    label={\bfseries Partie~\Alph*.},	%
+    leftmargin=0pt,					% no left indent
+    labelsep=0pt,					% align all item bodies vertically
+    labelwidth=0pt,					%
+    parsep=0em,					%
+    itemsep=1mm					% space between enumerate items
+%  labelindent=0pt,					%
+    }%
+%
+%
+%
+\setlist[enumerate,itemize,description]%
+    {%
+    nosep			%
+    ,align=left		% left-aligned enumerate
+    ,topsep=0mm	% space before enumerate
+    ,leftmargin=*	% no left indent
+    ,itemsep=0mm	% space between enumerate items
+    ,noitemsep		%
+%  labelsep=0.5em,% align all item bodies vertically
+%  labelwidth=*,%
+%  labelindent=0pt,%
+%  listparindent=0em%
+    }%
+%
+%	Counter format
+%
+\renewcommand{\theenumi}{\arabic{enumi}}%
+\renewcommand{\theenumii}{\alph{enumii}}%
+\renewcommand{\theenumiii}{\roman{enumiii}}%
+%
+%	Counter label
+%
+\renewcommand{\labelenumi}{\theenumi.}%
+\renewcommand{\labelenumii}{\theenumii.}%
+\renewcommand{\labelenumiii}{\theenumiii.}%
+\renewcommand{\labelitemi}{ \textbullet}%
+\renewcommand{\labelitemii}{\textopenbullet}%{$\circ$}%
+\renewcommand{\labelitemiii}{\ding{213}}%
+\renewcommand{\labelitemiv}{\small\textbullet}%
+%\renewcommand{\labelitemi}{\small$\bullet$}%
+%\renewcommand{\labelitemii}{\ding{43}}%{\small \textbullet}
+%\renewcommand{\labelitemiii}{$\ast$}%
+%\renewcommand{\labelitemiii}{\footnotesize \textbullet}%
+%\renewcommand{\labelitemiv}{{\textbullet}}%
+%
+% Style d'énumération
+% À utiliser ainsi \begin{enumerate}[label=\circled*]
+\def\circled#1{\expandafter\@circled\expandafter{\csname c@#1\endcsname}}
+\def\@circled#1{\ding{\@arabic{\numexpr#1+171}}}
+\AddEnumerateCounter*{\circled}{\@circled}{18}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     tasks    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\settasks{%
+    label=\arabic*.			%
+    ,item-indent = 1.2em 	%
+    ,label-width =1.2em 		%
+    ,label-offset = 0em 		%
+    ,after-item-skip = -1ex 	%
+    ,column-sep=2.3ex 		%
+    ,before-skip=-1.5ex 		%
+    ,after-skip=-1.5ex 		%
+    }%
+%
+%
+%
+\settasks{%
+    label=\arabic* 					%
+    ,item-indent=1.1em 				%
+    ,label-offset=0em 				%
+    ,column-sep=2em 				%
+    ,before-skip =-\parskip-2mm		%
+    ,after-skip = -\parskip-1ex 		%
+    ,after-item-skip = -\parskip-1ex	%
+    }%
+%
+%
+%
+\settasks{%
+    label=\arabic*. 					%
+    ,item-indent=1.1em 				%
+    ,label-offset=0em 				%
+    ,column-sep=1em 				%
+    ,before-skip =-\parskip-2mm 		%
+    ,after-skip = -\parskip-1ex		%
+    ,after-item-skip = -\parskip-1ex	%
+    }%
+%
+%
+%
+\settasks{%
+    label=\arabic*. 					%
+    ,item-indent=1.1em 				%
+    ,label-offset=0em 				%
+    ,column-sep=1em				%
+    ,before-skip =-\parskip-1.75mm 	%
+    ,after-skip = -\parskip-1ex 		%
+    ,after-item-skip = -\parskip-1ex 	%
+    }%
+%
+%-------------------------------------------------------------------------------------------------------------------------
+%
+% enumerate et itemize horizontaux (avec tasks)
+%
+%-------------------------------------------------------------------------------------------------------------------------
+%
+\NewTasksEnvironment[%
+    label=\arabic*.				%
+    ,label-format=\bfseries,                %
+    ,item-indent=0.778em+0.333em 	%1em+0.3333
+    ,label-width=0.778em 				%1em
+    ,label-offset=0.333em 			%
+    ,label-align=left 					%
+    ,column-sep=1em 				%
+    ,before-skip =-\topsep 			% espace vertical avant la liste
+    ,after-skip =-\topsep 				%-\partopsep-1ex,% espace vertical après la liste
+    ,after-item-skip = -\parskip-0.5ex 	%1ex    
+    ]{enumerate--}[\item]%
+%
+\NewTasksEnvironment[%
+    label=\arabic*.					%
+%    ,label-format=\bfseries,                %
+    ,item-indent=1.25em 	%1em+0.3333
+    ,label-width=1.25em 				%1em
+    ,label-offset=0em 			%
+    ,label-align=left 					%
+    ,after-item-skip =0ex 	%1ex    
+    ]{enumerate-}[\item]%
+%
+%
+%
+\NewTasksEnvironment[%
+    label=\labelitemi 					%
+    ,item-indent=0.778em +0.333em		% 0.6666em
+    ,label-width=0.778em 				% 0.6666em
+    ,label-offset=0.333em 					% 0em
+    ,label-align=left 						%
+    ,column-sep=1em 					%
+%    before-skip =-\parskip-1.75mm,%
+%    after-skip = -\parskip-1ex,
+%    after-item-skip = -\parskip-1ex
+    ,before-skip =-\topsep-0.3333em 	%
+    ,after-skip = -\topsep-0.3333em 		%-\partopsep,%%
+    ,after-item-skip =0pt 				%-\topsep%    
+    ]{itemize-}[\item]%
+%
+%\AddToHook{env/tasks/before}{%
+%    \ifdim\parskip=0pt\else\vspace{-6pt}\fi}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     geometry    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\geometry% a4= 210mm x 297mm
+    {%
+    driver=none 		 %
+    ,top=24mm         %22mm	%26mm
+    ,bottom=20mm	%37mm	%28.7mm,%
+    ,inner=21mm      %20mm	%21mm,%
+    ,outer=21mm      %20mm	%31.5mm%
+    ,a4paper			%
+%  ,showframe%
+    }%
+%
+%
+%
+%
+\newcommand*{\demipage}{\geometry{paperheight=148.5mm,bottom=15mm}}% a4= 210mm x 297mm
+%
+%
+%
+\newcommand*{\pagepleine}{%
+    \pagestyle{empty}%
+    \newgeometry{%210*297
+        ,top=\baselineskip 	%26.2
+        ,bottom=0mm			%37mm%28.7mm,%
+        ,inner=8mm			%21mm,%
+        ,outer=8mm			%31.5mm%
+        ,a4paper				%
+        ,ignoreheadfoot		%
+    }%
+}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     tabularx    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\newcolumntype{Y}{>{\centering\arraybackslash}X}%
+\newcolumntype{V}{>{\centering\arraybackslash}c}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     forest    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\AtBeginDocument{%
+\@ifpackageloaded{forest}%
+    {%
+    \forestset{%
+        gappy/.style={%
+            before typesetting nodes={%
+                insert after={[\dots, no edge]}%
+                }%
+            }%
+        %
+        %
+        %
+        ,align at top/.style={/tikz/baseline={($(current bounding box.north)-(0,\ht\strutbox)$)}}%
+        ,begin draw/.code={\begin{tikzpicture}[baseline={($(current bounding box.north)-(0,\ht\strutbox)$)}]}%
+        %
+        %
+        %
+        ,nice empty node/.style={%
+            for tree={calign=fixed edge angles}%
+            ,delay={where content={}{shape=coordinate,for siblings={anchor=center}}{}}%
+            },%
+        }%
+    \def\getfirst#1;#2\endget{#1}%
+    \def\getsecond#1;#2\endget{#2}%
+    }%
+    {}%
+}%
+%
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     tikz    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\usetikzlibrary{math,arrows.meta,tikzmark,patterns,fit,plotmarks,bending}%
+\input{mys-tikz.def}%
+%
+\definecolor{saumon1}{RGB}{239,126,147}
+\definecolor{mauve1}{RGB}{225,175,209}
+\definecolor{mauve2}{RGB}{210,146,179}
+\definecolor{turquoise1}{RGB}{0,206,209}
+\definecolor{bleuvert}{RGB}{23,222,209}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     pgfplots    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\usepgfplotslibrary{groupplots,fillbetween}%
+\pgfplotsset{compat=newest}
+\input{mys-pgfplots.def}%
+%
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     tkz-base    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\pgfkeys{/tkzdrawY/.cd,  noticks = false}% CORRECTION à tkz-obj-axes.tex de tkz-base
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     multicols    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\setlength\multicolsep{\topsep}%
+\setlength\multicolsep{0pt}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     comment    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%\ExplSyntaxOn
+%%
+%\NewDocumentCommand{\exclure}{m}%
+%    {\clist_map_inline:nn {#1}{\excludecomment{##1}}}
+%%
+%\NewDocumentCommand{\inclure}{m}%
+%    {\clist_map_inline:nn {#1}{\includecomment{##1}}}
+%%
+%\ExplSyntaxOff
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     pgfpages    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\deuxpagessurune{%
+    \geometry{paperheight=148.5mm,bottom=15mm}% a4= 210mm x 297mm
+    \pgfpagesuselayout{2 on 1}[a4paper,border shrink=-2mm]%
+    \pgfpageslogicalpageoptions{1}{border code=\pgfstroke}%
+  }%
+%
+%
+%
+\def\npagessurune#1{%
+    \geometry{paperheight=297mm/#1,bottom=15mm}% a4= 210mm x 297mm
+    \pgfpagesuselayout{#1 on 1}[a4paper,border shrink=-2mm]%
+%    \pgfpageslogicalpageoptions{1}{border code=\pgfstroke}%
+    \pgfpageslogicalpageoptions{2}{border code=\pgfstroke}%
+  }%
+%
+%
+%
+\pgfpagesdeclarelayout{3 on 1}%
+{%
+  \edef\pgfpageoptionheight{\the\paperwidth}% landscaped by default
+  \edef\pgfpageoptionwidth{\the\paperheight}%
+  \def\pgfpageoptionborder{0pt}%
+}%
+{%
+  \pgfpagesphysicalpageoptions
+  {%
+    logical pages=3,%
+    physical height=\pgfpageoptionheight,%
+    physical width=\pgfpageoptionwidth,%
+  }%
+    \pgfpageslogicalpageoptions{1}%
+    {%
+      border shrink=\pgfpageoptionborder,%
+      resized width=\pgfphysicalwidth,%
+      resized height=.333333\pgfphysicalheight,%
+      center=\pgfpoint{.5\pgfphysicalwidth}{.833333\pgfphysicalheight}%
+    }%
+    \pgfpageslogicalpageoptions{2}%
+    {%
+      border shrink=\pgfpageoptionborder,%
+      resized width=\pgfphysicalwidth,%
+      resized height=.333333\pgfphysicalheight,%
+      center=\pgfpoint{.5\pgfphysicalwidth}{.5\pgfphysicalheight}%
+    }%
+    \pgfpageslogicalpageoptions{3}%
+    {%
+      border shrink=\pgfpageoptionborder,%
+      resized width=\pgfphysicalwidth,%
+      resized height=.333333\pgfphysicalheight,%
+      center=\pgfpoint{.5\pgfphysicalwidth}{.166667\pgfphysicalheight}%
+    }%
+}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     tcolorbox    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Fixing the tables with tcolorbox
+%\renewcommand*\l@tcolorbox{\@dottedtocline{1}{1.5em}{3.0em}}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     numprint    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%
+\AtBeginDocument{%
+\npstylefrench
+    \npdecimalsign{,}%
+%    \npfourdigitnosep
+%    \npthousandsep{}%
+%    \npaddmissingzero
+}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     tabu    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\NewDocumentCommand\mysrowheight{O{-#2}m}{\rule[#1]{0pt}{#2}}%
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     tabularray    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\UseTblrLibrary{diagbox}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     fontspec    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\@ifpackageloaded{fontspec}%
+    {%
+    \defaultfontfeatures{Ligatures=TeX}%
+    \@ifpackageloaded{libertinus}%
+        {
+        \setmainfont[%
+            Path=/usr/share/fonts/libertinus/,%
+            Extension=.otf,%
+            UprightFont={*-Regular},%
+            BoldFont={*-Bold},%
+            ItalicFont={*-Italic},%
+            BoldItalicFont={*-BoldItalic}%
+            ]{LibertinusSerif}%
+        }
+        {% TeXoMaker semble ne pas pouvoir charger le paquet libertinus        
+        }
+%    \setmainfont{TeXGyreTermesX}[
+%         SmallCapsFeatures={Letters=SmallCaps}, % <=== See Section 4.1 of Fontspec documentation.  
+%         UprightFeatures = {SmallCapsFont=texgyreheros-regular.otf}, 
+%         BoldFeatures = {SmallCapsFont=texgyreheros-bold.otf},
+%        ]
+%    \setmainfont{texgyretermes}[
+%Extension = {.otf},
+%UprightFont = {*-regular}, 
+%ItalicFont = {*-italic},
+%BoldFont = {*-bold}, 
+%BoldItalicFont = {*-bolditalic},
+%UprightFeatures = {SmallCapsFont=texgyreheros-regular.otf, SmallCapsFeatures={Letters=SmallCaps, Color=992211}},
+%BoldFeatures    = {SmallCapsFont=/Users/John/Library/Fonts/FiraGO-Heavy.otf,   SmallCapsFeatures={Letters=SmallCaps, Color=112299}, Color = FF4422},
+%]
+%    \setmainfont{Cambria}
+    }%
+    {}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     unicode-math    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%https://tex.stackexchange.com/questions/425098/which-opentype-math-fonts-are-available/425099#425099
+%    \setmathfont{Libertinus Math}%
+%    %\setmathfont[range={}]{Libertinus Math}% Voir https://tex.stackexchange.com/questions/421846/prevent-setmathfont-influence-on-overline
+%    %\setmathfont{XITS Math}
+%\setmathfont{Cambria Math}
+%
+\@ifpackageloaded{unicode-math}%
+    {%
+    \@ifpackageloaded{libertinus}%
+        {
+        \setmathfont{Latin Modern Math}[version=LM]%
+        \setboldmathrm{Libertinus Serif Bold}[Ligatures=Common, ItalicFont=Libertinus Serif Bold Italic]%
+        }
+        {% TeXoMaker semble ne pas pouvoir charger le paquet libertinus        
+        }
+%    \setmathfont[]{Libertinus Math}
+%%    \setmathfont{STIX2Math}
+%%    \setmathfont{Libertinus Math}[version=Libertinus]
+%%    \setmathfont{Neo Euler}[version=Euler]
+%%    \setmathfont{TeX Gyre DejaVu Math}[version=DejaVu]
+%%    \setmathfont{Stix Math}[version=Stix]
+%%    \setmathfont{XITS Math}[StylisticSet=1,version=XITS1]
+%%    \setmathfont{Stix Two Math}[version=Stix2] % see http://stixfonts.org/
+%%    \setmathfont{Cambria Math}[version=Cambria]
+%%    \setmathfont{Asana Math}[version=Asana]
+%%    \setmathfont{Asana Math}[Alternate,version=AsanaAlt]
+%%    \setmathfont{TeX Gyre Pagella Math}[version=Pagella]
+%%    \setmathfont{TeX Gyre Termes Math}[version=Termes]
+%%    \setmathfont{TeX Gyre DejaVu Math}[version=DejaVu] 
+%%    \setmathfont[range=\mathup]  {Lato Light}
+%%    \setmathfont[range=\mathbfup]{Lato Bold}
+%%    \setmathfont[range=\mathbfit]{Lato Bold Italic}
+%%    \setmathfont[range=\mathit]  {Lato Light Italic}
+    }%
+    {}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     Fontes (kernel : pas de paquets à charger)    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%Latex kernel, no package needed :
+%     \DeclareSymbolFontAlphabet{\mathrm}    {operators}%  normal upright Roman font 
+%     \DeclareSymbolFontAlphabet{\mathnormal}{letters}%  normal math italic font (\mathnormal{a}same as      $a$)
+%     \DeclareSymbolFontAlphabet{\mathcal}   {symbols}% special calligraphic font for uppercase letters only
+%     \DeclareMathAlphabet      {\mathbf}{OT1}{cmr}{bx}{n}% upright Roman boldface letters
+%     \DeclareMathAlphabet      {\mathsf}{OT1}{cmss}{m}{n}% upright sans serif letters
+%     \DeclareMathAlphabet      {\mathit}{OT1}{cmr}{m}{it}% text italic letters: $different\ne\mathit{different}$
+%     \DeclareMathAlphabet      {\mathtt}{OT1}{cmtt}{m}{n}%     upright letters from the typewriter type font
+%     \DeclareSymbolFont{operators}   {OT1}{cmr} {m}{n}
+%     \DeclareSymbolFont{letters}     {OML}{cmm} {m}{it}
+%     \DeclareSymbolFont{symbols}     {OMS}{cmsy}{m}{n}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     Fontes (kernel : pas de paquets à charger)    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\ifluatex
+% A FAIRE :
+% PROBLEME DE L'ESPACEMENT VERTICAL POUR LES NUMERATEURS ET LES DENOMINATEURS
+    \begin{luacode*}
+    local function patch_libertinus_frac(fontdata)
+    if fontdata.psname == "Libertinus Math" then
+        local mc = fontdata.MathConstants
+        mc.FractionNumeratorShiftUp = 0.4 * mc.FractionNumeratorShiftUp
+        mc.FractionDenominatorShiftDown = 0.4 * mc.FractionDenominatorShiftDown
+        end
+    end
+    luatexbase.add_to_callback("luaotfload.patch_font", patch_libertinus_frac, "libertinus_frac")
+    \end{luacode*}
+\fi
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     polyglossia    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+    \@ifpackageloaded{polyglossia}%
+        {%
+        \setdefaultlanguage{french}%
+%        \apptocmd{\french@punctuation}%
+%        {%
+%        LuaTeXinterchartoks\french@punctguillstart 255={\nobreakspace\xpg@nospace}%
+%        LuaTeXinterchartoks 255 \french@punctguillend={\xpg@unskip\nobreakspace}%  
+%        }{}{}%
+        \def\og{<<\,}\def\fg{\,>>}%
+        \gappto\captionsfrench{%
+            \renewcommand{\partname}{Partie}%
+            \renewcommand{\thepart}{\Alph{part}}%
+            \renewcommand\contentsname{Table~des~matières}%
+            \renewcommand\chaptername{Chapitre}%
+%    \@ifundefined{subchaptername}{\newcommand{\subchaptername}{Sous-chapitre}}{\renewcommand{\subchaptername}{Sous-chapitre}}% UTILE ?
+            \renewcommand\appendixname{Annexe}%
+            \renewcommand\listtablename{Liste~des~tableaux}%
+            }%
+%        \MakeOuterQuote{''}
+        }{}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     Fontes TI    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\ifluatex
+    \newfontfamily{\TIfont}{ti-83-plus.ttf}%
+%    \newfontfamily{\TIfont}{ti-84.ttf}
+    \newfontfamily{\TIfontkey}{ti-83premium-keys.ttf}%
+%    \newfontfamily{\TIfontkey}{TI84PlusCEKeys.ttf}
+%    \newfontfamily{\TIfontkey}{ti-76fr-keys.ttf}
+%    \newfontfamily{\TIfontkey}{ti-84-keys.ttf}
+%    \newfontfamily{\TIfontkey}{ti-89-keys.ttf}
+%    \newfontfamily{\TIfontkey}{ti-92-keys.ttf}
+%    \newfontfamily{\TIfontkey}{ti-baii-keys.ttf}
+    \newfontfamily{\Casiofont}{Casio-Graph-35plus.ttf}%
+    \newfontfamily{\Casiofontkey}{Casio-ClassPad2-CP401-Key.ttf}%
+%    \newfontfamily{\Casiofontkey}{Casio-ClassPad2-CP402-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ClassPad2-CP403-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ClassPad2-CP404-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ClassPad2-CP405-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ClassPad2-CP406-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ClassPad2-CP407-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ClassPad2-CP408-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ClassPad330-CP301-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ClassPad330-CP302-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ClassPad330-CP303-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ClassPad330-CP304-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ClassPad330-CP305-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ClassPad330-CP306-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ClassWiz-Fr-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ClassWiz-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-GraphicSeries-CFX01-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-GraphicSeries-CFX02-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-GraphicSeries-CFX03-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-GraphicSeries-CFX04-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-MS01-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ScientificStandardModel-ES03-Key.ttf}
+%    \newfontfamily{\Casiofontkey}{Casio-ScientificStandardModel-ES04-Key.ttf}
+\else
+    \newcommand\TIfont[1]{\usefont{T1}{ti-83-plus.ttf}{m}{n}#1}%
+    \newcommand\TIfontkey[1]{\usefont{T1}{ti-83premium-keys.ttf}{m}{n}#1}%
+    \newcommand\Casiofont[1]{\usefont{T1}{Casio-Graph-35plus.ttf}{m}{n}#1}%
+    \newcommand\Casiofontkey[1]{\usefont{T1}{Casio-ClassPad2-CP401-Key.ttf}{m}{n}#1}%
+\fi
+%
+%
+%
+\DeclareTextFontCommand{\tifont}{\TIfont}%
+\DeclareTextFontCommand{\tifontkey}{\TIfontkey}%
+\DeclareTextFontCommand{\casioscreen}{\Casiofont}%
+\DeclareTextFontCommand{\casiokey}{\CasioCPikey}%
+%
+%
+%
+%----------%----------%----------%----------%----------%----------%----------%----------%----------%----------%----------%
+%
+%\newfontfamily{\TIfontbis}{ti-83premium-keys}[% <- Use the name on your system
+%    Path=/usr/share/fonts/TTF/,% the right path, if needed
+%    Extension=.ttf,% fix for your system
+%    ]
+%\DeclareTextFontCommand{\tifontbis}{\TIfontbis}
+%
+%
+%
+\newcommand{\TI}[1]{\tifontkey{#1}}%
+%
+%
+%
+%%% --- Pour afficher un tableau des codes des caractères ( à placer dans le corpsd'un docyument)
+%\begin{multicols}{4}
+%\TIfontbis
+%
+%\count255=0
+%\loop\ifnum\count255<10000
+%\iffontchar\font\count255
+%  \hbox{\makebox[2.5em][r]{\normalfont\the\count255\quad}\TIfontbis\char\count255}
+%\fi
+%\advance\count255 1
+%\repeat
+%
+%\end{multicols}
+%
+%
+%
+\newcommand{\faketikey}[1]{%
+    \tikz[baseline={(0,-0.73ex)}]%
+        \node[draw,rounded corners=0.65pt,inner sep=1pt,line width=0.6pt]%
+            {\resizebox{!}{1.2ex}{\fontspec{Cantarell-Regular.otf}#1}};%
+    }%
+%
+%
+%
+\ExplSyntaxOn
+\NewDocumentCommand{\TIs}{m}{%
+    \group_begin:%
+    \TIfontkey{%
+        \clist_map_inline:nn { #1 }%
+            {\symbol { \str_case:nV { ##1 } \c_tikeys_translation_tl }}%
+        }%
+    \group_end:%
+    }%
+%
+\tl_const:Nn \c_tikeys_translation_tl{%
+    {to}{33}%
+    {scatter}{34}%
+    {grey}{35}%
+    {black}{36}%
+    {barplot}{38}%
+    {space}{39}%
+    {graph}{40}%
+    {regression}{41}%
+    {boxplotdots}{42}%
+    {boxplot}{43}%
+    {statplot}{44}%
+    {tablset}{45}%
+    {format}{46}%
+    {calc}{47}%
+    {table}{48}%
+    {>}{49}%
+    {>>}{50}%
+    {>>|}{51}%
+    {e}{52}%
+    % ...
+    {atan}{65}%
+    {pi}{66}%
+    {sqrt}{67}%
+    {EE}{68}%
+    {lbrace}{69}%
+    {rbrace}{70}%
+    {10^x}{71}%
+    {lbrack}{72}%
+    {rbrack}{73}%
+    % ...
+    {+}{195}%
+    {-}{185}%
+    {0}{202}%
+    {1}{192}%
+    {2}{193}%
+    {3}{194}%
+    {4}{182}%
+    {5}{183}%
+    {6}{184}%
+    {7}{172}%
+    {8}{170}%
+    {9}{174}%
+    % ...
+    {(}{163}%
+    {)}{164}%
+    {(-)}{204}%
+    {/}{165}%
+    {div}{165}%
+    {*}{175}%
+    {math}{187}%
+    {mode}{122}%
+%    {trig}{118}% PAS DISPONIBLE
+    {arcsin}{63}%
+    {arccos}{64}%
+    {desc}{8224}%
+    {^}{8250}%
+    {entrer}{205}%
+    {trace}{114}%
+    {.}{203}%
+    {²}{161}%
+    {x2}{161}%
+    {2nd}{121}%
+    {graph}{115}%
+    {prgm}{188}%
+    {dessin}{60}%
+    {f(x)}{111}%
+}%
+%
+% Pour utiliser \faketikey lorsque c'est nécessaire (trig, racine cubique , ...)
+%    \__ti_select_key:n{
+%        \tl_set:
+%        \tl_case:NnTF{}{}
+%    }
+%
+\ExplSyntaxOff
+%
+%  ticalc
+%
+\colorlet{shadecolor}{green!35!black!25}%
+%
+\newcommand\ticalc[1][16]{%
+    \ifhmode\par\fi
+    \begingroup
+        \parindent0pt%
+        \def\nbchar{#1}%
+        \catcode`\;12%
+        \catcode`\:12%
+        \catcode`\!12%
+        \catcode`\?12%
+        \catcode`\^^M12%
+        \catcode`\ 12%
+        \catcode`\112
+        \ticalci
+        }%
+%
+%
+%
+\newcommand\ticalci[1]{%
+        \normalsize\TIfont\FrameSep=5pt%
+        \hsize\dimexpr0.8em*\nbchar+2\FrameSep\relax
+        \def\>{%
+            \hbox{%
+                -\llap{\lower0.122em\hbox{`}\llap{\lower0.366em\hbox{\reflectbox{`}}\kern0.122em }}%
+                }%
+            }%
+        \def\!{\hbox{=\llap{/}}}%
+        \def\1{\hbox{\bfseries\scriptsize{1}}}%
+        \csname shaded*\endcsname\leavevmode\ticalcii#1\relax\csname endshaded*\endcsname
+    \endgroup
+    }%
+%
+%
+%
+\newcommand\ticalcminibox[1][16]{%
+    \ifhmode\par\fi
+    \begingroup
+        \parindent0pt \fboxrule=1pt \fboxsep=4pt%
+        \def\nbchar{#1}%
+        \catcode`\;12%
+        \catcode`\112%
+        \catcode`\:12%
+        \catcode`\!12%
+        \catcode`\?12%
+        \catcode`\^^M12%
+        \catcode`\ 12%
+        \normalsize\TIfont
+        \def\>{%
+            \hbox{%
+                -\llap{%
+                    \lower0.122em%
+                    \hbox{`}%
+                    \llap{\lower0.366em\hbox{\reflectbox{`}}\kern0.122em }%
+                    \kern-0.122em%
+                    }%
+                }%
+            }%
+        \def\!{\hbox{=\llap{/}}}%
+        \def\1{\hbox{\bfseries\scriptsize{1}}}%
+        \ticalcminiboxi
+    }%
+%
+%
+%
+\newcommand\ticalcminiboxi[1]{%
+    \fcolorbox{black}%
+        {green!30!black!25}%
+        {\vbox{\hsize\dimexpr0.8em*\nbchar\relax\leavevmode\ticalcii#1\relax}}%
+    \par
+    \endgroup
+    }%
+%
+\begingroup\catcode`\^^M=12\relax%
+\gdef\ticalcii#1{%
+    \unless\ifx\relax#1%
+    \ifx^^M#1\par\leavevmode\else\hbox to0.8em{\hss#1\hss}\hskip0pt \fi\expandafter\ticalcii\fi%
+    }%
+\endgroup%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     hyperref    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\@ifclassloaded{cours}%
+    {%
+     \hypersetup{%
+         pdftitle={},		% Cours de mathématiques
+         pdfsubject={}	% Un cours de math
+         }%
+    }%
+    {}%
+%
+%
+%
+\@ifclassloaded{eval}%
+    {%
+     \hypersetup{%
+         pdftitle={},		% Évaluation de mathématiques
+         pdfsubject={}	% Une évaluation de math
+         }%
+    }%
+    {}%
+%
+%
+%
+\hypersetup{%
+    colorlinks=true				% color the words instead of use a colored box
+    ,allcolors=.					% . est une couleur spéciale dans xcolor : c'est la couleur courante. Comme ça les la couleur des liens est celle du texte autour : on voit pas les liens !
+    ,urlcolor=blue				% ,citecolor=black, % \cite{}
+    ,linktoc=all					%
+    ,pdfencoding=auto			% or option "unicode"
+    ,psdextra						% additional math macros are supported in bookmarks
+    ,pdfborder={0 0 0}			% for removing borders around links
+    ,breaklinks=true				%
+    ,bookmarksnumbered=true	%
+    ,pdfcreator = {}				% LaTeX with hyperref package
+    ,pdfpagelabels=true			%
+    ,pdfpagemode=UseOutlines	% None, UseThumbs, UseOutlines, FullScreen
+%    ,plainpages=false,pdfpagelabels			%
+%    ,letterpaper=true
+%    ,plainpages=false
+%% plainpages boolean true
+%% Forces page anchors to be named by the arabic form of the page number,
+%% rather than the formatted form.
+%% breaklinks boolean false
+%% Allows link text to break across lines; since this cannot be accommodated in
+%% PDF, it is only set true by default if the pdftex driver is used. This makes
+%% links on multiple lines into different PDF links to the same target.
+%%    ,pagebackref=true
+%% Adds ?backlink? text to the end of each item in the bibliography, as a list
+%% of section numbers. This can only work properly if there is a blank line
+%% after each \bibitem.
+%% bookmarksnumbered boolean false
+%% If Acrobat bookmarks are requested, include section numbers.
+%    ,bookmarksopen=false%
+%% bookmarksopen boolean false
+%% If Acrobat bookmarks are requested, show them with all the subtrees expanded.
+%%pdfsubject={},
+}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     hyperxmp    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Métadatas : autres que l'heure et la date 
+%
+\hypersetup{%
+%    pdfaconformance={},			%
+%    pdfapart={},					%
+    baseurl={},						% http://pas.durl.org
+    pdfauthor={Mon professeur},	%
+    pdfauthortitle={},				%
+    pdfcaptionwriter={},				%
+    pdfcontactaddress={},			%
+    pdfcontactcity={},				%
+    pdfcontactcountry={},			%
+    pdfcontactemail={},				%
+    pdfcontactphone={},			%
+    pdfcontactpostcode={},			%
+    pdfcontactregion={},			%
+    pdfcontacturl={},				% http://urldemonlycee.none/
+    pdfcopyright={Ne pas partager, et encore moins avec la boîte à bac à côté du lycée},	%
+    pdfkeywords={},				%
+    pdflang={},						% fr
+    pdflicenseurl={},				% http://creativecommons.org/licenses/by-nc-nd/3.0/    ---->    URL pointant vers la certification du respect de la license par le document (... je crois ...)
+    pdfmetalang={},				% fr-FR    ---->    langue des metadatas 'titre', 'sujet' et 'copyright'
+    pdfproducer={},					% luaLaTeX
+    pdfsource={},					% \jobname.tex
+    pdftype={},						% Fiches d'activités, de cours, d'exercices ou de devoirs
+    pdftitle={},						%
+    }%
+%
+% Métadatas : date et heure
+%
+%---- Choix date
+%---- si nécessaire on fait précéder le chiffre du mois ou du jour d'un 0
+%
+\ifnum\month<10\edef\moiscourant{0\the\month}\else\edef\moiscourant{\the\month}\fi %
+\ifnum\day<10\edef\jourcourant{0\the\day}\else\edef\jourcourant{\the\day}\fi %
+%
+\edef\datechoisie{\the\year\moiscourant\jourcourant}%
+%
+%---- Choix heure
+%
+\def\heurechoisie{120000}% 12h00'00''
+%
+%---- Réglage
+%
+\hypersetup{%
+    pdfmetadate={D:\datechoisie\heurechoisie+02'00'},		% date des metadatas du document
+    pdfdate={D:\datechoisie\heurechoisie+02'00'},				% date du document
+    pdfcreationdate={D:\datechoisie\heurechoisie+02'00'},		%
+    pdfmoddate={D:\datechoisie\heurechoisie+02'00'},			%
+    }%
+%
+%---- Définition des dates dans les métadonnées du pdf
+%
+\def\metadatadate#1#2#3{%
+    \def\datedebut{#3#2#11000}%
+    \AtBeginDocument{%
+        \hypersetup{%
+            pdfmetadate={D:\datedebut+02'00'},		% date des metadatas du document
+            pdfdate={D:\datedebut+02'00'},				% date du document
+            pdfcreationdate={D:\datedebut+02'00'},		%
+            pdfmoddate={D:\datedebut+02'00'}			%
+        }%
+    }%
+}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     bookmark    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\pdfbookmark[3]{Bookmarktitle}{section}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     code divers
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\newcommand{\cuthere}{%
+    \smallskip%
+    \par\noindent%
+    \makebox[\linewidth]{\raisebox{0pt}{\makebox[2\paperwidth]{\dotfill}}}%
+    \par%
+    \smallskip%
+    }%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     sagetex    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% https://tex.stackexchange.com/questions/563190/how-to-remove-zero-decimal-in-numbers/563216#563216
+%%=============================================================================
+%% Paraphernalia:
+%%    \UD@firstoftwo, \UD@secondoftwo, \UD@Exchange, \UD@Removespace
+%%    \UD@CheckWhetherNull, \UD@CheckWhetherLeadingSpace, \UD@ExtractFirstArg
+%%=============================================================================
+\newcommand\UD@firstoftwo[2]{#1}%
+\newcommand\UD@secondoftwo[2]{#2}%
+\newcommand\UD@Exchange[2]{#2#1}%
+\@ifdefinable\UD@Removespace{\UD@Exchange{ }{\def\UD@Removespace}{}}%
+%%-----------------------------------------------------------------------------
+%% Check whether argument is empty:
+%%.............................................................................
+%% \UD@CheckWhetherNull{<Argument which is to be checked>}%
+%%                     {<Tokens to be delivered in case that argument
+%%                       which is to be checked is empty>}%
+%%                     {<Tokens to be delivered in case that argument
+%%                       which is to be checked is not empty>}%
+%%
+%% The gist of this macro comes from Robert R. Schneck's \ifempty-macro:
+%% <https://groups.google.com/forum/#!original/comp.text.tex/kuOEIQIrElc/lUg37FmhA74J>
+\newcommand\UD@CheckWhetherNull[1]{%
+  \romannumeral0\expandafter\UD@secondoftwo\string{\expandafter
+  \UD@secondoftwo\expandafter{\expandafter{\string#1}\expandafter
+  \UD@secondoftwo\string}\expandafter\UD@firstoftwo\expandafter{\expandafter
+  \UD@secondoftwo\string}\expandafter\expandafter\UD@firstoftwo{ }{}%
+  \UD@secondoftwo}{\expandafter\expandafter\UD@firstoftwo{ }{}\UD@firstoftwo}%
+}%
+%%-----------------------------------------------------------------------------
+%% Check whether argument's first token is a catcode-1-character
+%%.............................................................................
+%% \UD@CheckWhetherBrace{<Argument which is to be checked>}%
+%%                      {<Tokens to be delivered in case that argument
+%%                        which is to be checked has leading
+%%                        catcode-1-token>}%
+%%                      {<Tokens to be delivered in case that argument
+%%                        which is to be checked has no leading
+%%                        catcode-1-token>}%
+\newcommand\UD@CheckWhetherBrace[1]{%
+  \romannumeral0\expandafter\UD@secondoftwo\expandafter{\expandafter{%
+  \string#1,}\expandafter\UD@firstoftwo\expandafter{\expandafter
+  \UD@secondoftwo\string}\expandafter\expandafter\UD@firstoftwo{ }{}%
+  \UD@firstoftwo}{\expandafter\expandafter\UD@firstoftwo{ }{}\UD@secondoftwo}%
+}%
+%%-----------------------------------------------------------------------------
+%% Check whether brace-balanced argument starts with a space-token
+%%.............................................................................
+%% \UD@CheckWhetherLeadingSpace{<Argument which is to be checked>}%
+%%                             {<Tokens to be delivered in case <argument
+%%                               which is to be checked>'s 1st token is a
+%%                               space-token>}%
+%%                             {<Tokens to be delivered in case <argument
+%%                               which is to be checked>'s 1st token is not
+%%                               a space-token>}%
+\newcommand\UD@CheckWhetherLeadingSpace[1]{%
+  \romannumeral0\UD@CheckWhetherNull{#1}%
+  {\expandafter\expandafter\UD@firstoftwo{ }{}\UD@secondoftwo}%
+  {\expandafter\UD@secondoftwo\string{\UD@CheckWhetherLeadingSpaceB,#1 }{}}%
+}%
+\newcommand\UD@CheckWhetherLeadingSpaceB{}%
+\long\def\UD@CheckWhetherLeadingSpaceB#1 {%
+  \expandafter\UD@CheckWhetherNull\expandafter{\UD@firstoftwo{}#1}%
+  {\UD@Exchange{\UD@firstoftwo}}{\UD@Exchange{\UD@secondoftwo}}%
+  {\UD@Exchange{ }{\expandafter\expandafter\expandafter\expandafter
+   \expandafter\expandafter\expandafter}\expandafter\expandafter
+   \expandafter}\expandafter\UD@secondoftwo\expandafter{\string}%
+}%
+%%=============================================================================
+%% Extract K-th inner undelimited argument:
+%%
+%% \UD@ExtractKthArg{<integer K>}{<list of undelimited args>} 
+%% 
+%% In case there is no K-th argument in <list of indelimited args> : 
+%%   Does not deliver any token.
+%% In case there is a K-th argument in <list of indelimited args> : 
+%%   Does deliver that K-th argument with one level of braces removed.
+%%
+%% Examples:
+%%
+%%   \UD@ExtractKthArg{0}{ABCDE} yields: <nothing>
+%%
+%%   \UD@ExtractKthArg{3}{ABCDE} yields:  C
+%%
+%%   \UD@ExtractKthArg{3}{AB{CD}E} yields:  CD
+%%
+%%   \UD@ExtractKthArg{4}{{001}{002}{003}{004}{005}} yields: 004
+%%
+%%   \UD@ExtractKthArg{6}{{001}{002}{003}} yields: <nothing> 
+%% 
+%%=============================================================================
+\newcommand\UD@ExtractKthArg[1]{%
+  \romannumeral0%
+  % #1: <integer number K>
+  \expandafter\UD@ExtractKthArgCheck
+  \expandafter{\romannumeral\number\number#1 000}%
+}%
+\newcommand\UD@ExtractKthArgCheck[2]{%
+  \UD@CheckWhetherNull{#1}{ }{%
+    \expandafter\UD@ExtractKthArgLoop\expandafter{\UD@firstoftwo{}#1}{#2}%
+  }%
+}%
+\newcommand\UD@ExtractKthArgLoop[2]{%
+  \expandafter\UD@CheckWhetherNull\expandafter{\UD@firstoftwo#2{},}{ }{%
+    \UD@CheckWhetherNull{#1}{%
+      \UD@ExtractFirstArgLoop{#2UD@SelDOm}%
+    }{%
+      \expandafter\UD@Exchange\expandafter{\expandafter{\UD@firstoftwo{}#2}}%
+      {\expandafter\UD@ExtractKthArgLoop\expandafter{\UD@firstoftwo{}#1}}%
+    }%
+  }%
+}%
+\@ifdefinable\UD@RemoveTillUD@SelDOm{%
+  \long\def\UD@RemoveTillUD@SelDOm#1#2UD@SelDOm{{#1}}%
+}%
+\newcommand\UD@ExtractFirstArgLoop[1]{%
+  \expandafter\UD@CheckWhetherNull\expandafter{\UD@firstoftwo{}#1}%
+  {\UD@firstoftwo{\expandafter}{} \UD@secondoftwo{}#1}%
+  {\expandafter\UD@ExtractFirstArgLoop\expandafter{\UD@RemoveTillUD@SelDOm#1}}%
+}%
+%%=============================================================================
+%% Fork if argument, which must be a single token, is
+%% 0/1/2/3/4/5/6/7/8/9/+/-/./,/<space token>/<expandable token>/<something else>
+%% (total: 17 cases)
+%%-----------------------------------------------------------------------------
+\@ifdefinable\UD@GobbleToExclam{\long\def\UD@GobbleToExclam#1!{}}%
+%%-----------------------------------------------------------------------------
+\@ifdefinable\UD@normalizenumberfork{%
+   \long\def\UD@normalizenumberfork#1!0!1!2!3!4!5!6!7!8!9!+!-!,!.!#2#3!!!!{#2}%
+}%
+\newcommand\UD@normalizenumberloopfork[1]{%
+  \expandafter\UD@CheckWhetherNull\expandafter{\UD@GobbleToExclam#1!}{%
+    \UD@normalizenumberfork
+    !#1!1!2!3!4!5!6!7!8!9!+!-!,!.!{1}% <digit> 0_12
+    !0!#1!2!3!4!5!6!7!8!9!+!-!,!.!{2}% <digit> 1_12
+    !0!1!#1!3!4!5!6!7!8!9!+!-!,!.!{3}% <digit> 2_12
+    !0!1!2!#1!4!5!6!7!8!9!+!-!,!.!{4}% <digit> 3_12
+    !0!1!2!3!#1!5!6!7!8!9!+!-!,!.!{5}% <digit> 4_12
+    !0!1!2!3!4!#1!6!7!8!9!+!-!,!.!{6}% <digit> 5_12
+    !0!1!2!3!4!5!#1!7!8!9!+!-!,!.!{7}% <digit> 6_12
+    !0!1!2!3!4!5!6!#1!8!9!+!-!,!.!{8}% <digit> 7_12
+    !0!1!2!3!4!5!6!7!#1!9!+!-!,!.!{9}% <digit> 8_12
+    !0!1!2!3!4!5!6!7!8!#1!+!-!,!.!{10}% <digit> 9_12
+    !0!1!2!3!4!5!6!7!8!9!#1!-!,!.!{11}% <plus or minus> +_12
+    !0!1!2!3!4!5!6!7!8!9!+!#1!,!.!{12}% <plus or minus> -_12
+    !0!1!2!3!4!5!6!7!8!9!+!-!#1!.!{13}% <decimal constant> ,_12
+    !0!1!2!3!4!5!6!7!8!9!+!-!,!#1!{14}% <decimal constant> ._12
+    !0!1!2!3!4!5!6!7!8!9!+!-!,!.!{%
+      \ifcat\noexpand#1 \expandafter\UD@firstoftwo\else\expandafter\UD@secondoftwo\fi
+      {15}% <space token> differing from explicit character token of catcode 10 
+          % and charcode 32; removable as undelimited argument
+      {%
+         \expandafter\ifx\noexpand#1#1%
+         \expandafter\UD@firstoftwo\else\expandafter\UD@secondoftwo\fi
+         {18}% something else which is not allowed
+         {17}% expandable token
+      }%
+    }% 
+    !!!!%
+  }{18}% Case: #1 contains !_12 , therefore is something else which is not
+       % allowed
+}%
+%%=============================================================================
+%% \normalizenumber{<argument>}
+%%-----------------------------------------------------------------------------
+\newcommand\MysNormalizenumber[1]{%
+  \romannumeral0%
+  \normalizenumberloop{#1}{}{}{#1}{\UD@firstoftwo}{}{\UD@firstoftwo}{}%
+}%
+\newif\ifnormalizenumberexpandarg\normalizenumberexpandargfalse
+\newcommand\normalizenumberloop[8]{%
+  % #1 - argument to iterate
+  % #2 - leading zero if found
+  % #3 - optional minus sign
+  % #4 - argument untouched
+  % #5 - decimal separator not/already found - \UD@firstoftwo/\UD@secondoftwo 
+  % #6 - zero-decimals collected so far
+  % #7 - sign-check on/off - \UD@firstoftwo/\UD@secondoftwo
+  % #8 - significant digits collected so far
+  \UD@CheckWhetherNull{#1}{%
+    \UD@CheckWhetherNull{#8}{\UD@CheckWhetherNull{#2}{ #4}{ #2}}{ #3#8}%
+  }{%
+    \UD@ExtractKthArg{%
+     %-------------------------------------------------------------------------
+     % \UD@ExtractKthArg's <integer K>:
+     %-------------------------------------------------------------------------
+      % Code for calculating \UD@ExtractKthArg's <integer K>
+      \UD@CheckWhetherBrace{#1}{%
+        18% argument to iterate's 1st token has catcode 1, therefore is not
+          % allowed.
+      }{%
+        \UD@CheckWhetherLeadingSpace{#1}{%
+          16% explicit character token of catcode 10 and charcode 32; not
+            % removable as undelimited argument
+        }{%
+          \expandafter\UD@normalizenumberloopfork
+          \expandafter{\romannumeral0\UD@ExtractFirstArgLoop{#1UD@SelDOm}}%
+        }%
+      }%
+    }{%
+     %-------------------------------------------------------------------------
+     % \UD@ExtractKthArg's <list of undelimited args>:
+     %-------------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 1st argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 1, thus #1's 
+       %     1st token is <digit> 0_12
+      {%
+        #5{%
+          \UD@CheckWhetherNull{#8}{%
+            \UD@firstoftwo{%
+              \expandafter\normalizenumberloop\expandafter{\UD@firstoftwo{}#1}{0}{#3}{#4}{#5}{}{\UD@secondoftwo}{#8}%
+            }%
+          }{\UD@Exchange{{#80}}}%
+        }{%
+          \UD@firstoftwo{%
+            \expandafter\normalizenumberloop
+            \expandafter{\UD@firstoftwo{}#1}{#2}%
+            {#3}{#4}{#5}{#60}{\UD@secondoftwo}{#8}%
+          }%
+        }%
+      }%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 2nd argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 2, thus #1's 
+       %     1st token is <digit> 1_12
+      {\UD@Exchange{{#8#61}}}%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 3rd argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 3, thus #1's 
+       %     1st token is <digit> 2_12
+      {\UD@Exchange{{#8#62}}}%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 4th argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 4, thus #1's
+       %     1st token is <digit> 3_12
+      {\UD@Exchange{{#8#63}}}%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 5th argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 5, thus #1's 
+       %     1st token is <digit> 4_12
+      {\UD@Exchange{{#8#64}}}%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 6th argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 6, thus #1's
+       %     1st token is <digit> 5_12
+      {\UD@Exchange{{#8#65}}}%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 7th argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 7, thus #1's
+       %     1st token is <digit> 6_12
+      {\UD@Exchange{{#8#66}}}%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 8th argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 8, thus #1's
+       %     1st token is <digit> 7_12
+      {\UD@Exchange{{#8#67}}}%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 9th argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 9, thus #1's
+       %     1st token is <digit> 8_12
+      {\UD@Exchange{{#8#68}}}%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 10th argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 10, thus #1's
+       %     1st token is <digit> 9_12
+      {\UD@Exchange{{#8#69}}}%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 11th argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 11, thus #1's
+       %     1st token is <plus or minus> +_12
+      {%
+        \UD@firstoftwo{%
+          #7{%
+            \expandafter\UD@CheckWhetherNull
+            \expandafter{\UD@firstoftwo{}#1}{ #4}{%
+              \expandafter\normalizenumberloop
+              \expandafter{\UD@firstoftwo{}#1}{#2}{#3}{#4}{#5}{#6}{#7}{#8}%
+            }%
+          }{ #4}%
+        }%
+      }%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 12th argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 12, thus #1's
+       %     1st token is <plus or minus> -_12
+      {%
+        \UD@firstoftwo{%
+          #7{%
+            \expandafter\UD@CheckWhetherNull
+            \expandafter{\UD@firstoftwo{}#1}{ #4}{%
+              \UD@CheckWhetherNull{#3}{\UD@Exchange{{-}}}{\UD@Exchange{{}}}%
+              {\expandafter\normalizenumberloop\expandafter{\UD@firstoftwo{}#1}{#2}}%
+              {#4}{#5}{#6}{#7}{#8}%
+            }%
+          }{ #4}%
+        }%
+      }%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 13th argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 13, thus #1's
+       %     1st token is <decimal constant> ,_12
+      {%
+        \UD@firstoftwo{%
+          #5{%
+            \expandafter\UD@CheckWhetherNull
+            \expandafter{\UD@firstoftwo{}#1}{ #4}{%
+              \UD@CheckWhetherNull{#2#8}{ #4}{%
+                \UD@CheckWhetherNull{#8}{\UD@Exchange{{#2}}}{\UD@Exchange{{#8}}}%
+                {%
+                  \expandafter\normalizenumberloop\expandafter{\UD@firstoftwo{}#1}%
+                  {#2}{#3}{#4}{\UD@secondoftwo}{,}{\UD@secondoftwo}%
+                }%
+              }%
+            }%
+          }{ #4}%
+        }%
+      }%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 14th argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 14, thus #1's
+       %     1st token is <decimal constant> ._12
+      {%
+        \UD@firstoftwo{%
+          #5{%
+            \expandafter\UD@CheckWhetherNull
+            \expandafter{\UD@firstoftwo{}#1}{ #4}{%
+              \UD@CheckWhetherNull{#2#8}{ #4}{%
+                \UD@CheckWhetherNull{#8}{\UD@Exchange{{#2}}}{\UD@Exchange{{#8}}}%
+                {%
+                  \expandafter\normalizenumberloop\expandafter{\UD@firstoftwo{}#1}%
+                  {#2}{#3}{#4}{\UD@secondoftwo}{,}{\UD@secondoftwo}%
+                }%
+              }%
+            }%
+          }{ #4}%
+        }%
+      }%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 15th argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 15, thus #1's
+       %     1st token is a <space token> differing from explicit character
+       %     token of catcode 10 and charcode 32 and is removable as
+       %     undelimited argument
+      {%
+        \UD@firstoftwo{%
+          #7{\UD@firstoftwo}{%
+            \expandafter\UD@CheckWhetherNull\expandafter{\UD@firstoftwo{}#1}%
+          }%
+          {%
+            \expandafter\normalizenumberloop
+            \expandafter{\UD@firstoftwo{}#1}{#2}{#3}{#4}{#5}{#6}{#7}{#8}%
+          }%
+          { #4}%
+        }%
+      }%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 16th argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 16, thus #1's
+       %     1st token is a <space token>, more precisely an explicit
+       %     character token of catcode 10 and charcode 32 and is not removable
+       %     as undelimited argument
+      {%
+        \UD@firstoftwo{%
+          #7{\UD@firstoftwo}{%
+            \expandafter\UD@CheckWhetherNull\expandafter{\UD@Removespace#1}%
+          }%
+          {%
+            \expandafter\normalizenumberloop
+            \expandafter{\UD@Removespace#1}{#2}{#3}{#4}{#5}{#6}{#7}{#8}%
+          }%
+          { #4}%
+        }%
+      }%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 17th argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 17, thus #1's 
+       %     1st token is expandable.
+      {%
+        \UD@firstoftwo{%
+          \ifnormalizenumberexpandarg
+            \expandafter\UD@firstoftwo\else\expandafter\UD@secondoftwo\fi
+          {\expandafter\normalizenumberloop\expandafter{#1}{#2}{#3}{#4}{#5}{#6}{#7}{#8}}%
+          { #4}%
+        }%
+      }%
+       %-----------------------------------------------------------------------
+       % \UD@ExtractKthArg's <list of undelimited args>'s 18th argument:
+       %     \UD@ExtractKthArg's 1st argument yields the number 18, thus #1's
+       %     1st token is not allowed with numbers that can be normalized.
+      {%
+        \UD@firstoftwo{ #4}%
+      }%
+     %-------------------------------------------------------------------------
+     % End of \UD@ExtractKthArg's <list of undelimited args>.
+     %-------------------------------------------------------------------------
+    }%
+    {\expandafter\normalizenumberloop\expandafter{\UD@firstoftwo{}#1}%
+                            {#2}{#3}{#4}{#5}{}{\UD@secondoftwo}%
+    }%
+  }%
+}%
+%%.............................................................................

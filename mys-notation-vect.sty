@@ -1,0 +1,335 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-notation-vect}%
+    [2019/07/07 v0.0 to do the job]%
+%
+%####################################################
+%
+\@ifpackageloaded{esvect}%
+    {\typeout{Essai de chargement multiple du package esvect.}}%
+    {\RequirePackage{esvect}}%
+%
+%\@ifpackageloaded{luacode}% POUR L'AMÉLIORATION DE \vect (i.e. \vectall)
+%    {\typeout{Essai de chargement multiple du package luacode.}}%
+%    {\RequirePackage{luacode}}%
+%
+\@ifpackageloaded{pdftexcmds}% POUR pdf@strcmp (cf. \vect) , POURTANT CA MARCHE SANS !
+    {\typeout{Essai de chargement multiple du package pdftexcmds.}}%
+    {\RequirePackage{pdftexcmds}}%
+%
+%
+\@ifpackageloaded{mys-code-tool}%
+    {\typeout{Essai de chargement multiple du package mys-code-tool.}}%
+    {\RequirePackage{mys-code-tool}}%
+%
+%
+\@ifpackageloaded{mys-delimiteur}%
+    {\typeout{Essai de chargement multiple du package mys-delimiteur.}}%
+    {\RequirePackage{mys-delimiteur}}%
+%
+%
+\@ifpackageloaded{mleftright}%
+    {\typeout{Essai de chargement multiple du package mleftright.}}%
+    {\RequirePackage{mleftright}}%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%
+%====================================================
+%
+%---   Vecteurs
+%      flêche vectorielle sur une ou plusieurs lettres
+%      s'il n'y a qu'une lettre et que c'est i ou j, on obtient le vecteur sur la lettre correspondante mais SANS le point
+%
+%====================================================
+%
+\def\vect@#1{%
+    \ifnum \pdf@strcmp{#1}{i}=0 % attention à l'espace
+        \vv{\imath}%
+    \else%
+        \ifnum\pdf@strcmp{#1}{j}=0 %
+            \vv{\jmath}%
+        \else%
+            \vv{#1}%
+        \fi%
+    \fi%
+    }%
+%
+%
+%
+%\directlua{dofile('/home/myself/texmflua/parserexprvect.lua')}%
+\def\vectall#1{%
+%  \directlua{tex.sprint{eval("\luatexluaescapestring{#1}")}}%
+  }
+%
+\newcommand*\vect[1]{\vect@comb@lin{#1}}
+
+\def\vect@comb@lin#1{\vect@comblin@parse@#1+\mys@stop}
+
+%\gdef\vect@tmp{}
+%
+%\def\g@bble@lastparopen#1({#1}
+%
+%\def\vect@comblin@parse@ifpar#1(#2\mys@stop{%
+%    \ifx\relax#2\relax\vect@comb@lin@nopar{#1}
+%    \else
+%    \vect@comb@lin@nopar{#1}
+%%    \def\truc{#2}\show\truc
+%\mleft(\expandafter\vect@comblin@parse@parclose\expandafter{\g@bble@lastparopen#2}\fi}
+%
+%\def\vect@comblin@parse@parclose#1{\gdef\vect@tmp{}\count@=1\vect@parse@par#1\mys@stop}
+%
+%\def\vect@parse@par#1#2\mys@stop{%
+%    \def\truc{#2}\show\truc
+%    \ifx\relax#1\relax%
+%    \else %
+%        \ifx#1(\relax\advance\count@1%
+%        \else %
+%            \ifx#1)\relax\advance\count@\m@ne%
+%            \fi
+%        \fi
+%        \ifx#2\mys@stop
+%        \else
+%        \ifnum\count@=0\relax
+%          \expandafter\vect@comb@lin\expandafter{\vect@tmp}\mright)\vect@comb@lin{#2}%
+%        \else
+%          \def\vect@tmp@{\expandafter\gdef\expandafter\vect@tmp\expandafter{\vect@tmp#1}\vect@parse@par#2\mys@stop\show\vect@tmp}
+%          \expandafter\expandafter\expandafter\vect@tmp@\expandafter
+%        \fi
+%        \fi
+%    }
+%
+%\def\vect@comb@lin@nopar#1{\vect@comblin@parse@#1+\mys@stop}
+%
+%\def\vect@normalizepar#1{\vect@{#1}}
+\def\vect@normalizepar#1{\vect@normalizepar@ifopenpar#1(\mys@stop}
+
+\def\vect@normalizepar@ifopenpar#1(#2\mys@stop{%
+    \ifx\relax#1\relax\mleft(\vect@normalizepar@ifopenpar@#2\mys@stop%
+    \else\vect@normalizepar@ifclosepar#1)\mys@stop\fi}
+
+\def\vect@normalizepar@ifopenpar@#1(\mys@stop{\vect@{#1}}%
+
+\def\vect@normalizepar@ifclosepar#1)#2\mys@stop{\vect@{#1}\ifx\relax#2\relax\else\vect@normalizepar@ifclosepar@#2\mys@stop\mright)\fi}
+
+\def\vect@normalizepar@ifclosepar@#1)\mys@stop{\ifx\relax#1\relax\else\mright)\vect@normalizepar@ifclosepar@#1\mys@stop\fi}%
+
+\def\vect@comblin@parse@#1+#2\mys@stop{\ifx\relax#2\relax\vect@comblin@parse@moins#1-\mys@stop\else\vect@comblin@parse@moins#1-\mys@stop+\vect@comblin@parse@#2\mys@stop\fi}
+
+\def\vect@comblin@parse@plus#1+#2\mys@stop{\ifx\relax#2\relax\vect@comblin@parse@numb{#1}\else\vect@comblin@parse@#1\mys@stop+\vect@comblin@parse@#2\mys@stop\fi}
+
+\def\vect@comblin@parse@moins#1-#2\mys@stop{\ifx\relax#2\relax\vect@comblin@parse@numb{#1}\else\vect@comblin@parse@numb{#1}-\vect@comblin@parse@moins#2\mys@stop\fi}
+
+\def\vect@comblin@parse@numb#1{\ifx\relax#1\relax\else\vect@comblin@parse@numb@#1\mys@stop\fi}
+
+\def\vect@comblin@parse@numb@#1#2\mys@stop{\ifx\relax#2\relax\vect@normalizepar{#1}\else\vect@comblin@parse@num@#1#2\mys@stop\fi}%
+
+\def\vect@comblin@parse@num@#1#2\mys@stop{\ifx\relax#2\relax\vect@normalizepar{#1}\else\mys@is@firsttok@digit{#1}{#1\vect@comblin@parse@num@#2\mys@stop}{\ifx#1.\relax,\vect@comblin@parse@num@#2\mys@stop\else\vect@normalizepar{#1#2}\fi}\fi}
+
+%
+%====================================================
+%
+%---   Déterminant
+%
+%====================================================
+%
+\newcommand*\Det{\mys@ifprime{\mys@geo@determinant@prime}{\mys@geo@determinant@}}%
+%
+\def\mys@geo@determinant@{\@ifstar\mys@geo@determinant@star\mys@geo@determinant@nostar}%
+%
+%
+\def\mys@geo@determinant@nostar{\@ifnextchar[\mys@geo@determinant@nostar@opt\mys@geo@determinant@nostar@noopt}%
+%
+\def\mys@geo@determinant@nostar@noopt#1{\mys@geo@determinant@type@\vect@;#1\mys@stop}%
+%
+%
+\def\mys@geo@determinant@nostar@opt[#1]#2{\mys@geo@determinant@type@opt#1;\vect@;#2\mys@stop}%
+%
+\def\mys@geo@determinant@star#1{\mys@geo@determinant@type@star\vect@;#1\mys@stop}
+%
+%
+%
+\def\mys@geo@determinant@prime{\@ifstar\mys@geo@determinant@prime@star\mys@geo@determinant@prime@nostar}%
+%
+\def\mys@geo@determinant@prime@nostar{\@ifnextchar[\mys@geo@determinant@prime@nostar@opt\mys@geo@determinant@prime@nostar@noopt}%
+%
+\def\mys@geo@determinant@prime@nostar@noopt#1{\mys@geo@determinant@type@\mys@donothing;#1\mys@stop}%
+%
+\def\mys@geo@determinant@prime@nostar@opt[#1]#2{\mys@geo@determinant@type@opt#1;\mys@donothing;#2\mys@stop}%
+%
+%
+\def\mys@geo@determinant@prime@star#1{\mys@geo@determinant@type@star\mys@donothing;#1\mys@stop}
+%
+%
+\def\mys@geo@determinant@type#1{\det#1}%\cdotp
+%
+\def\mys@geo@determinant@type@#1;#2;#3\mys@stop{\mys@geo@determinant@type\inparen{#1{#2}\,;#1{#3}}}%
+%
+\def\mys@geo@determinant@type@opt#1;#2;#3;#4\mys@stop{\mys@geo@determinant@type{\inparen[#1]{#2{#3}\,;#2{#4}}}}%
+%
+\def\mys@geo@determinant@type@star#1;#2;#3\mys@stop{\mys@geo@determinant@type{\inparen*{#1{#2}\,;#1{#3}}}}%
+%--- flêche sur l'argument
+%
+
+%\DeclarePairedDelimiterX\norm@vect[1]\lVert\rVert{\vect{#1}}% 
+%
+%--- argument sans traitement particulier
+%
+%\DeclarePairedDelimiterX\norm[1]\lVert\rVert{#1}% 
+%
+\newcommand*\VDet[1]{\V@Det#1\mys@end}
+\def\V@Det#1;#2;#3;#4\mys@end{\begin{vmatrix}
+#1 & #3 \\ 
+#2 & #4
+\end{vmatrix}}
+%
+%====================================================
+%
+%---   Norme
+%
+%====================================================
+%
+%--- flêche sur l'argument
+%
+\DeclarePairedDelimiterX\norm@vect[1]\lVert\rVert{\vect{#1}}% 
+%
+%--- argument sans traitement particulier
+%
+\DeclarePairedDelimiterX\norm[1]\lVert\rVert{#1}% 
+%
+%
+%
+\newcommand*\norme{\mys@ifprime\norm\norm@vect}%
+%
+%====================================================
+%
+%---   Produit scalaire
+%
+%====================================================
+%
+\newcommand*\prodscal{\mys@ifprime{\mys@geo@prodscal@prime}{\mys@geo@prodscal@}}%
+%
+%
+%
+\def\mys@geo@prodscal@{\@ifstar\mys@geo@prodscal@star\mys@geo@prodscal@nostar}%
+%
+%
+\def\mys@geo@prodscal@nostar{\@ifnextchar[\mys@geo@prodscal@nostar@opt\mys@geo@prodscal@nostar@noopt}%
+%
+\def\mys@geo@prodscal@nostar@noopt#1{\mys@geo@prodscal@type@\vect,#1\mys@stop}%
+%
+%
+\def\mys@geo@prodscal@nostar@opt[#1]#2{\mys@geo@prodscal@type@opt#1,\vect,#2\mys@stop}%
+%
+\def\mys@geo@prodscal@star#1{\mys@geo@prodscal@type@star\vect,#1\mys@stop}
+%
+%
+%
+\def\mys@geo@prodscal@prime{\@ifstar\mys@geo@prodscal@prime@star\mys@geo@prodscal@prime@nostar}%
+%
+\def\mys@geo@prodscal@prime@nostar{\@ifnextchar[\mys@geo@prodscal@prime@nostar@opt\mys@geo@prodscal@prime@nostar@noopt}%
+%
+\def\mys@geo@prodscal@prime@nostar@noopt#1{\mys@geo@prodscal@type@\mys@donothing,#1\mys@stop}%
+%
+\def\mys@geo@prodscal@prime@nostar@opt[#1]#2{\mys@geo@prodscal@type@opt#1,\mys@donothing,#2\mys@stop}%
+%
+%
+\def\mys@geo@prodscal@prime@star#1{\mys@geo@prodscal@type@star\mys@donothing,#1\mys@stop}
+%
+%
+%
+\newcommand*{\mycdot}{}% Check if undefined
+\DeclareRobustCommand*{\mycdot}{\mathbin{\mathpalette\mycdot@{}}}
+\newcommand*{\mycdot@scalefactor}{.4}
+\newcommand*{\mycdot@widthfactor}{0.92}
+\newcommand*{\mycdot@}[2]{%
+  % #1: math style
+  % #2: unused
+  \sbox0{$#1\vcenter{}$}% math axis
+  \sbox2{$#1\cdot\m@th$}%
+  \hbox to \mycdot@widthfactor\wd2{%
+    \hfil
+    \raise\ht0\hbox{%
+      \scalebox{\mycdot@scalefactor}{%
+        \lower\ht0\hbox{$#1\bullet\m@th$}%
+      }%
+    }%
+    \hfil
+  }%
+}
+%
+%\newcommand*\mycdot{\mathpalette\mycdot@{.5}}
+%\newcommand*\mycdot@[2]{\mathbin{\vcenter{\hbox{\scalebox{#2}{$\m@th#1\bullet$}}}}}
+%
+%\newcommand*\mycdot{\cdotp}
+%
+%
+%
+\def\mys@geo@prodscal@type#1#2{#1\mycdot#2}%\cdotp
+%
+\def\mys@geo@prodscal@type@#1,#2,#3\mys@stop{\mys@geo@prodscal@type{#1{#2}}{#1{#3}}}%
+%
+\def\mys@geo@prodscal@type@opt#1,#2,#3,#4\mys@stop{\mys@geo@prodscal@type{\inparen[#1]{#2{#3}}}{\inparen[#1]{#2{#4}}}}%
+%
+\def\mys@geo@prodscal@type@star#1,#2,#3\mys@stop{\mys@geo@prodscal@type{\inparen*{#1{#2}}}{\inparen*{#1{#3}}}}%
+%
+%====================================================
+%
+%---   Produit vectoriel
+%
+%====================================================
+%
+\newcommand*\prodvect{\mys@ifprime{\mys@geo@prodvect@prime}{\mys@geo@prodvect@}}%
+%
+%
+%
+\def\mys@geo@prodvect@{\@ifstar\mys@geo@prodvect@star\mys@geo@prodvect@nostar}%
+%
+%
+\def\mys@geo@prodvect@nostar{\@ifnextchar[\mys@geo@prodvect@nostar@opt\mys@geo@prodvect@nostar@noopt}%
+%
+\def\mys@geo@prodvect@nostar@noopt#1{\mys@geo@prodvect@type@\vect,#1\mys@stop}%
+%
+%
+\def\mys@geo@prodvect@nostar@opt[#1]#2{\mys@geo@prodvect@type@opt#1,\vect,#2\mys@stop}%
+%
+\def\mys@geo@prodvect@star#1{\mys@geo@prodvect@type@star\vect,#1\mys@stop}
+%
+%
+%
+\def\mys@geo@prodvect@prime{\@ifstar\mys@geo@prodvect@prime@star\mys@geo@prodvect@prime@nostar}%
+%
+\def\mys@geo@prodvect@prime@nostar{\@ifnextchar[\mys@geo@prodvect@prime@nostar@opt\mys@geo@prodvect@prime@nostar@noopt}%
+%
+\def\mys@geo@prodvect@prime@nostar@noopt#1{\mys@geo@prodvect@type@\mys@donothing,#1\mys@stop}%
+%
+\def\mys@geo@prodvect@prime@nostar@opt[#1]#2{\mys@geo@prodvect@type@opt#1,\mys@donothing,#2\mys@stop}%
+%
+%
+\def\mys@geo@prodvect@prime@star#1{\mys@geo@prodvect@type@star\mys@donothing,#1\mys@stop}
+%
+%
+%
+\def\mys@geo@prodvect@type#1#2{#1\wedge#2}%
+%
+\def\mys@geo@prodvect@type@#1,#2,#3\mys@stop{\mys@geo@prodvect@type{#1{#2}}{#1{#3}}}%
+%
+\def\mys@geo@prodvect@type@opt#1,#2,#3,#4\mys@stop{\mys@geo@prodvect@type{\inparen[#1]{#2{#3}}}{\inparen[#1]{#2{#4}}}}%
+%
+\def\mys@geo@prodvect@type@star#1,#2,#3\mys@stop{\mys@geo@prodvect@type{\inparen*{#1{#2}}}{\inparen*{#1{#3}}}}%
+%
+\endinput

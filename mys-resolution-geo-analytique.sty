@@ -1,0 +1,1293 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\ProvidesExplPackage%
+  {mys-resolution-geo-analytique}%
+  {2014/08/18}%
+  {0.0}%
+  {to do the job}%
+%
+%####################################################
+%
+\@ifpackageloaded{expl3}{}{\RequirePackage{expl3}}
+\@ifpackageloaded{xparse}{}{\RequirePackage{xparse}}
+\@ifpackageloaded{l3keys2e}{}{\RequirePackage{l3keys2e}}
+\@ifpackageloaded{mys-printingnum-utils}{}{\RequirePackage{mys-printingnum-utils}}
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%####################################################
+%
+% LONGUEUR
+%
+%####################################################
+%
+\cs_new:Npn\_mslf_redac_longueur_debut_cs:nn#1#2{#1#2}
+\keys_define:nn{ mslf/redac/longueur }
+    {
+    addtoend  .tl_set:N = \l_mslf_redac_longueur_add_tl,
+    res .tl_set:N=\l_mslf_redac_longueur_res_tl,
+%    res .initial:n={},
+    name   .tl_set:N = \l_mslf_redac_longueur_name_tl,
+    begin .cs_set:Np = \_mslf_redac_longueur_debut_cs:nn#1#2,
+%    nofinalpoint  .bool_set:N = \l_mslf_redac_longueur_nofinalpoint_bool,
+%    nofinalpoint  .default:n=true,
+%    nofinalpoint  .initial:n=false,
+    }
+%
+%
+%
+\cs_generate_variant:Nn\bool_if:nTF{VTF}
+%\cs_new:Nn\__mys_geo_redac_finalpoint:{Init test}
+%
+%
+%
+\NewDocumentCommand{\longueur}{O{}mm}
+    {
+%    \group_begin:
+    \fp_zero_new:N\l_mslf_segment_longueur_carree_fp
+    \keys_set:nn{mslf/redac/longueur}{name = #2#3,res={},#1}
+%
+%    \cs_set:Nn\__mys_geo_redac_finalpoint:{\bool_if:NTF\l_mslf_redac_longueur_nofinalpoint_bool{}{.}}
+%    \bool_if:NTF\l_mslf_redac_longueur_nofinalpoint_bool{\cs_gset:Nn\__mys_geo_redac_finalpoint:{}}{\cs_gset:Nn\__mys_geo_redac_finalpoint:{.}}
+%
+    \int_zero_new:N\l_tmpa_int
+%
+    \seq_map_inline:cn{l_point#2_seq}
+        {
+        \int_incr:N\l_tmpa_int
+        \fp_add:Nn\l_mslf_segment_longueur_carree_fp
+            {(\coord{\int_use:N\l_tmpa_int}{#3}-\coord{\int_use:N\l_tmpa_int}{#2})**2}
+        }
+%
+    \tl_gset:cf{l_mslf_redac_longueur#2#3_add_tl}{\tl_use:N\l_mslf_redac_longueur_add_tl}
+%
+    \fp_gset_eq:cN{l_mslf_segment_longueur_carree#2#3_fp}\l_mslf_segment_longueur_carree_fp
+%
+    \expandafter\gdef\csname \tl_use:N\l_mslf_redac_longueur_name_tl carre\endcsname
+        {\fp_use:c{l_mslf_segment_longueur_carree#2#3_fp}}
+%
+    \expandafter\gdef\csname\tl_use:N\l_mslf_redac_longueur_name_tl val\endcsname
+        {\fp_eval:n{sqrt(\fp_use:c{l_mslf_segment_longueur_carree#2#3_fp})}}
+%
+    \expandafter\gdef\csname\tl_use:N\l_mslf_redac_longueur_name_tl type\endcsname
+        {\sqrt{\num{\fp_use:c{l_mslf_segment_longueur_carree#2#3_fp}}}}
+%
+    \fp_compare:nTF{\fp_eval:n{trunc(\use:c{#2#3val},0)-\use:c{#2#3val}}=0}
+        {
+        \expandafter\gdef\csname\tl_use:N\l_mslf_redac_longueur_name_tl type\endcsname
+            {\num{\fp_eval:n{sqrt(\fp_use:c{l_mslf_segment_longueur_carree#2#3_fp})}}}
+        \cs_set:cn{mslf_longueur#2#3_addtoend_supp:}{=\num{\use:c{#2#3val}}}
+        }
+        {
+        \expandafter\gdef\csname\tl_use:N\l_mslf_redac_longueur_name_tl type\endcsname
+            {\sqrt{\num{\fp_use:c{l_mslf_segment_longueur_carree#2#3_fp}}}}
+        \cs_set:cn{mslf_longueur#2#3_addtoend_supp:}{}
+        }
+%
+    \long\expandafter\gdef\csname\tl_use:N\l_mslf_redac_longueur_name_tl redac\endcsname
+        {
+        \mbox{
+            $\_mslf_redac_longueur_debut_cs:nn{#2}{#3}
+            =\sqrt{\left(x\c_math_subscript_token{#3}-x\c_math_subscript_token{#2}\right)^2
+                +\left(y\c_math_subscript_token{#3}-y\c_math_subscript_token{#2}\right)^2}
+            =\sqrt{\left(\num{\coord1{#3}}-\mslf_par_if_neg:n{\coord1{#2}}\right)^2
+                +\left(\num{\coord2{#3}}-\mslf_par_if_neg:n{\coord2{#2}}\right)^2}
+            =\sqrt{\mslf_par_if_neg:n{\fp_eval:n{\coord1{#3}-\coord1{#2}}}^2
+                +\mslf_par_if_neg:n{\fp_eval:n{\coord2{#3}-\coord2{#2}}}^2}
+            =\sqrt{\num{\fp_eval:n{(\coord1{#3}-\coord1{#2})^2}}
+                +\num{\fp_eval:n{(\coord2{#3}-\coord2{#2})^2}}}
+            =\sqrt{\num{\fp_eval:n{(\coord1{#3}-\coord1{#2})^2+(\coord2{#3}-\coord2{#2})^2}}}
+            \use:c{mslf_longueur#2#3_addtoend_supp:}
+%            \tl_use:c{l_mslf_redac_longueur#2#3_add_tl}$%\__mys_geo_redac_finalpoint:
+            \l_mslf_redac_longueur_add_tl$
+            }\xspace
+        }
+%
+    \long\expandafter\gdef\csname\tl_use:N\l_mslf_redac_longueur_name_tl carreredac\endcsname
+        {
+        \mbox{
+            $\_mslf_redac_longueur_debut_cs:nn{#2}{#3}^2
+            =\left(x\c_math_subscript_token{#3}-x\c_math_subscript_token{#2}\right)^2
+                +\left(y\c_math_subscript_token{#3}-y\c_math_subscript_token{#2}\right)^2
+            =\left(\num{\coord1{#3}}-\mslf_par_if_neg:n{\coord1{#2}}\right)^2
+                +\left(\num{\coord2{#3}}-\mslf_par_if_neg:n{\coord2{#2}}\right)^2
+            =\mslf_par_if_neg:n{\fp_eval:n{\coord1{#3}-\coord1{#2}}}^2
+                +\mslf_par_if_neg:n{\fp_eval:n{\coord2{#3}-\coord2{#2}}}^2
+            =\num{\fp_eval:n{(\coord1{#3}-\coord1{#2})^2}}
+                +\num{\fp_eval:n{(\coord2{#3}-\coord2{#2})^2}}
+            =\num{\fp_eval:n{(\coord1{#3}-\coord1{#2})^2+(\coord2{#3}-\coord2{#2})^2}}
+            \use:c{mslf_longueur#2#3_addtoend_supp:}
+%            \tl_use:c{l_mslf_redac_longueur#2#3_add_tl}$%\__mys_geo_redac_finalpoint:
+            \l_mslf_redac_longueur_add_tl$
+            }\xspace
+        }
+%
+        \tl_if_empty:VF\l_mslf_redac_longueur_res_tl{%
+            \exp_args:NcV\gdef{\tl_use:N\l_mslf_redac_longueur_name_tl type}\l_mslf_redac_longueur_res_tl
+            }
+%    \group_end:
+    }
+%
+% Usage
+%%\setpoints{A/1/2,B/4/3,C/-1/-3}
+%%\longueur[addto={=29},name=q]{A}{B}
+%%
+%%\longueur[name=r]{B}{C}
+%%\qredac\rredac
+%%\qsqr
+%%
+%%\qval
+%%
+%%$\qtype$
+%%
+%%\ABredac
+%
+%
+%####################################################
+%
+% MILIEU
+%
+%####################################################
+%
+\cs_new:Npn\mslf_manual_end_of_calc:w#1#2\q_stop{#2}
+%
+\cs_new:Npn\mslf_manual_end_of_calc:n#1
+  {\mslf_manual_end_of_calc:w#1\q_stop}
+%
+\cs_generate_variant:Nn\mslf_manual_end_of_calc:n{v}
+%
+%
+%
+\cs_new:Npn\_mslf_redac_milieu_debut_cs:nn#1#2{}
+%
+\keys_define:nn{ mslf/redac/milieu}
+  {
+  addtox  .tl_set:N = \l_mslf_redac_milieu_addx_tl,
+%  addtox  .initial:n = {},
+  addtoy  .tl_set:N = \l_mslf_redac_milieu_addy_tl,
+%  addtoy  .initial:n = {},
+  name    .tl_set:N = \l_mslf_redac_milieu_name_tl,
+  begin    .cs_gset_protected:Np = \_mslf_redac_milieu_debut_cs:nn#1#2,
+  begin    .initial:n = {$#1$~est~le~milieu~de~$#2$~donc~},
+  begin    .default:n = {$#1$~est~le~milieu~de~$#2$~donc~},
+  boxed  .bool_set:N = \l_mslf_redac_milieu_boxed_bool, 
+  boxed  .initial:n=false,
+  boxed .default:n = true,%
+  }
+%
+%
+%
+% \milieu[name=K]{mil}AB
+% \milredac
+%
+\cs_new:Npn\__mslf_redac_milieu_boxed:n#1{\mbox{#1}}
+\cs_new:Npn\__mslf_redac_milieu_notboxed:n#1{#1}
+\cs_set_eq:NN\__mslf_redac_milieu_boxedornot:n\__mslf_redac_milieu_notboxed:n
+\NewDocumentCommand{\milieu}{ommm}
+% #1 : name for naming user macro or naming mid point if key  mslf/redac/milieu/name not set
+% #2 : name for midpoint
+% #3 et #4 : points 
+    {
+    \group_begin:
+    \IfNoValueTF{#1}
+        {\keys_set:nn{mslf/redac/milieu}{name=#2}}
+        {\keys_set:nn{mslf/redac/milieu}{name=#2,#1}}
+    \int_zero:N \l_tmpa_int
+    \seq_map_inline:cn{l_point#3_seq}
+        {
+        \int_incr:N\l_tmpa_int
+        \fp_gset:cn{l_mslf_segment_milieu_{\int_use:N\l_tmpa_int}#3#4_num_fp}
+            {\coord{\int_use:N\l_tmpa_int}{#3}+\coord{\int_use:N\l_tmpa_int}{#4}}
+        \fp_gset:cn{l_mslf_segment_milieu_{\int_use:N\l_tmpa_int}#3#4_fp}
+            {(\coord{\int_use:N\l_tmpa_int}{#3}+\coord{\int_use:N\l_tmpa_int}{#4})/2}
+        }
+    \tl_gset:cf{l_mslf_redac_milieu_name#3#4_tl}{\tl_use:N\l_mslf_redac_milieu_name_tl}
+    \expandafter\gdef\csname x\tl_use:c{l_mslf_redac_milieu_name#3#4_tl}val\endcsname
+        {\fp_eval:n{\fp_use:c{l_mslf_segment_milieu_{1}#3#4_num_fp}/2}}
+    \expandafter\gdef\csname y\tl_use:c{l_mslf_redac_milieu_name#3#4_tl} val\endcsname
+        {\fp_eval:n{\fp_use:c{l_mslf_segment_milieu_{2}#3#4_num_fp}/2}}
+    \expandafter\gdef\csname x\tl_use:N\l_mslf_redac_milieu_name_tl type\endcsname
+        {\frac{\fp_use:c{l_mslf_segment_milieu_{1}#3#4_num_fp}}{2}}
+    \expandafter\gdef\csname y\tl_use:N\l_mslf_redac_milieu_name_tl type\endcsname
+        {\frac{\fp_use:c{l_mslf_segment_milieu_{2}#3#4_num_fp}}{2}}
+    \tl_if_blank:VT\l_mslf_redac_milieu_addx_tl
+        {
+        \tl_set:Nn\l_mslf_redac_milieu_addx_tl
+            {=\exp_not:N\numprint{\csname x\tl_use:c{l_mslf_redac_milieu_name#3#4_tl}val\endcsname}}
+        }
+    \tl_if_blank:VT\l_mslf_redac_milieu_addy_tl
+        {
+        \tl_set:Nn\l_mslf_redac_milieu_addy_tl
+            {=\exp_not:N\numprint{\csname y\tl_use:c{l_mslf_redac_milieu_name#3#4_tl}val \endcsname}}
+        }
+    \tl_gset:cx{l_mslf_redac_milieu_addx#3#4_tl}{\tl_use:N\l_mslf_redac_milieu_addx_tl}
+    \tl_gset:cx{l_mslf_redac_milieu_addy#3#4_tl}{\tl_use:N\l_mslf_redac_milieu_addy_tl}
+%    \cs_set:Npn\l_mslf_redac_milieu_coord:nN##1##2{##2{$##1\c_math_subscript_token{\tl_use:c{l_mslf_redac_milieu_name#3#4_tl}}=
+%        \frac{##1\c_math_subscript_token{#3}+##1\c_math_subscript_token{#4}}{2}=
+%        \frac{\num{\csname ##1coord\endcsname{#3}}+\mslf_par_if_neg:n{\csname ##1coord\endcsname{#4}}}{2}=
+%        \frac{\num{\fp_use:c{l_mslf_segment_milieu_{1}#3#4_num_fp}}}{2}
+%        \tl_use:c{l_mslf_redac_milieu_addx#3#4_tl} $}}
+%
+%    \bool_if:NTF\l_mslf_redac_milieu_boxed_bool
+%            {\cs_gset:Npn\__mslf_redac_milieu_done:n##1{\l_mslf_redac_milieu_coord:nN{##1}\__mslf_redac_milieu_boxed:n}}
+%            {\cs_gset:Npn\__mslf_redac_milieu_done:n##1{\l_mslf_redac_milieu_coord:nN{##1}\__mslf_redac_milieu_notboxed:n}}
+%
+    \long\expandafter\gdef\csname #2 redac\endcsname{
+        \_mslf_redac_milieu_debut_cs:nn{\tl_use:c{l_mslf_redac_milieu_name#3#4_tl}}{\segment{#3#4}}
+%           \__mslf_redac_milieu_done:n{x} ~et~\__mslf_redac_milieu_done:n{y}.\par
+        \__mslf_redac_milieu_boxedornot:n{$x\c_math_subscript_token{\tl_use:c{l_mslf_redac_milieu_name#3#4_tl}}=
+        \frac{x\c_math_subscript_token{#3}+x\c_math_subscript_token{#4}}{2}=
+        \frac{\num{\coord1{#3}}+\mslf_par_if_neg:n{\coord1{#4}}}{2}=
+        \frac{\num{\fp_use:c{l_mslf_segment_milieu_{1}#3#4_num_fp}}}{2}
+        \tl_use:c{l_mslf_redac_milieu_addx#3#4_tl} $}~et~
+        \__mslf_redac_milieu_boxedornot:n{$y\c_math_subscript_token{\tl_use:c{l_mslf_redac_milieu_name#3#4_tl}}=
+        \frac{y\c_math_subscript_token{#3}+y\c_math_subscript_token{#4}}{2}=
+        \frac{\num{\coord2{#3}}+\mslf_par_if_neg:n{\coord2{#4}}}{2}=
+        \frac{\num{\fp_use:c{l_mslf_segment_milieu_{2}#3#4_num_fp}}}{2}
+        \tl_use:c{l_mslf_redac_milieu_addy#3#4_tl}$.}\par 
+        On~ a~ donc~
+        $\tl_use:c{l_mslf_redac_milieu_name#3#4_tl}
+        \cord{
+            \mslf_manual_end_of_calc:v{l_mslf_redac_milieu_addx#3#4_tl}
+            ;\mslf_manual_end_of_calc:v{l_mslf_redac_milieu_addy#3#4_tl}
+            }$.\xspace
+        }
+    \tl_set:Nn\l_tmpa_tl{
+        \tl_use:c{l_mslf_redac_milieu_name#3#4_tl},
+        \fp_use:c{l_mslf_segment_milieu_{1}#3#4_fp},
+        \fp_use:c{l_mslf_segment_milieu_{2}#3#4_fp}
+        }
+    \cs_set:Nx\__mslf_tmp:{
+        \exp_not:N\group_end:
+        \exp_not:N\addpoints{\tl_use:N\l_tmpa_tl}
+        }
+    \__mslf_tmp:
+    }
+%
+%####################################################
+%
+% SYMETRIQUE
+%
+%####################################################
+%
+\keys_define:nn{mslf/redac/symetrique}
+  {
+  addtox  .tl_set:N =
+    \l_mslf_redac_symetrie_centrale_addx_tl,
+%  addtox  .initial:n = {},
+  addtoy	  .tl_set:N = 
+    \l_mslf_redac_symetrie_centrale_addy_tl,
+%  addtoy	  .initial:n = {},
+  name  .tl_set:N = 
+    \l_mslf_redac_symetrie_centrale_name_tl
+  }
+%
+%
+%
+\NewDocumentCommand{\symetrique}{ommm}
+% #2 : sym de #3 par rapport à #4 
+% #2 : name of the symmetric point for the macro, its different of the typeset point name which is given by the key  mslf/redac/symetrique/name
+% ainsi on peut afficher A' comme symmétrique, ce qui ne peut pas être utilisé dans #2 de façon commode (pour y accéder dans le document il faudrait utiliser une construction avec \csname) 
+  {
+  \group_begin:
+  \IfNoValueTF{#1}
+    {\keys_set:nn{mslf/redac/symetrique}{name=#2}}
+    {\keys_set:nn{mslf/redac/symetrique}{name=#2,#1}}
+  \int_zero:N \l_tmpa_int
+  \seq_map_inline:cn{l_point#3_seq}
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_gset:cn
+      {l_mslf_symetrie_centrale_{\int_use:N\l_tmpa_int}#3#4_fp}
+      {
+      2*\coord{\int_use:N\l_tmpa_int}{#4} -\coord{\int_use:N\l_tmpa_int}{#3}
+      }
+    }
+  \tl_gset:cf{l_mslf_redac_symetrie_centrale_name#3#4_tl}
+    {\tl_use:N\l_mslf_redac_symetrie_centrale_name_tl}
+  \expandafter\gdef\csname x#2val\endcsname%
+    {\num{\fp_use:c{l_mslf_symetrie_centrale_{1}#3#4_fp}}}
+  \expandafter\gdef
+    \csname y#2val\endcsname
+    {\num{\fp_use:c{l_mslf_symetrie_centrale_{2}#3#4_fp}}}
+  \tl_if_blank:VT\l_mslf_redac_symetrie_centrale_addx_tl
+    {
+    \tl_set:Nn\l_mslf_redac_symetrie_centrale_addx_tl
+      {=\csname x#2val\endcsname}
+    }
+  \tl_if_blank:VT\l_mslf_redac_symetrie_centrale_addy_tl
+    {
+    \tl_set:Nn\l_mslf_redac_symetrie_centrale_addy_tl
+      {=\csname y#2val\endcsname}
+    }
+  \tl_gset:cx  
+    {l_mslf_redac_symetrie_centrale_addx#3#4_tl}
+    {\tl_use:N\l_mslf_redac_symetrie_centrale_addx_tl}
+  \tl_gset:cx{l_mslf_redac_symetrie_centrale_addy#3#4_tl}
+    {\tl_use:N\l_mslf_redac_symetrie_centrale_addy_tl}
+  \long\expandafter\gdef\csname #2 redac\endcsname
+    {
+%    $
+%    \tl_use:c
+%      {l_mslf_redac_symetrie_centrale_name#3#4_tl}
+%    $~est~le~symétrique~de~$#3$~par~rapport~à~$#4$~donc~
+    $#4$~est~le~ milieu~de~
+    $\segment
+      {
+      \tl_use:c{l_mslf_redac_symetrie_centrale_name#3#4_tl}
+      #3
+      }$~d'où~
+    $
+    x\c_math_subscript_token{#4}
+    =
+    \frac
+      {
+      x\c_math_subscript_token
+        {
+        \tl_use:c
+          {l_mslf_redac_symetrie_centrale_name#3#4_tl}
+        }
+      +
+      x\c_math_subscript_token{#3}
+      }
+      {2}
+    $~et~
+    $
+    y\c_math_subscript_token{#4}
+    =
+    \frac
+      {
+      y\c_math_subscript_token
+        {
+        \tl_use:c
+          {l_mslf_redac_symetrie_centrale_name#3#4_tl}
+        }
+      +
+      y\c_math_subscript_token{#3}
+      }
+      {2}
+      $~puis~:
+    \begin{itemize}
+    \item 
+      $
+      \num{\coord1{#4}}
+      =
+      \frac
+        {
+        x\c_math_subscript_token
+          {
+          \tl_use:c
+            {l_mslf_redac_symetrie_centrale_name#3#4_tl}
+          }
+        +
+        \mslf_par_if_neg:n{\coord1{#3}}
+        }
+        {2}
+      $~d'où~
+      $
+      x\c_math_subscript_token
+        {
+        \tl_use:c
+          {l_mslf_redac_symetrie_centrale_name#3#4_tl}
+        }
+      +
+      \mslf_par_if_neg:n{\coord1{#3}}
+      =2\times\mslf_par_if_neg:n{\coord1{#4}}
+      =\num{\fp_eval:n{2*\coord1{#4}}}
+      $~puis~
+      $
+      x\c_math_subscript_token
+        {
+        \tl_use:c
+          {l_mslf_redac_symetrie_centrale_name#3#4_tl}
+        }
+      =
+      \num{\fp_eval:n{2*\coord1{#4}}}
+        -\mslf_par_if_neg:n{\coord1{#3}}
+      \tl_use:c{l_mslf_redac_symetrie_centrale_addx#3#4_tl}
+      $
+    \item
+      $
+      \num{\coord2{#4}}
+      =
+      \frac
+        {
+        y\c_math_subscript_token
+          {
+          \tl_use:c
+            {l_mslf_redac_symetrie_centrale_name#3#4_tl}
+          }
+        +
+        \mslf_par_if_neg:n{\coord2{#3}}
+        }
+        {2}
+      $~d'où~
+      $
+      y\c_math_subscript_token
+        {
+        \tl_use:c
+          {l_mslf_redac_symetrie_centrale_name#3#4_tl}
+        }
+      +
+      \mslf_par_if_neg:n{\coord2{#3}}
+      =2\times\mslf_par_if_neg:n{\coord2{#4}}
+      =\num{\fp_eval:n{2*\coord2{#4}}}
+      $~puis~
+      $
+      y\c_math_subscript_token
+        {
+        \tl_use:c
+          {l_mslf_redac_symetrie_centrale_name#3#4_tl}
+        }
+      =\num{\fp_eval:n{2*\coord2{#4}}}
+        -\mslf_par_if_neg:n{\coord2{#3}}
+      \tl_use:c{l_mslf_redac_symetrie_centrale_addy#3#4_tl}
+      $.
+    \end{itemize}
+    On~a~donc~
+    $
+    \tl_use:c{l_mslf_redac_symetrie_centrale_name#3#4_tl}
+    \cord
+      {
+      \mslf_manual_end_of_calc:v
+        {l_mslf_redac_symetrie_centrale_addx#3#4_tl}
+      ;
+      \mslf_manual_end_of_calc:v
+        {l_mslf_redac_symetrie_centrale_addy#3#4_tl}
+      }
+    $.\xspace
+    }
+  \tl_set:Nx\l_tmpa_tl
+    {
+    \tl_use:c{l_mslf_redac_symetrie_centrale_name#3#4_tl}
+    ,
+    \fp_use:c{l_mslf_symetrie_centrale_{1}#3#4_fp}
+    ,
+    \fp_use:c{l_mslf_symetrie_centrale_{2}#3#4_fp}
+    }
+    \cs_set:Nx\__mslf_tmp:{
+        \exp_not:N\group_end:
+        \exp_not:N\addpoints{\tl_use:N\l_tmpa_tl}
+        }
+    \__mslf_tmp:
+  }
+%
+% Usage
+% \setpoints{A/1/2,B/6/5,C/3/2}
+%\symetrique IAB% I sym de A par rapport à B
+%\symetrique[name=J] JBA
+%
+%\Iredac
+%
+%\Jredac
+%
+%####################################################
+%
+% DERNIER SOMMET PARALLÉLOGRAMME
+%
+%####################################################
+%
+\keys_define:nn{ mslf/redac/parallelogramme/sommet}
+  {
+  addtoxcenter  .tl_set:N =
+    \l_mslf_redac_parallelogramme_sommet_center_addx_tl,
+%  addtoxcenter  .initial:n = {},
+  addtoycenter  .tl_set:N =
+    \l_mslf_redac_parallelogramme_sommet_center_addy_tl,
+%  addtoycenter  .initial:n = {},
+  addtoxsommet  .tl_set:N =
+    \l_mslf_redac_parallelogramme_sommet_addx_tl,
+%  addtoxsommet  .initial:n = {},
+  addtoysommet  .tl_set:N =
+    \l_mslf_redac_parallelogramme_sommet_addy_tl,
+%  addtoysommet  .initial:n = {},
+  centername    .tl_set:N =
+    \l_mslf_redac_parallelogramme_sommet_center_name_tl,
+  centername    .initial:n = K,
+  name          .tl_set:N =
+    \l_mslf_redac_parallelogramme_sommet_name_tl,
+  centerknown   .bool_set:N =
+    \l_mslf_redac_parallelogramme_sommet_centerknown_bool,
+  usename  .tl_set:N =     \l_mslf_redac_parallelogramme_usename_tl,
+  usename  .initial:n={ },
+  }
+%
+%
+\def\pt_i#1#2#3#4{#1}
+\def\pt_ii#1#2#3#4{#2}
+\def\pt_iii#1#2#3#4{#3}
+\def\pt_iv#1#2#3#4{#4}
+%
+\tl_new:N\l_tmpaa_tl
+\NewDocumentCommand{\derniersommetparallelogramme}{O{name=#5}mmmm}
+	{
+	\group_begin:
+%	\IfNoValueTF
+%		{#1}
+%		{\keys_set:nn{mslf/redac/parallelogramme/sommet}{name=#5}}
+%		{\keys_set:nn{mslf/redac/parallelogramme/sommet}{name=#5,#1}}
+    \keys_set:nn{mslf/redac/parallelogramme/sommet}{name=#5,#1}
+     \tl_if_blank:VT\l_mslf_redac_parallelogramme_usename_tl
+       {\keys_set:nx{mslf/redac/parallelogramme/sommet}
+           {usename={#2#3#4\tl_use:c{l_mslf_redac_parallelogramme_sommet_name_tl}}}
+       }
+	\int_zero:N \l_tmpa_int
+	\seq_map_inline:cn
+		{l_point#2_seq}
+		{
+		\int_incr:N\l_tmpa_int
+		\fp_gset:cn{l_mslf_parallelo_sommet_center_{\int_use:N\l_tmpa_int}#2#3#4_num_fp}{\coord{\int_use:N\l_tmpa_int}{#2}+\coord{\int_use:N\l_tmpa_int}{#4}}
+		\fp_gset:cn{l_mslf_parallelo_sommet_center_{\int_use:N\l_tmpa_int}#2#3#4_fp}{(\coord{\int_use:N\l_tmpa_int}{#2}+\coord{\int_use:N\l_tmpa_int}{#4})/2}
+		\fp_gset:cn{l_mslf_parallelo_sommet_{\int_use:N\l_tmpa_int}#2#3#4_fp}{\fp_use:c{l_mslf_parallelo_sommet_center_{\int_use:N\l_tmpa_int}#2#3#4_num_fp}-\coord{\int_use:N\l_tmpa_int}{#3}}
+		}
+       \tl_gset:Nx\l_mslf_redac_parallelo_pt_i_tl{\expandafter\pt_i\l_mslf_redac_parallelogramme_usename_tl}
+       \tl_gset:Nx\l_mslf_redac_parallelo_pt_ii_tl{\expandafter\pt_ii\l_mslf_redac_parallelogramme_usename_tl}
+       \tl_gset:Nx\l_mslf_redac_parallelo_pt_iii_tl{\expandafter\pt_iii\l_mslf_redac_parallelogramme_usename_tl}
+       \tl_gset:Nx\l_mslf_redac_parallelo_pt_iv_tl{\expandafter\pt_iv\l_mslf_redac_parallelogramme_usename_tl}
+	\tl_gset:cf{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}{\tl_use:N\l_mslf_redac_parallelogramme_sommet_center_name_tl}
+	\tl_gset:cf{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}{\tl_use:N\l_mslf_redac_parallelogramme_sommet_name_tl}
+	\tl_gset:cf{l_mslf_redac_parallelo_sommet_parname#2#3#4_tl}{\tl_use:N\l_mslf_redac_parallelogramme_usename_tl}
+	\expandafter\gdef\csname x\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl} val\endcsname{\num{\fp_use:c{l_mslf_parallelo_sommet_center_{1}#2#3#4_fp}}}
+	\expandafter\gdef\csname y\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl} val\endcsname{\num{\fp_use:c{l_mslf_parallelo_sommet_center_{2}#2#3#4_fp}}}
+	\expandafter\gdef\csname x#5val\endcsname{\num{\fp_use:c{l_mslf_parallelo_sommet_{1}#2#3#4_fp}}}
+	\expandafter\gdef\csname y#5val\endcsname{\num{\fp_use:c{l_mslf_parallelo_sommet_{2}#2#3#4_fp}}}
+	\expandafter\gdef\csname x\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl} type\endcsname{\frac{\fp_use:c{l_mslf_parallelo_sommet_center_{1}#2#3#4_num_fp}}{2}}
+	\expandafter\gdef\csname y\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl} type\endcsname{\frac{\fp_use:c{l_mslf_parallelo_sommet_center_{2}#2#3#4_num_fp}}{2}}
+	\tl_if_blank:VTF\l_mslf_redac_parallelogramme_sommet_center_addx_tl
+		{\tl_set:Nn\l_mslf_redac_parallelogramme_sommet_center_addx_tl{=\csname x\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl} val\endcsname}}
+		{}
+	\tl_if_blank:VTF\l_mslf_redac_parallelogramme_sommet_center_addy_tl
+		{\tl_set:Nn\l_mslf_redac_parallelogramme_sommet_center_addy_tl{=\csname y\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl} val\endcsname}}
+		{}
+	\tl_if_blank:VTF\l_mslf_redac_parallelogramme_sommet_addx_tl
+		{\tl_set:Nn\l_mslf_redac_parallelogramme_sommet_addx_tl{=\csname x#5val\endcsname}}
+		{}
+	\tl_if_blank:VTF\l_mslf_redac_parallelogramme_sommet_addy_tl
+		{\tl_set:Nn\l_mslf_redac_parallelogramme_sommet_addy_tl{=\csname y#5 val\endcsname}}
+		{}
+	\tl_gset:cx{l_mslf_redac_parallelogramme_sommet_center_addx#2#3#4_tl}{\tl_use:N\l_mslf_redac_parallelogramme_sommet_center_addx_tl}
+	\tl_gset:cx{l_mslf_redac_parallelogramme_sommet_center_addy#2#3#4_tl}{\tl_use:N\l_mslf_redac_parallelogramme_sommet_center_addy_tl}
+	\tl_gset:cx{l_mslf_redac_parallelogramme_sommet_addx#2#3#4_tl}{\tl_use:N\l_mslf_redac_parallelogramme_sommet_addx_tl}
+	\tl_gset:cx{l_mslf_redac_parallelogramme_sommet_addy#2#3#4_tl}{\tl_use:N\l_mslf_redac_parallelogramme_sommet_addy_tl}
+\bool_if:NTF\l_mslf_redac_parallelogramme_sommet_centerknown_bool
+	{
+	\long\expandafter\expandafter\expandafter\gdef\expandafter\csname#5redac\expandafter\endcsname%
+	{
+%	$#2#3#4\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}$
+$\tl_use:c{l_mslf_redac_parallelo_sommet_parname#2#3#4_tl}$~ est ~un~ parallélogramme~donc~$\segment{\l_mslf_redac_parallelo_pt_i_tl\l_mslf_redac_parallelo_pt_iii_tl}$~ et~ $\segment{\l_mslf_redac_parallelo_pt_ii_tl\l_mslf_redac_parallelo_pt_iv_tl}$~ ont~le~même~milieu.~On~sait~que~c'est~
+\tl_set:Nx\l_tmpa_tl{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl},\fp_use:c{l_mslf_parallelo_sommet_center_{1}#2#3#4_fp},\fp_use:c{l_mslf_parallelo_sommet_center_{2}#2#3#4_fp}}
+%\exp_args:NV\setpoints\l_tmpa_tl
+$\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}\cord{\num{\fp_use:c{l_mslf_parallelo_sommet_center_{1}#2#3#4_fp}};\num{\fp_use:c{l_mslf_parallelo_sommet_center_{2}#2#3#4_fp}}}$.\newline
+%
+%\tl_if_eq:nnTF{#4}{\l_mslf_redac_parallelo_pt_iii_tl}{}
+%
+	$\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}$~ est~ le~  milieu~ de~ $\segment{#3\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}$~ donc~ $x\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}=\frac{x\c_math_subscript_token{#3}+x\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}}{2}$~ et~ $y\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}=\frac{y\c_math_subscript_token{#3}+y\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}}{2}$ puis~:
+\begin{itemize}	
+\item $\num{\coord1{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}=\frac{\num{\coord1{#3}}+x\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}}{2}$~ d'où~ $\num{\coord1{#3}}+x\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}=2\times\mslf_par_if_neg:n{\coord1{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}=\num{\fp_eval:n{2*\coord1{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}}$~puis ~$x\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}=\num{\fp_eval:n{2*\coord1{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}}-\mslf_par_if_neg:n{\coord1{#3}}\tl_use:c{l_mslf_redac_parallelogramme_sommet_addx#2#3#4_tl}$.
+ \item $\num{\coord{2}{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}=\frac{\num{\coord2{#3}}+y\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}}{2}$~ d'où~ $\num{\coord2{#3}}+y\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}=2\times\mslf_par_if_neg:n{\coord2{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}=\num{\fp_eval:n{2*\coord2{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}}$~puis ~$y\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}=\num{\fp_eval:n{2*\coord2{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}}-\mslf_par_if_neg:n{\coord2{#3}}\tl_use:c{l_mslf_redac_parallelogramme_sommet_addy#2#3#4_tl}$.
+\end{itemize}
+On~ a~ donc~%\tl_set:Nx\l_tmpa_tl{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}/\fp_use:c{l_mslf_parallelo_sommet_{1}#2#3#4_fp}/\fp_use:c{l_mslf_parallelo_sommet_{2}#2#3#4_fp}}	
+%\exp_args:NV\setpoints\l_tmpa_tl
+$\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}\cord{\mslf_manual_end_of_calc:v{l_mslf_redac_parallelogramme_sommet_addx#2#3#4_tl};\mslf_manual_end_of_calc:v{l_mslf_redac_parallelogramme_sommet_addy#2#3#4_tl}}$.
+		\xspace
+	}
+	}	
+	{
+	\long\expandafter\gdef\csname #5redac\endcsname%
+	{%$#2#3#4\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}$
+$\tl_use:c{l_mslf_redac_parallelo_sommet_parname#2#3#4_tl}$~ est ~un~ parallélogramme~donc~
+$\segment{#2#4}$
+%$\segment{\l_mslf_redac_parallelo_pt_i_tl\l_mslf_redac_parallelo_pt_iii_tl}$
+~ et~ 
+$\segment{#3#5}$
+%$\segment{\l_mslf_redac_parallelo_pt_ii_tl\l_mslf_redac_parallelo_pt_iv_tl}$
+~ ont~le~même~milieu~:~ $\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}$.\newline
+		$\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}$~est~le~ milieu~ de~ $\segment{#2#4}$~ donc~ $x\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}=\frac{x\c_math_subscript_token{#2}+x\c_math_subscript_token{#4}}{2}=\frac{\num{\coord1{#2}}+\mslf_par_if_neg:n{\coord1{#4}}}{2}=\frac{\num{\fp_use:c{l_mslf_parallelo_sommet_center_{1}#2#3#4_num_fp}}}{2}\tl_use:c{l_mslf_redac_parallelogramme_sommet_center_addx#2#3#4_tl}$~ et~ $y\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}=\frac{y\c_math_subscript_token{#2}+y\c_math_subscript_token{#4}}{2}=\frac{\num{\coord2{#2}}+\mslf_par_if_neg:n{\coord2{#4}}}{2}=\frac{\num{\fp_use:c{l_mslf_parallelo_sommet_center_{2}#2#3#4_num_fp}}}{2}\tl_use:c{l_mslf_redac_parallelogramme_sommet_center_addy#2#3#4_tl}$~%.~
+\tl_set:Nx\l_tmpa_tl{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl},\fp_use:c{l_mslf_parallelo_sommet_center_{1}#2#3#4_fp},\fp_use:c{l_mslf_parallelo_sommet_center_{2}#2#3#4_fp}}	
+\exp_args:NV\setpoints\l_tmpa_tl
+%On~ a~ donc~
+d'où~$\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}\cord{\fp_use:c{l_mslf_parallelo_sommet_center_{1}#2#3#4_fp};\fp_use:c{l_mslf_parallelo_sommet_center_{2}#2#3#4_fp}}$.\newline
+	$\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}$~ est~ le~  milieu~ de~ $\segment{#3\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}$~ donc:~
+\begin{centered}
+	$\begin{taligned}[t]
+	x\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}&=\frac{x\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}+x\c_math_subscript_token{#3}}{2} \text{~soit~}\num{\coord1{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}=\frac{x\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}+\mslf_par_if_neg:n{\coord1{#3}}}{2} \text{~d'où~} x\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}+\mslf_par_if_neg:n{\coord1{#3}}=2\times\mslf_par_if_neg:n{\coord1{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}=\num{\fp_eval:n{2*\coord1{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}} \text{~puis~} x\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}=\num{\fp_eval:n{2*\coord1{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}}-\mslf_par_if_neg:n{\coord1{#3}}\tl_use:c{l_mslf_redac_parallelogramme_sommet_addx#2#3#4_tl} \\
+	y\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}&=\frac{y\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}+y\c_math_subscript_token{#3}}{2}  \text{~soit~} \num{\coord{2}{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}=\frac{y\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}+\mslf_par_if_neg:n{\coord2{#3}}}{2} \text{~d'où~}y\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}+\mslf_par_if_neg:n{\coord2{#3}}=2\times\mslf_par_if_neg:n{\coord2{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}=\num{\fp_eval:n{2*\coord2{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}} \text{~puis~}y\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}}=\num{\fp_eval:n{2*\coord2{\tl_use:c{l_mslf_redac_parallelo_sommet_center_name#2#3#4_tl}}}}-\mslf_par_if_neg:n{\coord2{#3}}\tl_use:c{l_mslf_redac_parallelogramme_sommet_addy#2#3#4_tl}.
+	\end{taligned}$
+\end{centered}
+On~ a~ donc~ 
+%\tl_set:Nx\l_tmpa_tl{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}/\fp_use:c{l_mslf_parallelo_sommet_{1}#2#3#4_fp}/\fp_use:c{l_mslf_parallelo_sommet_{2}#2#3#4_fp}}	
+%\exp_args:NV\setpoints\l_tmpa_tl
+$\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl}\cord{\mslf_manual_end_of_calc:v{l_mslf_redac_parallelogramme_sommet_addx#2#3#4_tl};\mslf_manual_end_of_calc:v{l_mslf_redac_parallelogramme_sommet_addy#2#3#4_tl}}$.
+		\xspace 
+	}
+	}	
+	\tl_set:Nx\l_tmpa_tl{\tl_use:c{l_mslf_redac_parallelo_sommet_name#2#3#4_tl},\fp_use:c{l_mslf_parallelo_sommet_{1}#2#3#4_fp},\fp_use:c{l_mslf_parallelo_sommet_{2}#2#3#4_fp}}	
+    \cs_set:Nx\__mslf_tmp:{
+        \exp_not:N\group_end:
+        \exp_not:N\addpoints{\tl_use:N\l_tmpa_tl}
+        }
+    \__mslf_tmp:
+%\exp_args:NV\setpoints\l_tmpa_tl
+}
+%
+% Usage
+% \setpoints{A/1/2,B/6/5,C/3/2}
+%\derniersommetparallelogramme[name=E',namecenter=L'] ABCE
+%\derniersommetparallelogramme BACF
+%\Eredac
+%
+%\Fredac
+%
+%
+%####################################################
+%
+% EST UN PARALLÉLOGRAMME
+%
+%####################################################
+%
+\keys_define:nn{ mslf/redac/parallelogramme/is}
+  {
+  addtoxfirstcenter   .tl_set:N =
+    \l_mslf_redac_parallelogramme_is_center_first_addx_tl,
+  addtoyfirstcenter   .tl_set:N =
+    \l_mslf_redac_parallelogramme_is_center_first_addy_tl,
+  addtoxsecondcenter  .tl_set:N =
+    \l_mslf_redac_parallelogramme_is_center_second_addx_tl,
+  addtoysecondcenter  .tl_set:N =
+    \l_mslf_redac_parallelogramme_is_center_second_addy_tl,
+  namefirstcenter     .tl_set:N =
+    \l_mslf_redac_parallelogramme_is_center_first_name_tl,
+  namefirstcenter     .initial:n = K,
+  namesecondcenter    .tl_set:N =
+    \l_mslf_redac_parallelogramme_is_center_second_name_tl,
+  namesecondcenter    .initial:n = L
+	}
+%
+\NewDocumentCommand{\estparallelogramme}{ommmm}
+  {
+  \group_begin:
+  \IfNoValueF{#1}
+    {\keys_set:nn{mslf/redac/parallelogramme/is}{#1}}
+  \int_zero:N \l_tmpa_int
+  \seq_map_inline:cn{l_point#2_seq}
+    {
+    \int_incr:N\l_tmpa_int
+    \fp_gset:cn
+      {
+      l_mslf_parallelo_is_center_first_
+        {\int_use:N\l_tmpa_int}#2#3#4#5_num_fp
+      }
+      {
+      \coord
+        {\int_use:N\l_tmpa_int}{#2}
+      +
+      \coord{\int_use:N\l_tmpa_int}{#4}
+      }
+    \fp_gset:cn
+      {
+      l_mslf_parallelo_is_center_first_
+        {\int_use:N\l_tmpa_int}#2#3#4#5_fp
+      }
+      {
+      (\coord{\int_use:N\l_tmpa_int}{#2}
+        +\coord{\int_use:N\l_tmpa_int}{#4})
+      /2
+      }
+    \fp_gset:cn
+      {
+      l_mslf_parallelo_is_center_second_
+        {\int_use:N\l_tmpa_int}#2#3#4#5_num_fp
+      }
+      {
+      \coord{\int_use:N\l_tmpa_int}{#3}
+      +
+      \coord{\int_use:N\l_tmpa_int}{#5}
+      }
+    \fp_gset:cn
+      {
+      l_mslf_parallelo_is_center_second_
+        {\int_use:N\l_tmpa_int}#2#3#4#5_fp
+      }
+      {
+      (\coord{\int_use:N\l_tmpa_int}{#3}
+        +\coord{\int_use:N\l_tmpa_int}{#5})
+        /2
+      }
+    }
+  \tl_gset:cf
+    {l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl}
+    {
+    \tl_use:N
+      \l_mslf_redac_parallelogramme_is_center_first_name_tl
+    }
+  \tl_gset:cf
+    {l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl}
+    {
+    \tl_use:N
+      \l_mslf_redac_parallelogramme_is_center_second_name_tl
+    }
+  \expandafter\gdef
+    \csname
+      x
+      \tl_use:c
+        {l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl}
+      val
+    \endcsname
+    {
+    \num
+      {
+      \fp_use:c
+        {
+        l_mslf_parallelo_is_center_first_{1}#2#3#4#5_fp
+        }
+      }
+    }
+  \expandafter\gdef
+    \csname
+      y
+      \tl_use:c
+        {l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl}
+      val
+    \endcsname
+    {
+    \num
+      {
+      \fp_use:c
+        {
+        l_mslf_parallelo_is_center_first_{2}#2#3#4#5_fp
+        }
+      }
+    }
+  \expandafter\gdef\csname x\tl_use:c{l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl} val\endcsname{\num{\fp_use:c{l_mslf_parallelo_is_center_second_{1}#2#3#4#5_fp}}}
+	\expandafter\gdef\csname y\tl_use:c{l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl} val\endcsname{\num{\fp_use:c{l_mslf_parallelo_is_center_second_{2}#2#3#4#5_fp}}}
+	\expandafter\gdef\csname x\tl_use:c{l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl} type\endcsname{\frac{\num{\fp_use:c{l_mslf_parallelo_is_center_first_{1}#2#3#4#5_num_fp}}}{2}}
+	\expandafter\gdef\csname y\tl_use:c{l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl} type\endcsname{\frac{\num{\fp_use:c{l_mslf_parallelo_is_center_first_{2}#2#3#4#5_num_fp}}}{2}}
+	\expandafter\gdef\csname x\tl_use:c{l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl} type\endcsname{\frac{\num{\fp_use:c{l_mslf_parallelo_is_center_second_{1}#2#3#4#5_num_fp}}}{2}}
+	\expandafter\gdef\csname y\tl_use:c{l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl} type\endcsname{\frac{\num{\fp_use:c{l_mslf_parallelo_is_center_second_{2}#2#3#4#5_num_fp}}}{2}}
+	\tl_if_blank:VTF\l_mslf_redac_parallelogramme_is_center_first_addx_tl
+		{\tl_set:Nn\l_mslf_redac_parallelogramme_is_center_first_addx_tl{=\csname x\tl_use:c{l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl} val\endcsname}}
+		{}
+	\tl_if_blank:VTF\l_mslf_redac_parallelogramme_is_center_first_addy_tl
+		{\tl_set:Nn\l_mslf_redac_parallelogramme_is_center_first_addy_tl{=\csname y\tl_use:c{l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl} val\endcsname}}
+		{}
+	\tl_if_blank:VTF\l_mslf_redac_parallelogramme_is_center_second_addx_tl
+		{\tl_set:Nn\l_mslf_redac_parallelogramme_is_center_second_addx_tl{=\csname x\tl_use:c{l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl} val\endcsname}}
+		{}
+	\tl_if_blank:VTF\l_mslf_redac_parallelogramme_is_center_second_addy_tl
+		{\tl_set:Nn\l_mslf_redac_parallelogramme_is_center_second_addy_tl{=\csname y\tl_use:c{l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl} val\endcsname}}
+		{}
+	\tl_gset:cx{l_mslf_redac_parallelogramme_is_center_first_addx#2#3#4#5_tl}{\tl_use:N\l_mslf_redac_parallelogramme_is_center_first_addx_tl}
+	\tl_gset:cx{l_mslf_redac_parallelogramme_is_center_first_addy#2#3#4#5_tl}{\tl_use:N\l_mslf_redac_parallelogramme_is_center_first_addy_tl}
+	\tl_gset:cx{l_mslf_redac_parallelogramme_is_center_second_addx#2#3#4#5_tl}{\tl_use:N\l_mslf_redac_parallelogramme_is_center_second_addx_tl}
+	\tl_gset:cx{l_mslf_redac_parallelogramme_is_center_second_addy#2#3#4#5_tl}{\tl_use:N\l_mslf_redac_parallelogramme_is_center_second_addy_tl}
+	\long\expandafter\gdef\csname #2#3#4#5redac\endcsname%
+		{%
+		Soit~$\tl_use:c{l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl}$~le ~milieu~de~$\segment{#2#4}$.~On ~a~ $x\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl}}=\frac{x\c_math_subscript_token{#2}+x\c_math_subscript_token{#4}}{2}$~ et~ $y\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl}}=\frac{y\c_math_subscript_token{#2}+y\c_math_subscript_token{#4}}{2}$.\newline
+		 Par~conséquent,~		$x\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl}}=\frac{\num{\coord1{#2}}+\mslf_par_if_neg:n{\coord1{#4}}}{2}=\frac{\num{\fp_use:c{l_mslf_parallelo_is_center_first_{1}#2#3#4#5_num_fp}}}{2}\tl_use:c{l_mslf_redac_parallelogramme_is_center_first_addx#2#3#4#5_tl}$~ et~ 		$y\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl}}=\frac{\num{\coord2{#2}}+\mslf_par_if_neg:n{\coord2{#4}}}{2}=\frac{\num{\fp_use:c{l_mslf_parallelo_is_center_first_{2}#2#3#4#5_num_fp}}}{2}\tl_use:c{l_mslf_redac_parallelogramme_is_center_first_addy#2#3#4#5_tl}$.~%
+\tl_set:Nx\l_tmpa_tl{\tl_use:c{l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl},\fp_use:c{l_mslf_parallelo_is_center_first_{1} #2 #3 #4 #5 _fp},\fp_use:c{l_mslf_parallelo_is_center_first_{2}#2#3#4#5_fp}}%
+\exp_args:NV\setpoints\l_tmpa_tl%
+D'où~$\tl_use:c{l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl}\cord{\fp_use:c{l_mslf_parallelo_is_center_first_{1}#2#3#4#5_fp};\fp_use:c{l_mslf_parallelo_is_center_first_{2}#2#3#4#5_fp}}$.\newline
+		Soit~$\tl_use:c{l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl}$~le ~milieu~de~$\segment{#3#5}$.~On ~a~ $x\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl}}=\frac{x\c_math_subscript_token{#3}+x\c_math_subscript_token{#5}}{2}$~ et~ $y\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl}}=\frac{y\c_math_subscript_token{#3}+y\c_math_subscript_token{#5}}{2}$.\newline
+		 Par~conséquent,~		$x\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl}}=\frac{\num{\coord1{#3}}+\mslf_par_if_neg:n{\coord1{#5}}}{2}=\frac{\num{\fp_use:c{l_mslf_parallelo_is_center_second_{1}#2#3#4#5_num_fp}}}{2}\tl_use:c{l_mslf_redac_parallelogramme_is_center_second_addx#2#3#4#5_tl}$~ et~ 		$y\c_math_subscript_token{\tl_use:c{l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl}}=\frac{\num{\coord2{#3}}+\mslf_par_if_neg:n{\coord2{#5}}}{2}=\frac{\num{\fp_use:c{l_mslf_parallelo_is_center_second_{2}#2#3#4#5_num_fp}}}{2}\tl_use:c{l_mslf_redac_parallelogramme_is_center_second_addy#2#3#4#5_tl}$.~
+\tl_set:Nx\l_tmpa_tl{\tl_use:c{l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl},\fp_use:c{l_mslf_parallelo_is_center_second_{1}#2#3#4#5_fp},\fp_use:c{l_mslf_parallelo_is_center_second_{2}#2#3#4#5_fp}}	
+\exp_args:NV\setpoints\l_tmpa_tl
+~D'où~$\tl_use:c{l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl}\cord{\fp_use:c{l_mslf_parallelo_is_center_second_{1}#2#3#4#5_fp};\fp_use:c{l_mslf_parallelo_is_center_second_{2}#2#3#4#5_fp}}$.\newline
+\fp_compare:nTF
+	{\fp_use:c{l_mslf_parallelo_is_center_first_{1}#2#3#4#5_fp}=\fp_use:c{l_mslf_parallelo_is_center_second_{1}#2#3#4#5_fp}&&\fp_use:c{l_mslf_parallelo_is_center_first_{2}#2#3#4#5_fp}=\fp_use:c{l_mslf_parallelo_is_center_second_{2}#2#3#4#5_fp}}
+	{$\tl_use:c{l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl}$~et~$\tl_use:c{l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl}$~ont~les~mêmes~coordonnées~donc~ces ~points~sont~confondus.~ Les ~diagonales~du~quadrilatère~$#2#3#4#5$~se~coupent~donc~en~leur~milieu:~$#2#3#4#5$~est~un~parallélogramme.}
+	{$\tl_use:c{l_mslf_redac_parallelo_is_center_first_name#2#3#4#5_tl}$~et~$\tl_use:c{l_mslf_redac_parallelo_is_center_second_name#2#3#4#5_tl}$~n'ont~pas~les~mêmes~coordonnées~donc~ces ~points~sont~différents.~ Les ~diagonales~du~quadrilatère~$#2#3#4#5$~ne~se~coupent~donc~pas~en~leur~milieu:~$#2#3#4#5$~n'est~pas~un~parallélogramme.}
+		\xspace
+		}%
+	\group_end:
+	}
+%
+% calcul coord vecteur
+%
+\cs_new:Npn\__mslf_grab_beforeslash:w#1/#2\q_stop
+    {#1}
+\cs_new:Npn\__mslf_grab_afterslash:w#1/#2\q_stop
+    {#2}
+%
+\NewDocumentCommand\redacvect{m}
+    {
+    \group_begin:
+    \tl_set:Nx\l_pt_A_tl{\__mslf_grab_beforeslash:w#1\q_stop}
+    \tl_set:Nx\l_pt_B_tl{\__mslf_grab_afterslash:w#1\q_stop}
+    \__mslf_redac_vect_coordcalc:VvvVvv\l_pt_A_tl{rawx\l_pt_A_tl}{rawy\l_pt_A_tl}\l_pt_B_tl{rawx\l_pt_B_tl}{rawy\l_pt_B_tl}
+    \group_end:
+    }
+\cs_new:Npn\__mslf_redac_vect_coordcalc:nnnnnn#1#2#3#4#5#6%
+    {
+  On~a~$\use:c{point#1}$~et~$\use:c{point#4}$~donc~le~couple~des~coordonnées~de~$\vect{#1#4}$~est~$\cord{\num{#5}-\fp_compare:nTF{#2<0}{\left(\num{#2}\right)}{\num{#2}};\num{#6}-\fp_compare:nTF{#3<0}{\left(\num{#3}\right)}{\num{#3}}}$~soit~$\cord{\fp_eval:n{#5-#2};\fp_eval:n{#6-#3}}$%
+    }
+\cs_generate_variant:Nn\__mslf_redac_vect_coordcalc:nnnnnn{VvvVvv}
+%
+%####################################################
+%
+% SECOND DEGRE
+%
+%####################################################
+%
+%
+% Set polynome
+%
+\NewDocumentCommand{\setpol}{O{P}m}
+	{
+	\clist_clear_new:c{l_mslf_pol{#1}_deg_list_clist}
+	\mslf_polynome_monome_aux:nn{#1}{#2}
+	\int_zero:N\l_tmpa_int
+	\tl_clear:N\l_mslf_polynome_type_tl
+	\tl_clear:N\l_mslf_polynome_coefcomputed_type_tl	
+	\clist_map_inline:cn{l_mslf_pol{#1}_deg_list_clist}
+		{
+		\fp_gset:cn{l_mslf_pol#1_coefdeg##1_fp}{0+\tl_use:c{l_mslf_pol#1_coefdeg##1_tl}}
+		\int_compare:nTF{\l_tmpa_int=0}
+			{
+			\tl_put_right:Nx\l_mslf_polynome_type_tl
+				{
+				\fp_compare:nTF
+					{##1=0}
+					{
+					\tl_use:c{l_mslf_pol#1_coefdeg##1_tl}
+					}
+					{
+					\fp_compare:nTF
+						{\use:c{l_mslf_pol#1_coefdeg##1_fp}=1}
+						{}
+						{
+						\fp_compare:nTF
+							{\use:c{l_mslf_pol#1_coefdeg##1_fp}=-1}
+							{-}
+							{\tl_use:c{l_mslf_pol#1_coefdeg##1_tl}}
+						}
+					\fp_compare:nTF
+						{##1=1}
+						{x}
+						{x\c_math_superscript_token {##1}}
+					}
+				}
+			\tl_put_right:Nx\l_mslf_polynome_coefcomputed_type_tl
+				{
+				\fp_compare:nTF
+					{##1=0}
+					{
+					\fp_to_decimal:c{l_mslf_pol#1_coefdeg##1_fp}
+					}
+					{
+					\fp_compare:nTF
+						{\use:c{l_mslf_pol#1_coefdeg##1_fp}=1}
+						{}
+						{
+						\fp_compare:nTF
+							{\use:c{l_mslf_pol#1_coefdeg##1_fp}=-1}
+							{-}
+							{\fp_to_decimal:c{l_mslf_pol#1_coefdeg##1_fp}}
+						}
+					\fp_compare:nTF
+						{##1=1}
+						{x}
+						{x\c_math_superscript_token {##1}}
+					}
+				}
+			}
+			{\fp_compare:nTF
+				{0\tl_use:c{l_mslf_pol#1_coefdeg##1_tl}>=0}
+				{
+				\tl_put_right:Nx\l_mslf_polynome_type_tl
+					{
+					+
+					\fp_compare:nTF
+						{##1=0}
+						{\tl_use:c{l_mslf_pol#1_coefdeg##1_tl}}
+						{
+						\fp_compare:nTF
+							{\use:c{l_mslf_pol#1_coefdeg##1_fp}=1}
+							{}
+							{
+							\tl_use:c{l_mslf_pol#1_coefdeg##1_tl}
+							}
+						\fp_compare:nTF
+							{##1=1}
+							{x}
+							{x\c_math_superscript_token {##1}}
+						}
+					}
+				\tl_put_right:Nx\l_mslf_polynome_coefcomputed_type_tl
+					{
+					+
+					\fp_compare:nTF
+						{##1=0}
+						{\fp_to_decimal:c{l_mslf_pol#1_coefdeg##1_fp}}
+						{
+						\fp_compare:nTF
+							{\use:c{l_mslf_pol#1_coefdeg##1_fp}=1}
+							{}
+							{
+							\fp_to_decimal:c{l_mslf_pol#1_coefdeg##1_fp}
+							}
+						\fp_compare:nTF
+							{##1=1}
+							{x}
+							{x\c_math_superscript_token {##1}}}
+					}
+				}
+				{
+				\tl_put_right:Nx\l_mslf_polynome_type_tl
+					{
+					\fp_compare:nTF
+						{##1=0}
+						{\tl_use:c{l_mslf_pol#1_coefdeg##1_tl}}
+						{
+						\fp_compare:nTF
+							{\use:c{l_mslf_pol#1_coefdeg##1_fp}=-1}
+							{-}
+							{
+							\tl_use:c{l_mslf_pol#1_coefdeg##1_tl}
+							}					
+						\fp_compare:nTF
+							{##1=1}
+							{x}
+							{x\c_math_superscript_token {##1}}
+						}
+					}
+				\tl_put_right:Nx\l_mslf_polynome_coefcomputed_type_tl
+					{
+					\fp_compare:nTF
+						{##1=0}
+						{\fp_to_decimal:c{l_mslf_pol#1_coefdeg##1_fp}}
+						{
+						\fp_compare:nTF
+							{\use:c{l_mslf_pol#1_coefdeg##1_fp}=-1}
+							{-}
+							{
+							\fp_to_decimal:c{l_mslf_pol#1_coefdeg##1_fp}
+							}					
+						\fp_compare:nTF
+							{##1=1}
+							{x}
+							{x\c_math_superscript_token {##1}}
+						}
+					}
+				}
+			}
+		\int_incr:N\l_tmpa_int
+		\tl_gset:cx{l_mslf_pol#1_coefdeg##1_type_tl}{\tl_use:c{l_mslf_pol#1_coefdeg##1_tl}}
+		\tl_replace_all:cnn{l_mslf_pol#1_coefdeg##1_type_tl}{sqrt(}{\sqrt\c_group_begin_token}
+		\tl_replace_all:cnn{l_mslf_pol#1_coefdeg##1_type_tl}{)}{\c_group_end_token}%		
+		}
+	\tl_replace_all:Nnn\l_mslf_polynome_type_tl{(}{\c_group_begin_token}
+	\tl_replace_all:Nnn\l_mslf_polynome_type_tl{)}{\c_group_end_token}
+	\tl_replace_all:Nnn\l_mslf_polynome_type_tl{sqrt}{\sqrt}
+	\tl_replace_once:Nnn\l_mslf_polynome_type_tl{.}{,}
+	\tl_replace_once:Nnn\l_mslf_polynome_coefcomputed_type_tl{.}{,}
+	\tl_gset:cV{l_mslf_polynome#1_type_tl}\l_mslf_polynome_type_tl
+	\tl_gset:cV{l_mslf_polynome#1_type_coefcomputed_tl}\l_mslf_polynome_coefcomputed_type_tl
+	}
+%
+\cs_new_protected:Npn\mslf_polynome_monome_aux:nn#1#2
+	{
+	\__mslf_polynome_monome_aux:nw{#1}#2+\q_recursion_tail\q_recursion_stop\q_recursion_stop
+	}
+%
+\cs_new:Npn \__mslf_polynome_monome_aux:nw #1#2\q_recursion_stop
+	{
+	\quark_if_recursion_tail_stop:n{#2}
+	\tl_if_in:nnTF{#2}{x}
+		{
+		\tl_if_in:nnTF{#2}{+}
+			{\mslf_polynome_monome_plus_aux:nw{#1}#2\q_stop}
+			{
+			\tl_if_in:nnTF{#2}{-}
+				{\mslf_polynome_monome_moins_aux:nw{#1}#2\q_stop}
+				{
+				}
+			}
+		}
+		{
+		\tl_if_in:nnTF{#2}{+}
+			{\mslf_polynome_monome_zero_plus_aux:nw{#1}#2\q_stop}
+			{
+			\tl_if_in:nnTF{#2}{-}
+				{\mslf_polynome_monome_zero_moins_aux:nw{#1}#2\q_stop}
+				{#2\q_stop}
+			}
+		\clist_gput_right:cn{l_mslf_pol{#1}_deg_list_clist}{0}			
+		\fp_gset:cn{l_mslf_pol#1_coefdeg0_fp}{#2}
+		}
+	}
+%
+\tl_set:Nn\c_mslf_plus_tl{+}
+\tl_set:Nn\c_mslf_moins_tl{-}
+\cs_new_protected:Npn\mslf_polynome_monome_plus_aux:nw#1#2x#3+#4\q_stop
+	{
+	\tl_set:Nn\l_tmpa_tl{#2}
+	\tl_if_blank:nTF
+		{#3}
+		{
+		\clist_gput_right:cn{l_mslf_pol{#1}_deg_list_clist}{1}
+		\tl_case:NnTF\l_tmpa_tl
+			{
+			\c_mslf_plus_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg1_tl}{1}}
+			\c_mslf_moins_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg1_tl}{-1}}
+			\c_empty_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg1_tl}{1}}
+			\c_space_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg1_tl}{1}}
+			}
+			{}
+			{\tl_gset:cn{l_mslf_pol#1_coefdeg1_tl}{#2}}
+		\__mslf_polynome_monome_aux:nw{#1}#4\q_recursion_stop
+		}
+		{
+		\tl_if_in:nnTF{#3}{-}
+			{
+			\mslf_polynome_monome_moins_aux:nw{#1}#2x#3+#4\q_stop
+			}
+			{			
+			\clist_gput_right:cn{l_mslf_pol{#1}_deg_list_clist}{#3}
+			\tl_case:NnTF\l_tmpa_tl
+				{
+				\c_mslf_plus_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg#3_tl}{1}}
+				\c_mslf_moins_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg#3_tl}{-1}}
+				\c_empty_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg#3_tl}{1}}
+				\c_space_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg#3_tl}{1}}
+				}
+				{}
+				{\tl_gset:cn{l_mslf_pol#1_coefdeg#3_tl}{#2}}
+			\__mslf_polynome_monome_aux:nw{#1}#4\q_recursion_stop
+			}
+		}
+	}
+%
+\cs_new_protected:Npn\mslf_polynome_monome_moins_aux:nw#1#2x#3-#4\q_stop
+	{
+	\tl_set:Nn\l_tmpa_tl{#2}
+	\tl_if_blank:nTF
+		{#3}
+		{
+		\clist_gput_right:cn{l_mslf_pol{#1}_deg_list_clist}{1}
+		\tl_case:NnTF\l_tmpa_tl
+			{
+			\c_mslf_plus_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg1_tl}{1}}
+			\c_mslf_moins_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg1_tl}{-1}}
+			\c_empty_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg1_tl}{1}}
+			\c_space_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg1_tl}{1}}
+			}
+			{}
+			{\tl_gset:cn{l_mslf_pol#1_coefdeg1_tl}{#2}}
+		}
+		{
+		\clist_gput_right:cn{l_mslf_pol{#1}_deg_list_clist}{#3}
+			\tl_case:NnTF\l_tmpa_tl
+				{
+				\c_mslf_plus_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg#3_tl}{1}}
+				\c_mslf_moins_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg#3_tl}{-1}}
+				\c_empty_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg#3_tl}{1}}
+				\c_space_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg#3_tl}{1}}
+				}
+				{}
+				{\tl_gset:cn{l_mslf_pol#1_coefdeg#3_tl}{#2}}
+		}
+	\__mslf_polynome_monome_aux:nw{#1}-#4\q_recursion_stop
+	}
+%
+\cs_new_protected:Npn\mslf_polynome_monome_zero_plus_aux:nw#1#2+#3\q_stop
+	{
+	\tl_set:Nn\l_tmpa_tl{#2}
+	\clist_gput_right:cn{l_mslf_pol{#1}_deg_list_clist}{0}
+	\tl_case:NnTF\l_tmpa_tl
+		{
+		\c_mslf_plus_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg0_tl}{1}}
+		\c_mslf_moins_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg0_tl}{-1}}
+		\c_empty_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg0_tl}{1}}
+		\c_space_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg0_tl}{1}}
+		}
+		{}
+		{\tl_gset:cn{l_mslf_pol#1_coefdeg0_tl}{#2}}
+	\__mslf_polynome_monome_aux:nw{#1}#3\q_recursion_stop
+	}
+%
+\cs_new_protected:Npn\mslf_polynome_monome_zero_moins_aux:nw#1#2-#3\q_stop
+	{
+	\tl_set:Nn\l_tmpa_tl{#2}
+	\clist_gput_right:cn{l_mslf_pol{#1}_deg_list_clist}{0}
+	\tl_case:NnTF\l_tmpa_tl
+		{
+		\c_mslf_plus_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg0_tl}{1}}
+		\c_mslf_moins_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg0_tl}{-1}}
+		\c_empty_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg0_tl}{1}}
+		\c_space_tl{\tl_gset:cn{l_mslf_pol#1_coefdeg0_tl}{1}}
+		}
+		{}
+		{\tl_gset:cn{l_mslf_pol#1_coefdeg0_tl}{#2}}
+	\__mslf_polynome_monome_aux:nw{#1}-#3\q_recursion_stop
+	}
+%
+% Use polynome
+%
+\NewDocumentCommand{\typepol}{sm}
+	{
+	\IfBooleanTF{#1}
+		{\tl_use:c{l_mslf_polynome#2_type_coefcomputed_tl}}	
+		{\tl_use:c{l_mslf_polynome#2_type_tl}}
+	}
+%
+% Usage
+%\setpol[f]{sqrt(1.2)x2+3x-1}
+%\setpol[g]{-2x6-3x5-1.5}
+%\setpol[h1]{ x2-x-3}
+%$\typepol{f}$
+%
+%$\typepo
+
+%l*{f}$
+%
+%$\typepol{g}$
+%
+%$\typepol{h1}$
+%
+%$\typepol*{h1}$
+%
+%####################################################
+%
+% SOLVE SECOND DEGRE
+%
+%####################################################
+%
+
+%
+%*******************************************************
+%						********************************
+% 	********************************
+%						********************************
+%*******************************************************
+%
+\NewDocumentCommand{\solveeqdegii}{m}
+	{
+	}
+%
+\cs_new:Npn\mslf_solvedegii_parse_eq:w#1=#2\q_stop
+	{
+	\mslf_solvedegii:n{#1}
+	}
+%
+\cs_generate_variant:Nn\mslf_par_if_neg:n{x}
+%
+\cs_new:Npn\mslf_solvedegii_delta:n#1
+	{
+	\fp_gset:cn{l_mslf_solvedegii_delta#1_fp}
+		{
+		(\use:c{l_mslf_pol#1_coefdeg1_fp})^2-4*\use:c{l_mslf_pol#1_coefdeg2_fp}*\use:c{l_mslf_pol#1_coefdeg0_fp}
+		}
+	\tl_gset:cn{l_mslf_solvedegii_delta#1_tl}
+		{
+		\fp_compare:nTF
+			{\use:c{l_mslf_pol#1_coefdeg1_fp}<0}
+			{(\tl_use:c{l_mslf_pol#1_coefdeg1_type_tl})^2}
+			{\tl_use:c{l_mslf_pol#1_coefdeg1_type_tl}^2}
+			-4\times
+				\fp_compare:nTF
+					{\use:c{l_mslf_pol#1_coefdeg2_fp}<0}
+					{(\tl_use:c{l_mslf_pol#1_coefdeg2_type_tl})}
+					{\tl_use:c{l_mslf_pol#1_coefdeg2_type_tl}}
+				\times\fp_compare:nTF
+					{\use:c{l_mslf_pol#1_coefdeg0_fp}<0}
+					{(\tl_use:c{l_mslf_pol#1_coefdeg0_type_tl})}
+					{\tl_use:c{l_mslf_pol#1_coefdeg0_type_tl}}
+		}
+	\tl_gset:cx{l_mslf_solvedegii_delta#1_computd_tl}{\fp_to_decimal:c{l_mslf_solvedegii_delta#1_fp}}
+	\tl_greplace_once:cnn{l_mslf_solvedegii_delta#1_computd_tl}{.}{,}
+	\tl_gset:cn{l_mslf_solvedegii_delta#1_notcomputd_tl}{\tl_use:c{l_mslf_solvedegii_delta#1_tl}}
+	\global\expandafter\def\csname #1deltaval\endcsname{\tl_use:c{l_mslf_solvedegii_delta#1_computd_tl}}
+	\global\expandafter\def\csname #1deltaexpr\endcsname{\tl_use:c{l_mslf_solvedegii_delta#1_notcomputd_tl}}
+	\long\expandafter\def\csname #1solveredac\endcsname%
+		{
+		Résolution~de~$\fpol=0$~:\newline
+		\fp_compare:nTF
+			{\use:c{l_mslf_solvedegii_delta#1_fp}<0 }
+			{
+			$\Delta=\fdeltaexpr=\dots=\fdeltaval$,~$\Delta<0$~donc~l'équation~n'a~pas~de~solution.
+			}
+			{
+			\fp_compare:nTF
+				{\use:c{l_mslf_solvedegii_delta#1_fp}=0 }
+				{
+				$\Delta=\fdeltaexpr=\dots=\fdeltaval$,~$\Delta=0$~donc~l'équation~a~une~unique~solution : $-\frac{\tl_use:c{l_mslf_pol#1_coefdeg1_type_fp}}{2\times{\tl_use:c{l_mslf_pol#1_coefdeg2_type_fp}}}$
+				}
+				{
+				$\Delta=\fdeltaexpr=\dots=\fdeltaval$,~$\Delta>0$~donc~l'équation~a~deux~solutions :
+					-\frac{\tl_use:c{l_mslf_pol#1_coefdeg1_type_fp}}{2\times\tl_use:c{l_mslf_pol#1_coefdeg0_type_fp}}$ 
+				}
+			}
+		}
+	}
+\NewDocumentCommand{\deltaeq}{m}
+	{
+	\mslf_solvedegii_delta:n{#1}
+	}
+\NewDocumentCommand{\solve}{m}
+	{
+	\mslf_solvedegii_delta:n{#1}
+	\global\expandafter\def\csname #1deltaval\endcsname{\tl_use:c{l_mslf_solvedegii_delta#1_computd_tl}}
+	\global\expandafter\def\csname #1deltaexpr\endcsname{\tl_use:c{l_mslf_solvedegii_delta#1_notcomputd_tl}}
+	}
+%
+% Usage
+%\deltaeq{f}
+%$\fdeltaval$
+%
+%$\fdeltaexpr$
+%
+%%$\deltaeq{h1}$
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\NewDocumentCommand{\eqcartdrtptvct}{O{#1}m}{
+	\foreach[count=\n from 1] \n@meobj/\@bsobj/\@rdobj in {#2}{%
+		\ifnum\n=1 
+			\global\let\n@meA\n@meobj
+			\global\let\@bsA\@bsobj
+			\global\let\@rdA\@rdobj
+		\else
+			\global\let\n@meu\n@meobj
+			\global\let\@bsu\@bsobj
+			\global\let\@rdu\@rdobj		
+		\fi	
+		}%
+	\FPmul\eqc@efcinti{\@rdA}{\@bsu}
+	\FPmul\eqc@efcintii{\@bsA}{\@rdu}
+	\FPsub\eqc@efc{\eqc@efcinti}{\eqc@efcintii}
+	\FPclip\eqc@efc{\eqc@efc}
+	\FPclip\eqc@efa{\@rdu}
+	\FPeval\eqc@efb{0-\@bsu}
+	\FPclip\eqc@efb{\eqc@efb}
+	\FPifeq{\eqc@efa}{0}%
+		\gdef\eqcoefa{}
+	\else%
+		\gdef\eqcoefa{\numprint{\eqc@efa}x}
+	\fi
+	\FPifeq{\eqc@efa}{1}\gdef\eqcoefa{x}\fi
+	\FPifeq{\eqc@efa}{-1}\gdef\eqcoefa{-x}\fi
+	\FPifeq{\eqc@efb}{0}\gdef\eqcoefb{}\fi
+	\FPiflt\eqc@efb{0}\gdef\eqcoefb{\numprint{\eqc@efb}y}\fi
+	\FPifeq{\eqc@efb}{-1}\gdef\eqcoefb{-y}\fi
+	\FPifgt\eqc@efb{0}\gdef\eqcoefb{+\numprint{\eqc@efb}y}\fi
+	\FPifeq{\eqc@efb}{1}\gdef\eqcoefb{y}\fi
+	\FPiflt\eqc@efc{0}\gdef\eqcoefc{\numprint{\eqc@efc}}\fi
+	\FPifgt\eqc@efc{0}\gdef\eqcoefc{+\numprint{\eqc@efc}}\fi
+	\FPifeq\eqc@efc{0}\gdef\eqcoefc{}\fi
+	Une~équation~cartésienne	~\IfNoValueF{#1}{de~#1~}est~ $\eqcoefa \eqcoefb \eqcoefc=0$
+	}	
+%
+\endinput

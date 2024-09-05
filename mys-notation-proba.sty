@@ -1,0 +1,289 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-notation-proba}%
+    [2019/07/07 v0.0 to do the job]%
+%
+%####################################################
+%
+\@ifpackageloaded{amsmath}%
+    {\typeout{Essai de chargement multiple du package amsmath.}}%
+    {\RequirePackage{amsmath}}%
+%
+\@ifpackageloaded{mathtools}%
+    {\typeout{Essai de chargement multiple du package mathtools.}}%
+    {\RequirePackage{mathtools}}%
+%
+\@ifpackageloaded{forest}%
+    {\typeout{Essai de chargement multiple du package forest.}}%
+    {\RequirePackage{forest}}%
+%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%
+%####################################################
+%
+%--- Univers des possibles
+%
+\newcommand\universpossibles[1][\Omega]{#1}
+%
+%--- Expérience aléatoire
+%
+\newcommand\expaleat[1]{\mathcal{#1}}
+\let\experiencealeatoire\expaleat
+%
+%--- Covariance
+%
+\DeclareMathOperator\cov@riance{Cov}%
+\def\dat@s#1;#2\scanend{#1\,;#2}
+\DeclarePairedDelimiterXPP\cov[1]{\cov@riance}(){}{\dat@s#1\scanend}%
+%
+%--- Proba
+%
+%   ---   operateur
+%
+\DeclareMathOperator\Probabilite{P}%
+%
+\DeclareMathOperator\probabilite{p}%
+%
+%   ---   user macro
+%
+\def\mys@probacond@stop{}%
+\providecommand\sachant{}%
+%
+\def\mys@proba@cond@sachant{}%
+\def\mys@proba@cond@sachanti#1\sachant#2\mys@stop{}%
+%
+\def\mys@proba@cond@sep{\vert}%
+%
+\newcommand*{\probacondsep}[1]{\def\mys@proba@cond@sep{#1}}%
+%
+\newcommand*\probacondindice{%
+    \def\mys@proba@cond@sachant##1\mys@probacond@stop{}%
+    \def\mys@proba@cond@sachanti##1\sachant##2\mys@probacond@stop{\ifx\sachant##2\relax\else_{\def\sachant{}##2}\fi}%
+    }%
+%
+\newcommand*\probacondbarre{%
+    \def\mys@probacond@stop{}%
+    \def\mys@proba@cond@sachanti##1\mys@probacond@stop{}%
+    \def\mys@proba@cond@sachant##1\mys@probacond@stop{\nonscript\:\delimsize\mys@proba@cond@sep\nonscript\:\mathopen{}##1}%
+    }%
+%
+\probacondindice{}%
+%
+\DeclarePairedDelimiterXPP\Prb[1]%
+    {\Probabilite\mys@proba@cond@sachanti#1\sachant\mys@probacond@stop}%
+    ()%
+    {}%
+    {\let\sachant\mys@proba@cond@sachant#1\mys@probacond@stop}%
+%
+\DeclarePairedDelimiterXPP\prb[1]%
+    {\probabilite\mys@proba@cond@sachanti#1\sachant\mys@probacond@stop}%
+    ()%
+    {}%
+    {\let\sachant\mys@proba@cond@sachant#1\mys@probacond@stop}%
+%
+%\NewDocumentCommand{\prb}{om}%   avec xparse
+%  {%
+%  \IfNoValueTF{#1}%
+%    {\probabilite(#2)}%
+%    {\probabilite#1(#2#1)}%
+%  }%
+%%
+%\NewDocumentCommand{\Prb}{om}%
+%  {%
+%  \IfNoValueTF{#1}%
+%    {\Probabilite(#2)}%
+%    {\Probabilite#1(#2#1)}%
+%  }%
+%
+%####################################################
+%
+%--- Fréquence
+%
+%   ---   operateur
+%
+\DeclareMathOperator\frequence{f}%
+%
+%   ---   user macro
+%
+\def\mys@freqcond@stop{}%
+\providecommand\sachant{}%
+%
+\def\mys@freq@cond@sachant{}%
+\def\mys@freq@cond@sachanti#1\sachant#2\mys@stop{}%
+%
+\def\mys@freq@cond@sep{\vert}%
+%
+\newcommand*{\freqcondsep}[1]{\def\mys@freq@cond@sep{#1}}%
+%
+\newcommand*\freqcondindice{%
+    \def\mys@freq@cond@sachant##1\mys@freqcond@stop{}%
+    \def\mys@freq@cond@sachanti##1\sachant##2\mys@freqcond@stop{\ifx\sachant##2\relax\else_{\def\sachant{}##2}\fi}%
+    }%
+%
+\newcommand*\freqcondbarre{%
+    \def\mys@freqcond@stop{}%
+    \def\mys@freq@cond@sachanti##1\mys@freqcond@stop{}%
+    \def\mys@freq@cond@sachant##1\mys@freqcond@stop{\nonscript\:\delimsize\mys@freq@cond@sep\nonscript\:\mathopen{}##1}%
+    }%
+%
+\freqcondindice{}%
+%
+%
+\DeclarePairedDelimiterXPP\freq[1]%
+    {\frequence\mys@freq@cond@sachanti#1\sachant\mys@freqcond@stop}%
+    ()%
+    {}%
+    {\let\sachant\mys@freq@cond@sachant#1\mys@freqcond@stop}%
+%
+%
+%####################################################
+%
+%--- Cardinal
+%
+%   ---   operateur
+%
+\DeclareMathOperator\cardinal{card}%
+%
+%   ---   user macro
+%
+\DeclarePairedDelimiterXPP\card[1]{\cardinal}(){}{#1}%
+%
+%
+%####################################################
+%
+%--- Espérance
+%
+%   ---   operateur
+%
+\DeclareMathOperator\esper@nce{E}%
+%
+%   ---   user macro
+%
+\DeclarePairedDelimiterXPP\esperance[1]{\esper@nce}(){}{#1}%
+\DeclarePairedDelimiterXPP\esp[1]{\esper@nce}(){}{#1}%
+%
+%####################################################
+%
+%--- Ecart-type
+%
+%   ---   operateur
+%
+\newcommand{\opgreek}[1]{\begingroup\mathgroup-1 #1\endgroup}
+\DeclareMathOperator{\ec@rttype}{\mupsigma}%
+%
+%   ---   user macro
+%
+\DeclarePairedDelimiterXPP\ecarttype[1]{\ec@rttype}(){}{#1}%
+\DeclarePairedDelimiterXPP\ecartype[1]{\ec@rttype}(){}{#1}%
+\DeclarePairedDelimiterXPP\ecrtp[1]{\ec@rttype}(){}{#1}%
+%
+%####################################################
+%
+%--- Variance
+%
+%   ---   operateur
+%
+\DeclareMathOperator{\vari@nce}{V}%
+%
+%   ---   user macro
+%
+\DeclarePairedDelimiterXPP\variance[1]{\vari@nce}(){}{#1}%
+\DeclarePairedDelimiterXPP\var[1]{\vari@nce}(){}{#1}%
+%
+%####################################################
+%
+%--- Loi normale
+%
+%   ---   operateur
+%
+\DeclareMathOperator\loinormale{\mathcal{N}}%
+%
+%   ---   user macro
+%
+\def\mys@proba@loi@twovar@hspace#1;#2\mys@proba@stop{#1\,;#2}%
+%
+\DeclarePairedDelimiterXPP\loinorm[1]{\loinormale}(){}{\mys@proba@loi@twovar@hspace#1\mys@proba@stop}%
+%
+%####################################################
+%
+%--- Loi binomiale
+%
+%   ---   operateur
+%
+\DeclareMathOperator\loibinomiale{\mathcal{B}}%
+%
+%   ---   user macro
+%
+\DeclarePairedDelimiterXPP\loibinom[1]{\loibinomiale}(){}{\mys@proba@loi@twovar@hspace#1\mys@proba@stop}%
+%
+%####################################################
+%
+%--- Loi géométrique
+%
+\def\mys@proba@loi@onevar@hspace#1\mys@proba@stop{#1}%
+%
+%   ---   operateur
+%
+\DeclareMathOperator\loigeometrique{\mathcal{G}}%
+%
+%   ---   user macro
+%
+\DeclarePairedDelimiterXPP\loigeo[1]{\loigeometrique}(){}{\mys@proba@loi@onevar@hspace#1\mys@proba@stop}%%--- Loi de probabilité
+%
+%####################################################
+%
+%--- Environnement loiproba pour dresser le tableau donnant la loi de proba d'une V.A.
+%
+%\def\truc{\begin{tblr}{hlines,vlines,columns={c,$}}}
+%\def\addtobeginline#1#2#3\\#4\\{#1&#3\\#2&#4\\}
+%\NewDocumentEnvironment{loiproba}{O{x}+b}{\expandafter\truc\addtobeginline{#1_i}{\Prb{\uppercase{#1}=#1_i}}#2\\}{\end{tblr}}
+\def\addtobeginline#1#2#3\\#4\\{\begin{tblr}{hlines,vlines,columns={c,$}}#1&#3\\#2&#4\\}
+\NewDocumentEnvironment{loiproba}{O{x}+b}%
+    {%
+    \addtobeginline{#1_i}{\Prb{\uppercase{#1}=#1_i}}#2\\}%
+    {\end{tblr}}
+%
+%####################################################
+%
+%--- Environnement distribvarii pour dresser le tableau d'une série stat à deux variables
+%
+\ExplSyntaxOn
+\keys_define:nn { stat/2var/distrib/print }
+{
+    xlabel .tl_set:N = \l_stat_distrib_xlabel_tl,
+    xlabel .default:n = x,
+    xlabel .initial:n = x,
+    ylabel .tl_set:N = \l_stat_distrib_ylabel_tl,
+    ylabel .default:n = y,
+    ylabel .initial:n = y,
+%    unknown .code:n =\tl_set:NV \__stat_distrib_unknown_key_tl \l_keys_key_str,
+}
+%
+\def\addtobeginline#1#2#3\\#4\\{\begin{tblr}{hlines,vlines,columns={c,$}}#1&#3\\#2&#4\\}
+%
+\NewDocumentEnvironment{distrib2var}{O{}+b}
+{
+    \keys_set_known:nn { stat/2var/distrib/print } { #1 }
+%    \keys_set_known:nn { tblr} { #1 }
+    \addtobeginline{\text{Valeur\c_space_token}\tl_use:N\l_stat_distrib_xlabel_tl\c_math_subscript_token i}{\text{Valeur\c_space_token}\tl_use:N\l_stat_distrib_ylabel_tl \c_math_subscript_token i}#2\\%
+ }
+{\end{tblr}}
+\ExplSyntaxOff
+%
+\endinput

@@ -1,0 +1,438 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-paquets}%
+    [2019/07/07 v0.0 to do the job]%
+%
+%####################################################
+%
+%
+%####################################################
+%####################################################
+%##########
+%##########    PAQUETS
+%##########
+%####################################################
+%####################################################
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{geometry}%
+    {\typeout{Essai de chargement multiple du package geometry.}}%
+    {\RequirePackage{geometry}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{scrlfile}%
+    {\typeout{Essai de chargement multiple du package scrlfile.}}%
+    {\RequirePackage{scrlfile}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+%  Load before unicode-math
+\@ifpackageloaded{amsmath}%
+    {\typeout{Essai de chargement multiple du package amsmath.}}%
+    {\RequirePackage{amsmath}}
+%
+%\RequirePackage{amssymb}%  load before unicode-math% A éviter avec unicode-math
+%
+%  Load before unicode-math
+\@ifpackageloaded{mathtools}%
+    {\typeout{Essai de chargement multiple du package mathtools.}}%
+    {\RequirePackage{mathtools}}
+%
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{ifluatex}%
+    {\typeout{Essai de chargement multiple du package ifluatex.}}%
+    {\RequirePackage{ifluatex}}
+%
+\@ifpackageloaded{ifpdf}%
+    {\typeout{Essai de chargement multiple du package ifpdf.}}%
+    {\RequirePackage{ifpdf}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\ifluatex
+%
+%     SI LUALATEX EST CHARGÉ
+%
+%    \@ifpackageloaded{babel}%
+%        {\typeout{Essai de chargement multiple du package babel.}}%
+%        {\RequirePackage{babel}}
+    \RequirePackage{polyglossia}
+    \AtBeginDocument{\setmainlanguage{french}}
+    %
+    % avant ...
+    \@ifpackageloaded{libertinus}%
+        {\typeout{Essai de chargement multiple du package libertinus.}}%
+        {\RequirePackage{libertinus}}
+    %
+    % après babel
+    % option [T1] créé un clash
+    \@ifpackageloaded{fontspec}%
+        {\typeout{Essai de chargement multiple du package fontspec.}}%
+        {\RequirePackage{fontspec}}
+    %
+    %\RequirePackage[libertine]{newtxmath}
+    %
+    %\RequirePackage[nomath]{libertinus}
+    %
+    % pose pb avec \mapsto
+    \@ifpackageloaded{unicode-math}%
+        {\typeout{Essai de chargement multiple du package unicode-math.}}%
+        {\RequirePackage{unicode-math}}
+    %
+    % calligraphic
+        % embellished : boondoxo (boondox calligraphic et aussi calligraphic bold)
+     % blackboard : ?
+    % amsfonts ( loaded automatically by amssymb)
+    %    \mathfrak for Fraktur (aka Gothic) letters, upper and lower case
+    %    \mathbb for "blackboard bold" uppercase letters
+    % Zapf's Euler Script
+    % \usepackage[mathcal]{eucal}%  \mathcal will use Euler Script;
+    % \usepackage[mathscr]{eucal}% provide \mathscr for Euler Script 
+    % https://tex.stackexchange.com/questions/58098/what-are-all-the-font-styles-i-can-use-in-math-mode
+    %
+    \@ifpackageloaded{metalogo}%
+        {\typeout{Essai de chargement multiple du package metalogo.}}%
+        {\RequirePackage{metalogo}}
+    %
+    % \RequirePackage{fixltx2e}
+    %
+    \@ifpackageloaded{luatexbase}%
+        {\typeout{Essai de chargement multiple du package luatexbase.}}%
+        {\RequirePackage{luatexbase}}
+    %
+    \@ifpackageloaded{luacode}%
+        {\typeout{Essai de chargement multiple du package luacode.}}%
+        {\RequirePackage{luacode}}
+    %
+%    \@ifpackageloaded{lualibs}%
+%        {\typeout{Essai de chargement multiple du package lualibs.}}%
+%        {%
+%        \RequirePackage{lualibs}%
+%        \directlua{require(”lualibs”)}
+%        }
+%
+    \@ifpackageloaded{auto-pst-pdf-lua}%
+        {\typeout{Essai de chargement multiple du package auto-pst-pdf-lua.}}%
+        {\RequirePackage{auto-pst-pdf-lua}}
+%
+\else
+    \begingroup\expandafter\expandafter\expandafter\endgroup
+    \expandafter\ifx\csname pdftexversion\endcsname\relax
+    \typeout{Il faut utiliser LuaTeX ou pdfTeX, le reste n'est pas géré}%
+    \else
+%
+%     NI LUALATEX NI PDFTEX N'EST CHARGÉ
+%
+    \typeout{This is pdfTeX in \ifpdf PDF \else DVI \fi mode}%
+  \fi
+%
+%     SI PDFTEX EST CHARGÉ
+%
+    \@ifpackageloaded{fontenc}%
+        {\typeout{Essai de chargement multiple du package fontenc.}}%
+        {\RequirePackage[T1]{fontenc}}
+    %
+    \@ifpackageloaded{inputenc}%
+        {\typeout{Essai de chargement multiple du package inputenc.}}%
+        {\RequirePackage[utf8]{inputenc}}
+    %
+    \@ifpackageloaded{babel}%
+        {\typeout{Essai de chargement multiple du package babel.}}%
+        {\RequirePackage{babel}}
+    %
+    \@ifpackageloaded{libertinus}%
+        {\typeout{Essai de chargement multiple du package libertinus.}}%
+        {\RequirePackage{libertinus}}
+    %
+    \@ifpackageloaded{pdfprivacy}% 
+        {\typeout{Essai de chargement multiple du package pdfprivacy.}}%
+        {\RequirePackage{pdfprivacy}}
+\fi
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+%\@ifpackageloaded{xpatch}%
+%    {\typeout{Essai de chargement multiple du package xpatch.}}%
+%    {\RequirePackage{xpatch}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+%\ifluatex
+%    \RequirePackage{polyglossia}%
+%\fi
+%
+%####################################################
+%####################################################
+%%%%
+%%%%                       DANS TOUS LES CAS
+%%%%
+%####################################################
+%####################################################
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+% pour FrameSep dans \ticalci uniquement !
+\@ifpackageloaded{framed}%
+    {\typeout{Essai de chargement multiple du package framed.}}%
+    {\RequirePackage{framed}}
+%
+% https://tex.stackexchange.com/questions/470525/strange-lines-in-front-of-the-document
+% Il est indispensable de charger auxhook dans le preambule si hyperref est chargé par \AtEndPreamble
+% et si bookmark est  utilisé 
+\@ifpackageloaded{auxhook}%
+    {\typeout{Essai de chargement multiple du package auxhook.}}%
+    {\RequirePackage{auxhook}}
+%
+\AtEndOfPackage{%
+    %
+    \@ifpackageloaded{url}%
+        {\typeout{Essai de chargement multiple du package url.}}%
+        {\RequirePackage[hyphens]{url}}
+    %
+    % \AtEndPreamble{% d'où un pb avec bookmark qui est réglé en chargean auxhook dans le préambule
+    \@ifpackageloaded{hyperref}%
+        {\typeout{Essai de chargement multiple du package hyperref.}}%
+        {\RequirePackage{hyperref}}
+    %
+    % pour autoriser le retour à la ligne dans les urls
+    \@ifpackageloaded{hyperxmp}%
+        {\typeout{Essai de chargement multiple du package hyperxmp.}}%
+        {\RequirePackage{hyperxmp}}
+    %
+    % bien placé ?
+    \@ifpackageloaded{bookmark}%
+        {\typeout{Essai de chargement multiple du package bookmark.}}%
+        {\RequirePackage{bookmark}}
+    %
+    \@ifpackageloaded{cleveref}%
+        {\typeout{Essai de chargement multiple du package cleveref.}}%
+        {\RequirePackage{cleveref}}
+    %
+    %%% Choix des options par défauts des packages
+    %
+    \input{mys-paquets-setup}%
+    }%
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{comment}%
+    {\typeout{Essai de chargement multiple du package comment.}}%
+    {\RequirePackage{comment}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{multicol}%
+    {\typeout{Essai de chargement multiple du package multicol.}}%
+    {\RequirePackage{multicol}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{tabularcalc}%
+    {\typeout{Essai de chargement multiple du package tabularcalc.}}%
+    {\RequirePackage{tabularcalc}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{tasks}%
+    {\typeout{Essai de chargement multiple du package tasks.}}%
+    {\RequirePackage{tasks}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{enumitem}%
+    {\typeout{Essai de chargement multiple du package enumitem.}}%
+    {\RequirePackage[inline]{enumitem}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{pgfkeys}%
+    {\typeout{Essai de chargement multiple du package pgfkeys.}}%
+    {\RequirePackage{pgfkeys}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{pgfopts}%
+    {\typeout{Essai de chargement multiple du package pgfopts.}}%
+    {\RequirePackage{pgfopts}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{tabu}%
+    {\typeout{Essai de chargement multiple du package tabu.}}%
+    {\RequirePackage{tabu}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{tabularray}%
+    {\typeout{Essai de chargement multiple du package tabularray.}}%
+    {\RequirePackage{tabularray}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\RequirePackage{mys-tableaux-tools}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{multirow}%
+    {\typeout{Essai de chargement multiple du package multirow.}}%
+    {\RequirePackage{multirow}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{mleftright}%
+    {\typeout{Essai de chargement multiple du package mleftright.}}%
+    {\RequirePackage{mleftright}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+% pour \ding
+\@ifpackageloaded{pifont}%
+    {\typeout{Essai de chargement multiple du package pifont.}}%
+    {\RequirePackage{pifont}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{sagetex}%
+    {\typeout{Essai de chargement multiple du package sagetex.}}%
+    {\RequirePackage{sagetex}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{diffcoeff}%
+    {\typeout{Essai de chargement multiple du package diffcoeff.}}%
+    {\RequirePackage{diffcoeff}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{icomma}%
+    {\typeout{Essai de chargement multiple du package icomma.}}%
+    {\RequirePackage{icomma}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{pgfplots}%
+    {\typeout{Essai de chargement multiple du package pgfplots.}}%
+    {\RequirePackage{pgfplots}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{pgfpages}%
+    {\typeout{Essai de chargement multiple du package pgfpages.}}%
+    {\RequirePackage{pgfpages}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+%\@ifpackageloaded{pdfpages}%
+%    {\typeout{Essai de chargement multiple du package pdfpages.}}%
+%    {\RequirePackage{pdfpages}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{numprint}%
+    {\typeout{Essai de chargement multiple du package numprint.}}%
+    {\RequirePackage{numprint}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{siunitx}%
+    {\typeout{Essai de chargement multiple du package siunitx.}}%
+    {\RequirePackage{siunitx}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\ifluatex%
+    \let\pdfsavepos\savepos%
+    \let\pdflastxpos\lastxpos%
+    \let\pdflastypos\lastypos%
+\fi%
+\@ifpackageloaded{linegoal}%
+    {\typeout{Essai de chargement multiple du package linegoal.}}%
+    {\RequirePackage{linegoal}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{tkz-base}%
+    {\typeout{Essai de chargement multiple du package tkz-base.}}%
+    {\RequirePackage{tkz-base}}%
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{tkz-euclide}%
+    {\typeout{Essai de chargement multiple du package tkz-euclide.}}%
+    {\RequirePackage{tkz-euclide}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{tikz}%
+    {\typeout{Essai de chargement multiple du package tikz.}}%
+    {\RequirePackage{tikz}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{anyfontsize}%
+    {\typeout{Essai de chargement multiple du package anyfontsize.}}%
+    {\RequirePackage{anyfontsize}}
+%
+%<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+%
+\@ifpackageloaded{diagbox}%
+    {\typeout{Essai de chargement multiple du package diagbox.}}%
+    {\RequirePackage{diagbox}}
+%
+%
+% Options if_copy_pdf et if_change_date : NOT WORKING IN CLS
+%
+%    \def\final@jobname{pdf/\jobname-\@cours@genre@liste}%
+%    \gdef\SetJobname#1{\gdef\final@jobname{#1}}
+%
+% Copie du pdf (avec changement de nom si voulu)
+%
+%\def\finalpdfdest{%
+%    \directlua{
+%luatexbase.add_to_callback(
+%'stop_run',
+%function ()
+%  texio.write_nl("renaming output to " ..  "./\final@jobname.pdf")
+%  os.execute("cp -i \jobname.pdf  ./\final@jobname.pdf")
+%end,
+%"renamepdf")}%
+%    }%
+%%
+%% Changement de l'heure dans les métadonnées
+%%
+%\def\finalpdfdate{%
+%    \directlua{
+%luatexbase.add_to_callback(
+%'stop_run',
+%function ()
+%  texio.write_nl("change date of " ..  "./\final@jobname.pdf")
+%  os.execute("/home/myself/bin/change-date.sh -h 1200 -n " .."./\final@jobname.pdf") 
+%end,
+%"changedatepdf")}%
+%    }%
+%\def\finalpdfdate{%
+%    \directlua{
+%luatexbase.add_to_callback(
+%'finish_pdffile',
+%function ()
+%  texio.write_nl("change date of \jobname.pdf")
+%  os.execute("cp -i \jobname.pdf  \jobname.pdf")
+%  os.execute("/home/myself/bin/change-date.sh -h 1200 -n \jobname.pdf") 
+%end,
+%"changedatepdf")}%
+%    }%
+%%
+%%\finalpdfdest
+%%\finalpdfdate

@@ -1,0 +1,2817 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-graph-repere}%
+    [2019/07/07 v0.0 to do the job]%
+%
+%####################################################
+%
+%
+%\@ifpackageloaded{pgfkeys}% chargé par tikz
+%    {\typeout{Essai de chargement multiple du package pgfkeys.}}%
+%    {\RequirePackage{pgfkeys}}%
+%
+\@ifpackageloaded{tikz}%
+    {\typeout{Essai de chargement multiple du package tikz.}}%
+    {\RequirePackage{tikz}}%
+\usetikzlibrary{calc}%
+\usetikzlibrary{3d}%
+\usetikzlibrary{math}%
+\usetikzlibrary{plotmarks}%
+\usetikzlibrary{arrows.meta}%
+\usetikzlibrary{decorations.markings}%    
+%
+%
+\@ifpackageloaded{mys-notation-vect}%
+    {\typeout{Essai de chargement multiple du package mys-notation-vect.}}%
+    {\RequirePackage{mys-notation-vect}}%
+%
+\@ifpackageloaded{xfp}%
+    {\typeout{Essai de chargement multiple du package xfp.}}%
+    {\RequirePackage{xfp}}%
+%
+\@ifpackageloaded{mys-code-tool}%
+    {\typeout{Essai de chargement multiple du package mys-code-tool.}}%
+    {\RequirePackage{mys-code-tool}}%
+%
+\@ifpackageloaded{pgfplots}%
+    {\typeout{Essai de chargement multiple du package pgfplots.}}%
+    {%
+        \RequirePackage{pgfplots}%
+        \pgfplotsset{compat=newest}%
+        \usepgfplotslibrary{fillbetween}%
+    }%
+%
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%
+%####################################################
+%
+%   Marque angle droit
+%
+%####################################################
+%
+\newcommand*\angledroit[3][3mm]{%
+    \draw  ($(#2)!#1!(#3)$) -- ($(#2)!sqrt(2*#1*#1)!45:(#3)$) -- ($(#2)!#1!90:(#3)$);%
+    }%
+%
+%####################################################
+%
+%   plotmark
+%
+%####################################################
+%
+%\pgfdeclareplotmark{||}
+%{%
+%  \pgfpathmoveto{\pgfqpoint{2\pgflinewidth}{\pgfplotmarksize}}
+%  \pgfpathlineto{\pgfqpoint{2\pgflinewidth}{-\pgfplotmarksize}}
+%  \pgfpathmoveto{\pgfqpoint{-2\pgflinewidth}{\pgfplotmarksize}}
+%  \pgfpathlineto{\pgfqpoint{-2\pgflinewidth}{-\pgfplotmarksize}}
+%  \pgfusepathqstroke
+%}
+%%triple bar
+%\pgfdeclareplotmark{|||}
+%{%
+%  \pgfpathmoveto{\pgfqpoint{0 pt}{\pgfplotmarksize}}
+%  \pgfpathlineto{\pgfqpoint{0 pt}{-\pgfplotmarksize}}
+%  \pgfpathmoveto{\pgfqpoint{-3\pgflinewidth}{\pgfplotmarksize}}
+%  \pgfpathlineto{\pgfqpoint{-3\pgflinewidth}{-\pgfplotmarksize}}
+%  \pgfpathmoveto{\pgfqpoint{3\pgflinewidth}{\pgfplotmarksize}}
+%  \pgfpathlineto{\pgfqpoint{3\pgflinewidth}{-\pgfplotmarksize}}
+%  \pgfusepathqstroke
+%}
+%\pgfarrowsdeclare{cb}{cb}%
+%  {%
+%  \pgfarrowsleftextend{0pt}%
+%  \pgfarrowsrightextend{0pt}%
+%  }%
+%  {%
+%  \pgfutil@tempdima=2pt%
+%  \advance\pgfutil@tempdima by1.5\pgflinewidth%
+%  \pgfutil@tempdimb=\pgfutil@tempdima%
+%  \advance\pgfutil@tempdimb by\pgflinewidth%
+%  \pgfsetdash{}{+0pt}%
+%  \pgfsetmiterjoin%
+%  \pgfsetbuttcap%
+%  \pgfpathmoveto%
+%    {%
+%    \pgfqpoint%
+%      {-.5\pgfutil@tempdimb}%
+%      {-1\pgfutil@tempdima}%
+%    }%
+%  \pgfpathlineto{\pgfqpoint{0pt}{-1\pgfutil@tempdima}}%
+%  \pgfpathlineto{\pgfqpoint{0pt}{\pgfutil@tempdima}}%
+%  \pgfpathlineto%
+%    {%
+%    \pgfqpoint{-.5\pgfutil@tempdimb}{\pgfutil@tempdima}%
+%    }%
+%  \pgfusepathqstroke%
+%  }%
+%%
+%\pgfarrowsdeclarereversed{ob}{ob}{cb}{cb}%
+%
+%####################################################
+%
+%   Tête de flêche : 
+%
+%####################################################
+%
+% crochet fermé ou ouvert
+%
+%\makeatletter%
+% crochet fermé
+\pgfarrowsdeclare{cf}{cf}%
+  {%
+  \pgfarrowsleftextend{0pt}%
+  \pgfarrowsrightextend{0pt}%
+  }%
+  {%
+  \pgfutil@tempdima=2pt%
+  \advance\pgfutil@tempdima by1.5\pgflinewidth%
+  \pgfutil@tempdimb=\pgfutil@tempdima%
+  \advance\pgfutil@tempdimb by\pgflinewidth%
+  \pgfsetdash{}{+0pt}%
+  \pgfsetmiterjoin%
+  \pgfsetbuttcap%
+  \pgfpathmoveto%
+    {%
+    \pgfqpoint%
+      {-.5\pgfutil@tempdimb}%
+      {-1\pgfutil@tempdima}%
+    }%
+  \pgfpathlineto{\pgfqpoint{0pt}{-1\pgfutil@tempdima}}%
+  \pgfpathlineto{\pgfqpoint{0pt}{\pgfutil@tempdima}}%
+  \pgfpathlineto%
+    {%
+    \pgfqpoint{-.5\pgfutil@tempdimb}{\pgfutil@tempdima}%
+    }%
+  \pgfusepathqstroke%
+  }%
+%
+\pgfarrowsdeclarereversed{co}{co}{cf}{cf}%
+%\makeatother%
+%
+%####################################################
+%
+%   Tracer une courbe de béziers
+%
+%####################################################
+%
+\def\courbebezier@liste@pts@afficher{}%
+\def\courbebezier@liste@tgtes@afficher{}%
+\def\courbebezier@courbe@style{}%
+%
+\pgfkeys{%
+    /mys/bezier/.cd,
+    /mys/bezier/.search also = {/tikz,/pgfplots},
+    courbe style/.store in  = \courbebezier@courbe@style,%{line width=1pt,#1},%
+    pts/.store in = \courbebezier@liste@pts@afficher,%
+    tgtes/.store in = \courbebezier@liste@tgtes@afficher,%
+    morceau/.store in = \courbebezier@liste@pts@morceaux,%
+    tgtes style/.style = {line width=1.4pt,densely dotted,mark=none,samples=200,unbounded coords=jump,domain=\pgfkeysvalueof{/pgfplots/xmin}:\pgfkeysvalueof{/pgfplots/xmax}},%
+    pts style/.style = {}%
+    }%
+%
+\def\courbebezier@parse@tgte#1{\courbebezier@parse@tgte@#1\mys@stop}
+%
+\def\courbebezier@parse@tgte@#1\mys@stop{%
+    \@ifnextchar[{\courbebezier@parse@tgte@opt}{\courbebezier@parse@tgte@noopt}#1\mys@stop%
+    }%
+%
+\def\courbebezier@parse@tgte@noopt#1\mys@stop{%
+    \gdef\courbebezier@tgte@opt{}%
+    \gdef\courbebezier@tgte@pt@num{#1}%
+    }%
+\def\courbebezier@parse@tgte@opt[#1]#2\mys@stop{%
+    \gdef\courbebezier@tgte@opt{#1}%
+    \gdef\courbebezier@tgte@pt@num{#2}%
+    }%
+%
+%\def\courbebezier@parse@setsep#1{\courbebezier@parse@setsep@#1 /}
+%\def\courbebezier@parse@setsep@#1,#2/{\courbebezier@parse@setsep@#1 /\relax\else #1/\courbebezier@parse@setsep@#2\fi}
+
+\NewDocumentCommand{\courbebezier}{O{courbe style={line width=1pt}}m}
+    {%
+    \pgfkeys{/mys/bezier/.cd,#1}%
+    %
+    %
+    \ifx\relax\courbebezier@liste@pts@afficher\relax%
+        \pgfkeys{/mys/bezier/pts=\mys@courbebezier@tmp@listpts}\fi
+    %
+    \ifx\relax\courbebezier@liste@tgtes@afficher\relax%
+        \pgfkeys{/mys/bezier/tgtes=\mys@courbebezier@tmp@listtgtes}\fi
+    %
+    \def\mys@courbebezier@def@tmp{}%
+    \def\mys@courbebezier@tmp@listpts{}%
+%    \edef\mys@courbebezier@pts@prepared{\courbebezier@parse@setsep{#2}}
+%    \show\mys@courbebezier@pts@prepared
+    %
+    %
+    \foreach[count=\indice from 1] \xpt/\ypt/\xvect/\yvect/\incoef/\outcoef in #2{%
+        \pgfmathsetmacro\courbebezier@xvect{\xvect}% pour autoriser une division par / dans la liste \listept
+        \pgfmathsetmacro\courbebezier@yvect{\yvect}%
+        % éq de la tgte
+        \expandafter\xdef\csname tgte-\indice\endcsname{\courbebezier@yvect/\courbebezier@xvect*(x-\xpt)+\ypt}%
+        % nbre total de pts
+        \xdef\indice{\indice}
+        % liste des coordonnées des pts à tracer (à passer à addplot)
+        \foreach \k in \courbebezier@liste@pts@afficher{%
+            \ifnum \indice = \k\relax %
+                \xdef\mys@courbebezier@tmp@listpts{\mys@courbebezier@tmp@listpts (\xpt,\ypt)}%
+                \breakforeach
+            \fi%
+            }%
+    % liste de coordonnées de tous les pts
+        \edef\mys@courbebezier@def@tmp{%
+            \noexpand\coordinate(Pt-\indice) at (axis cs:\xpt,\ypt);%
+            \noexpand\coordinate(Vect-\indice) at (axis cs:\courbebezier@xvect,\courbebezier@yvect);
+            \noexpand\coordinate(Control-in-\indice) at (axis cs:\xpt-\incoef*\courbebezier@xvect,\ypt-\incoef*\courbebezier@yvect);        
+            \noexpand\coordinate(Control-out-\indice) at (axis cs:\xpt+\outcoef*\courbebezier@xvect,\ypt+\outcoef*\courbebezier@yvect);        
+            }%
+        \mys@courbebezier@def@tmp%
+        }%
+    % tracé des morceaux de la courbe
+    \foreach \j [evaluate = \j as \i using int(\j-1)] in {2,...,\indice}{%
+        \edef\mys@courbebezier@def@tmp{\noexpand\draw[\courbebezier@courbe@style] (Pt-\i) .. controls (Control-out-\i) and (Control-in-\j)  ..  (Pt-\j) ;}\mys@courbebezier@def@tmp}%
+    % Tracé des pts 
+    \addplot[only marks,/mys/bezier/pts style] coordinates {\mys@courbebezier@tmp@listpts};%
+    % Tracé des tgtes
+    \foreach \i in \courbebezier@liste@tgtes@afficher{%
+        \expandafter\courbebezier@parse@tgte\expandafter{\expandafter{\i}}%
+        \edef\mys@courbebezier@def@tmp{%
+            \noexpand\addplot+[/mys/bezier/tgtes style,\courbebezier@tgte@opt]{\csname tgte-\courbebezier@tgte@pt@num\endcsname};}%
+        \mys@courbebezier@def@tmp% node[pos=1,label=below:{$T_{\xa}$}]{}; %
+        }%
+%%    % tracé d'une partie colorée
+%%    \foreach \indpt [count=\compteur,remember =\indpt as \lastindpt (initially -1)]  in \courbebezier@liste@pts@morceaux{%
+%%        
+%%    }
+%%    \foreach \j [evaluate = \j as \i using int(\j-1)] in {2,...,\indice}{%
+%%        \courbebezier@liste@pts@morceaux
+%%        \edef\mys@courbebezier@def@tmp{\noexpand\draw[/mys/bezier/courbe style] (Pt-\i) .. controls (Control-out-\i) and (Control-in-\j)  ..  (Pt-\j) ;}\mys@courbebezier@def@tmp}%
+    }%
+%
+%####################################################
+%
+%   Styles pgfplots
+%
+%####################################################
+%
+%---   Papier millimétré
+%
+\pgfplotsset{%
+    /tikz/minor mmgrid style/.style  =  {lightgray,line width=0.4pt},%
+    /tikz/middle mmgrid style/.style =  {lightgray,line width=0.6pt},%
+    /tikz/major mmgrid style/.style  =  {lightgray,line width=0.8pt},%
+    %
+    middle grid/.code={%
+        % draw middle grid
+        \begin{pgfonlayer}{axis grid}%
+        % v-- first, second and last x-positions for middle grid
+        \foreach \x[evaluate=\x as \xx using \x+0.5] in %
+            {\pgfkeysvalueof{/pgfplots/xmin},...,\pgfkeysvalueof{/pgfplots/xmax}}%
+            {%
+            \edef\temp{%
+                \noexpand\draw[middle mmgrid style] %
+                    (axis cs:\xx,\pgfkeysvalueof{/pgfplots/ymin}) -- (axis cs:\xx,\pgfkeysvalueof{/pgfplots/ymax});%
+                }%
+            \temp%
+            }%
+        % h-- first, second and last y-positions for middle grid
+        \foreach \y[evaluate=\y as \yy using \y+0.5] in %
+            {\pgfkeysvalueof{/pgfplots/ymin},...,\pgfkeysvalueof{/pgfplots/ymax}}%
+            {%
+            \edef\temp{%
+                \noexpand\draw[middle mmgrid style] %
+                    (axis cs:\pgfkeysvalueof{/pgfplots/xmin},\yy) -- (axis cs:\pgfkeysvalueof{/pgfplots/xmax},\yy);%
+                }%
+            \temp%
+            }%
+        \end{pgfonlayer}%
+        },%
+    %
+    millimetre/.style = {%
+        x=#1,y=#1,%
+        % enable layer, needed to draw middle grid below axis
+        set layers=standard,%
+        % disable ticks
+        every major tick/.style={draw=none},%
+        every minor tick/.style={draw=none},%
+        %
+        ytick distance = 1,%
+        xtick distance = 1,%
+        % number of minor ticks between 2 major ticks
+        minor x tick num=9,%
+        minor y tick num=9,%
+        %
+        major grid style=major mmgrid style,%
+        minor grid style=minor mmgrid style,%
+        grid=both,%
+        %
+        execute at end axis = {\pgfplotsset{middle grid}},
+        },%
+    %
+    millimetre/.default=1cm,%
+    }%
+%
+%---   Pas : les labels des ticks sont affichés suivant la valeur de <pas>. Ca autorise une grille principale (major grid) avec des labels des ticks affichés une fois sur <pas>.
+%
+\def\mys@hide@equality{=}
+%
+\def\mys@pgfplots@tick@pas#1#2{\pgfmathparse{Mod(#1,#2)>0}%
+                \ifnum\pgfmathresult\mys@hide@equality0\pgfmathprintnumber{#1}\fi}
+%
+\pgfplotsset{%
+    xpas/.style={xticklabel={\mys@pgfplots@tick@pas{\tick}{#1}}},%
+    ypas/.style={yticklabel={\mys@pgfplots@tick@pas{\tick}{#1}}},%
+    }%
+%
+%---   Axes
+%
+\pgfplotsset{%
+    fenetre/.style n args={4}{%
+        xmin=#1,xmax=#2,ymin=#3,ymax=#4,%
+%
+        xtickmin=\pgfkeysvalueof{/pgfplots/xmin},
+        xtickmax=\pgfkeysvalueof{/pgfplots/xmax},
+        ytickmin=\pgfkeysvalueof{/pgfplots/ymin},
+        ytickmax=\pgfkeysvalueof{/pgfplots/ymax},
+%        
+        },
+    axes/.style={%
+        axis x line = middle,%
+        axis y line = middle,%
+%
+        axis line style={line width=1pt,black,shorten >=-4mm, shorten <=-4mm},%
+%
+        major tick style={major tick length=2mm+1pt,black,line width=0.8pt},%
+        minor tick style={minor tick length=1mm+1pt,black,line width=0.4pt},%
+%
+        xlabel={$x$},%
+        xlabel style={%
+            anchor=west,%
+            at={(ticklabel* cs:1.0)},%
+            xshift=4mm%
+            },%
+        ylabel={$y$},%
+        ylabel style={%
+            anchor=south east,%
+            at={(ticklabel* cs:1.0)},%
+            yshift=3mm,%
+            xshift=0ex,
+            },%
+%
+        title style={at={(axis description cs:0.5,1)},yshift=4mm,anchor=south},%
+%
+        ticks=both,%
+        xtick distance=1,%
+        ytick distance=1,%
+%
+        },%
+%
+%    axes style/.style={/pgfplots/axes/.append style={#1}},%
+    % inefficace si \pgfplotsset{every axis/.append style={/pgfplots/axes}}%
+    % efficace si \pgfplotsset{every axis post/.append style={/pgfplots/axes}} mais alors rajouter des options dans les options de \begin{axis} n'est pas toujours efficace%
+    }%
+%
+\pgfplotsset{every axis/.append style={/pgfplots/axes}}%
+%
+%--- origine
+%
+\pgfplotsset{%
+    origine@style/.style = {%
+        anchor=north east,%
+        outer sep=.5*\pgfkeysvalueof{/pgfplots/major tick length},%.5*\pgflinewidth+.5*\pgfkeysvalueof{/pgfplots/major tick length},%
+        inner sep=1pt,%
+    },
+    origine style/.style = {/pgfplots/origine@style/.append style={#1}},%
+    origine pos/.store in = \mys@graph@repere@pgfplots@origine@pos,%
+    origine/.style={%
+        /pgfplots/origine pos = {{xticklabel* cs:0}-|{yticklabel* cs:0}},%
+        /pgfplots/after end axis/.append code={%
+            \node[/pgfplots/origine@style] at (\mys@graph@repere@pgfplots@origine@pos) {$#1$};%
+            }%
+        },%
+    origine/.default = O,%
+    }%
+%
+%---  point unité des abscisses
+%
+\pgfplotsset{%
+    base@x@point@style/.style = {%
+        anchor=south,%
+        outer sep=0.5*\pgfkeysvalueof{/pgfplots/major tick length},%
+        inner sep=1pt,%
+    },
+    base x point style/.style = {/pgfplots/base@x@point@style/.append style={#1}},%
+    base x point pos/.store in = \mys@graph@repere@pgfplots@base@x@point@pos,%
+    base x point/.style={%
+        /pgfplots/base x point pos = {axis cs:1,0},%
+        /pgfplots/after end axis/.append code={%
+            \node[/pgfplots/base@x@point@style] at (\mys@graph@repere@pgfplots@base@x@point@pos) {$#1$};%
+            },%
+        },%
+    base x point/.default = I,%
+    }%
+%
+%---  point unité des ordonnées
+%
+\pgfplotsset{%
+    base@y@point@style/.style = {%
+        anchor=west,%
+        outer sep=0.5*\pgfkeysvalueof{/pgfplots/major tick length},%
+        inner sep=1pt,%
+    },
+    base y point style/.style = {/pgfplots/base@y@point@style/.append style={#1}},%
+    base y point pos/.store in = \mys@graph@repere@pgfplots@base@y@point@pos,%
+    base y point/.style={%
+        /pgfplots/base y point pos = {axis cs:0,1},%
+        /pgfplots/after end axis/.append code={%
+            \node[/pgfplots/base@y@point@style] at (\mys@graph@repere@pgfplots@base@y@point@pos) {$#1$};%
+            },%
+        },%
+    base y point/.default = J,%
+    }%
+%
+%---  repère avec des points
+%
+\pgfplotsset{%
+    repere point/.style n args={3}{/pgfplots/origine={#1},/pgfplots/base x point={#2}, /pgfplots/base y point = {#3}},%
+    repere point/.default={O}{I}{J},%
+    }%
+%
+%---  vecteur unité des abscisses
+%
+\pgfplotsset{%
+    base@x@vect@style/.style = {%
+        anchor=north,%
+        outer sep=0.5*\pgfkeysvalueof{/pgfplots/major tick length},%
+        inner sep=1pt,%
+    },
+    base x vect style/.style = {/pgfplots/base@x@vect@style/.append style={#1}},%
+    base x vect pos/.store in = \mys@graph@repere@pgfplots@base@x@vect@pos,%
+    base x vect/.style={%
+        /pgfplots/base x vect pos = {axis cs:0.5,0},%
+        /pgfplots/after end axis/.append code={%
+            \node[/pgfplots/base@x@vect@style] at (\mys@graph@repere@pgfplots@base@x@vect@pos) {$#1$};%
+            },%
+        },%
+    base x vect/.default = \vect{i},%
+    }%
+%
+%---  vecteur unité des ordonnées
+%
+\pgfplotsset{%
+    base@y@vect@style/.style = {%
+        anchor=east,%
+        outer sep=0.5*\pgfkeysvalueof{/pgfplots/major tick length},%
+        inner sep=1pt,%
+    },
+    base y vect style/.style = {/pgfplots/base@y@vect@style/.append style={#1}},%
+    base y vect pos/.store in = \mys@graph@repere@pgfplots@base@y@vect@pos,%
+    base y vect/.style={%
+        /pgfplots/base y vect pos = {axis cs:0,0.5},%
+        /pgfplots/after end axis/.append code={%
+            \node[/pgfplots/base@y@vect@style] at (\mys@graph@repere@pgfplots@base@y@vect@pos) {$#1$};%
+            },%
+        },%
+    base y vect/.default = \vect{j},%
+    }%
+%
+%--- repère vectoriel
+%
+\pgfplotsset{%
+    repere vect/.style n args={3}{/pgfplots/origine={#1},/pgfplots/base x vect={#2}, /pgfplots/base y vect = {#3}},%
+    repere vect/.default={O}{\vect{i}}{\vect{j}},%
+    }%
+%
+%--- choix du type de repère
+%
+\pgfplotsset{%
+    repere/.is choice,%
+    repere/vect/.style = {repere vect=#1},%
+    repere/point/.style = {repere point=#1},%
+    repere/none/.style = {},%
+    }%
+%
+%--- base ponctuelle
+%
+\pgfplotsset{%
+    base point/.style 2 args={/pgfplots/base x point={#1}, /pgfplots/base y point = {#2}},%
+    base point/.default=IJ,%
+    }%
+%
+%--- base vectorielle
+%
+\pgfplotsset{%
+    base vect/.style 2 args={/pgfplots/base x vect={#1}, /pgfplots/base y vect = {#2}},%
+    base vect/.default={\vect{i}}{\vect{j}},%
+    }%
+%
+%--- choix du type de base
+%
+\pgfplotsset{%
+    base/.is choice,%
+    base/vect/.style = {base vect=#1},%
+    base/point/.style = {base point=#1},%
+    base/none/.style = {},%
+    }%
+%
+%--- grille
+%
+\pgfplotsset{%
+    grille/.style = {%
+        grid = major,%
+        },%
+%
+%    grille style/.style={/pgfplots/grille/.append style={#1}},%
+    }%
+%
+\pgfplotsset{every axis/.append style = {/pgfplots/grille}}%
+%
+%--- fonction
+%
+\pgfplotsset{%
+    fonction@fenetre/.style ={domain      = \pgfkeysvalueof{/pgfplots/xmin}:\pgfkeysvalueof{/pgfplots/xmax}},
+    fonction fenetre/.code = {%
+        \@ifundefined\pgfplots@xmin{}{\@ifundefined\pgfplots@xmax{}{fonction@fenetre}}},% pour éviter des erreurs lorsque ni xmin ni xmax n'est défini et lorsqu'on utilise gnuplot ou du code lua pour définir l'argument obligatoire de \addplot
+    fonction/.style = {%
+        fonction fenetre,%
+        samples     = 100,%
+        variable     = x,%
+        unbounded coords = jump,%
+%        trig format plots = rad,%
+        line width   =1pt,%
+        solid,%
+        line join = bevel,%
+%        no markers,% attention, avec no markers, on ne peut plus mettre de marque même en appelant mark=* après cette option d'où  la préférence à : 
+        mark=none,%
+        },%
+%
+%    fonction style/.style={/pgfplots/fonction/.append style={#1}},%
+    }%
+%
+\pgfplotsset{%
+    cycle list={/pgfplots/fonction},% si aucune option n'est passée, c'est cycle list le défaut d'où le code
+    every axis plot/.append style = {/pgfplots/fonction},% si \addplot est suivi de [...] (même avec rien entre les crochets) , le style fonction est appliqué
+    }%
+%
+%--- suite
+%
+\newif \if@mys@graph@repere@pgfplots@suite@is@rec@
+\pgfkeys{%
+    /pgfplots/suite/process first/.is family,
+    /pgfplots/suite/n0/.belongs to family = /pgfplots/suite/process first,%
+    /pgfplots/suite/n0/.store in = \mys@graph@repere@pgfplots@suite@nmin,%
+    /pgfplots/suite/pas/.belongs to family = /pgfplots/suite/process first,%
+    /pgfplots/suite/pas/.store in = \mys@graph@repere@pgfplots@suite@npas,%
+    /pgfplots/suite/rec/.belongs to family = /pgfplots/suite/process first,%
+    /pgfplots/suite/rec/.is if = @mys@graph@repere@pgfplots@suite@is@rec@,%
+    /pgfplots/suite/rec/.initial=false,%
+%
+    /pgfplots/suite/recurrence/.is family,
+    /pgfplots/suite/u0/.belongs to family = /pgfplots/suite/recurrence,%
+    /pgfplots/suite/u0/.store in = \mys@graph@repere@pgfplots@suite@uinit,%
+    /pgfplots/suite/relation/.style={execute at begin axis/.append code={\pgfplotset{/pgf/declare function={#1},}}},
+    /pgfplots/suite/recurr/.code = {%
+%        \edef\mys@pgfplots@suite@rec@terme@array{\mys@graph@repere@pgfplots@suite@uinit}
+%        \edef\mys@pgfplots@suite@rec@terme@array@for@draw{(\mys@graph@repere@pgfplots@suite@nmin,\mys@graph@repere@pgfplots@suite@uinit)}
+%        \pgfmathparse{\mys@graph@repere@pgfplots@suite@nmin+1}\let\mys@graph@repere@pgfplots@suite@nsuiv\pgfmathresult
+%        \foreach \n[evaluate=\n as \m using \n-\mys@graph@repere@pgfplots@suite@nmin-1] in {\mys@graph@repere@pgfplots@suite@nsuiv,...,\pgfkeysvalueof{/pgfplots/xmax}}
+%            {%
+%            \pgfmathparse{fctrec(array({\mys@pgfplots@suite@rec@terme@array},\m))}%
+%            \let\tmp\pgfmathresult%
+%            \expandafter\xdef\expandafter\mys@pgfplots@suite@rec@terme@array\expandafter{\mys@pgfplots@suite@rec@terme@array,\tmp}%
+%            \expandafter\xdef\expandafter\mys@pgfplots@suite@rec@terme@array@for@draw\expandafter{\mys@pgfplots@suite@rec@terme@array@for@draw (\n,\tmp)}%
+%            }%
+%\show\mys@pgfplots@suite@rec@terme@array@for@draw
+        },%
+%
+    /pgfplots/suite/process/.code = {%
+        \pgfmathparse{\mys@graph@repere@pgfplots@suite@nmin+\mys@graph@repere@pgfplots@suite@npas}%
+        \let\mys@graph@repere@pgfplots@suite@nnext\pgfmathresult%
+        },%
+    }%
+%
+\pgfplotsset{%
+    suite@yborne/.style ={restrict y to domain = \pgfkeysvalueof{/pgfplots/ymin}:\pgfkeysvalueof{/pgfplots/ymax}},% pour que les termes hors du graphique ne soient pas pris en compte, par exemple pour que pos=1 renvoie au dernier terme SUR le graphique,
+    suite yborne/.code = {%
+        \@ifundefined\pgfplots@ymin{}{\@ifundefined\pgfplots@ymax{}{suite@yborne}}},%
+    suite@xborne/.style = {samples at = {\mys@graph@repere@pgfplots@suite@nmin,\mys@graph@repere@pgfplots@suite@nnext,...,\pgfkeysvalueof{/pgfplots/xmax}}},%
+    suite xborne/.code = {%
+        \@ifundefined\mys@graph@repere@pgfplots@suite@nmin{}{\@ifundefined\pgfplots@xmax{}{suite@xborne}}},%
+% 
+    suite/.style = {%
+        /pgfplots/.search also = {/tikz,/pgfplots/suite},%
+        suite yborne,%
+        suite xborne,%
+        only marks,%
+        },%
+    suite nom/.style={%
+        /pgfplots/point meta=x,%
+        /pgfplots/nodes near coords={$#1_{\pgfmathprintnumber{\pgfplotspointmeta}}$},%
+        },%
+    suite nom/.default=U,%
+    }%
+%
+\newcommand\addsuite{\@ifnextchar[\mys@pgfplots@addsuite@opt\mys@pgfplots@addsuite@noopt}
+%
+\def\mys@pgfplots@addsuite@opt[#1]#2;{%
+    \addplot[%
+        /pgfplots/.search also={/tikz,/pgfplots/suite},%
+        /pgfplots/suite/process first/.activate family,%
+        /pgf/key filters/active families,%
+        /pgfplots/suite/pas=1,/pgfplots/suite/n0=1,#1,%
+        /pgfplots/suite/process first/.deactivate family,%
+        /pgfplots/suite/process,%
+       \if@mys@graph@repere@pgfplots@suite@is@rec@
+            /pgfplots/suite/recurrence/.activate family,%
+            /pgf/key filters/active families,%
+            /pgfplots/suite/u0=0,#1,%/pgfplots/suite/recurr,%
+            /pgfplots/suite/recurrence/.deactivate family,%
+%            /pgf/declare function={%
+%                n0=\mys@graph@repere@pgfplots@suite@nmin ;
+%                u0=\mys@graph@repere@pgfplots@suite@uinit;
+%                },
+        \fi,%
+        #1,
+        suite,%
+        ]#2;}
+%
+\def\mys@pgfplots@addsuite@noopt{%
+    \addplot[%
+        /pgfplots/suite/n0=0,/pgfplots/suite/pas=1,/pgfplots/suite/process,%
+        suite,%
+        ]}
+%
+%\pgfplotsset{%
+%    cycle list={/pgfplots/fonction},% si aucune option n'est passée, c'est cycle list le défaut d'où le code
+%    every axis plot/.append style = {/pgfplots/suite},% si \addplot est suivi de [...] (même avec rien entre les crochets) , le style fonction est appliqué
+ %   }%
+
+%
+%---   marques
+%
+\pgfplotsset{%
+%        mark options = {},% resets every mark to {options}
+    marque/.style={%
+        /tikz/every mark/.append style ={%
+            mark = *,%
+            mark size=2pt,%
+            fill=gray,%
+            mark color=blue,%
+            },%
+        }%
+    }%
+%
+%\pgfplotsset{/pgfplots/marque}%
+
+%\pgfplotsset%
+%  {%
+%  mark if x integer/.style=%
+%    {%
+%    scatter,%
+%    scatter src=x,%
+%    scatter/@pre marker code/.code=%
+%      {%
+%      \pgfmathtruncatemacro\usemark%
+%        {%
+%        int(\pgfkeysvalueof{/data point/x})==\pgfkeysvalueof{/data point/x}%
+%        }%
+%      \ifnum\usemark=1%
+%        \pgfplotsset{mark=#1}%
+%      \fi%
+%      },%
+%    scatter/@post marker code/.code={}%
+%    }%
+%%    mark if x integer/.default={*}
+%  }%
+%%
+%%
+%%
+%\pgfplotsset%
+%  {%
+%  ignore zero/.style=%
+%    {%
+%    #1ticklabel=%
+%      {%
+%      \ifdim\tick pt=0pt%
+%      \else%
+%        \pgfmathprintnumber{\tick}%
+%      \fi%
+%      }%
+%    }%
+%  }%
+%%
+%\pgfplotsset%
+%  {%
+%  origine/.style=%
+%    {%
+%    /pgfplots/.cd%
+%    ,after end axis/.code=%
+%      {%
+%      \path (axis cs:0,0)%
+%        node%
+%          [%
+%          anchor=north east,%
+%          xshift=-0.3ex,%
+%          yshift=-0.5ex%
+%          ]%
+%        {$O$};%
+%      }%
+%    }%
+%  }%
+%%
+%\pgfplotsset{%
+%  reperevect/.style=%
+%    {%
+%    /pgfplots/.cd%
+%    ,after end axis/.code=%
+%      {%
+%      \path (axis cs:0,0)%
+%        node%
+%          [%
+%          anchor=north east,%
+%          xshift=-0.3ex,%
+%          yshift=-0.5ex%
+%          ]%
+%        {$O$};%
+%      \draw%
+%        [%
+%        -{Stealth},%
+%        line width=1.25pt%
+%        ]%
+%        (axis cs:0,0)--(axis cs:1,0)%
+%        node%
+%          [%
+%          inner sep=0.1em,%
+%          outer sep=0.111em,%
+%          %pos=0.5,%
+%          pos=1, %
+%          above,%
+%          fill=white,%
+%          yshift=1.5ex%
+%          ]%
+%        {$\vect{i}$};%-1.5ex
+%      \draw%
+%        [%
+%        -{Stealth},%
+%        line width=1.25pt%
+%        ]%
+%        (axis cs:0,0)--(axis cs:0,1)%
+%        node%
+%          [%
+%          inner sep=0.1em,%
+%          outer sep=0.1em,%
+%          %pos=0.5,%
+%          pos=1,%
+%          above,%
+%          fill=white,%
+%          xshift=1.5ex%
+%          ]%
+%        {$\vect{j}$};%-1.5ex
+%      }%
+%    }%
+%  }%
+%%
+%%
+%%
+%%
+\pgfplotsset%
+  {%
+  nombre/.style=%
+    {%
+    ,/pgf/number format/.cd%
+    ,use comma%
+    ,1000 sep={\,}%
+    ignore zero,zerofill={false}%
+    ,min exponent for 1000 sep=4%
+    }%
+  }%
+\pgfplotsset%
+  {%
+  axes/.style=%
+    {%
+    /pgfplots/.cd%
+    ,enlargelimits={value=0.2,upper}%
+    ,axis x line=center%
+    ,axis y line=center%
+    ,xlabel={$x$}%
+    ,ylabel={$y$}%
+    ,every axis x label/.style=%
+      {%
+      at={(current axis.right of origin)},%
+      anchor=west%
+      }%
+    ,every axis y label/.style=%
+      {%
+      at={(current axis.above origin)},%
+      anchor=south%
+      }%
+    }%
+  }%
+%
+\pgfplotsset%
+  {%
+  grad/.append style=%
+    {%
+    /pgfplots/.cd%
+    ,yticklabel style=%
+      {%
+      draw=none,%
+      inner sep=0.3em,%
+      outer sep=0.3333em,%
+      fill=white,%
+      text opacity=1%
+      }%
+    ,xticklabel style=%
+      {%
+      draw=none,%
+      inner sep=0.3em,%
+      outer sep=0.3333em,%
+      fill=white,%
+      text opacity=1%
+      }%
+    }%
+  }%
+\pgfplotsset%
+  {%
+  grille/.style=%
+    {%
+    /pgfplots/.cd,%
+    grid=#1,%
+%    minor tick num=1,%
+    major grid style=%
+      {%
+      black!90,%
+      densely dashed,%
+      line width=0.5pt%
+      },%
+    minor grid style=%
+      {%
+      black!60,%
+      densely dotted,%
+      line width=0.25pt%
+      }%
+    }%
+  }%
+\pgfplotsset%
+  {%
+  reperept/.style=%
+    {%
+%    /pgfplots/.cd,%
+    axis line style={line width=1.5pt},%
+    after end axis/.code=%
+      {%
+      \path (axis cs:0,0)
+        node%
+          [%
+          anchor=north east,%
+          xshift=0.3ex,%
+          yshift=0ex%
+          ]%
+        {O};%
+      \node[yshift=1.5ex,fill=white,inner sep=0pt,outer sep=0pt]at (axis cs:1,0){$I$};%
+      \node[xshift=1.5ex,fill=white,inner sep=0pt,outer sep=0pt]at (axis cs:0,1){$J$};%
+      }%
+    }%
+  }%
+\tikzset{/pgfplots/.cd,base/.style={line width=1pt}}
+\pgfplotsset%
+  {%
+    reperevect/.style=%
+    {%
+    /pgfplots/.cd,%
+    every axis/.append style={%
+      /pgfplots/.search also={/tikz},
+      \draw[base,-{Stealth[]}] (axis cs:0,0) -- (axis cs:1,0);
+      \draw[base,-{Stealth[]}] (axis cs:0,0) -- (axis cs:0,1);
+      \node[yshift=-1.5ex,fill=white,inner sep=0pt,outer sep=0pt]at (axis cs:0.5,0){$\vect{i}$};%
+      \node[xshift=-1.5ex,fill=white,inner sep=0pt,outer sep=0pt]at (axis cs:0,0.5){$\vect{j}$};%
+      axis line style={line width=1pt}},%
+    after end axis/.code=%
+      {%
+      \path (axis cs:0,0)
+        node%
+          [%
+          anchor=north east,%
+          xshift=0.3ex,%
+          yshift=0ex%
+          ]%
+        {O};%
+      }%
+    }%
+  }%
+%
+\pgfplotsset{every axis/.append style = {/pgfplots/base,/pgfplots/reperevect}}%
+%
+\pgfplotsset%
+  {%
+  withpt/.style=%
+    {%
+    nombre,%
+    axes,%
+    grad,%
+    grille,%
+    reperept,%
+%    scaled x ticks = false,%
+%    axis equal,%	
+    samples=400,%
+    }%
+  }%
+%%
+%\pgfplotsset%
+%  {%
+%  withvect/.style=%
+%    {%
+%    nombre,%
+%    /pgfplots/.cd,%
+%    axes,%
+%    grad,%
+%    grille,%
+%    reperevect,%
+%%    scaled x ticks = false,%
+%%    axis equal,%
+%    samples=400%
+%    }%
+%  }%
+%%
+%\pgfplotsset%
+%  {%
+%  nobase/.style=%
+%    {%
+%    nombre,%
+%    /pgfplots/.cd,%
+%    axes,%
+%    grad,%
+%    grille,%
+%%    scaled x ticks = false,%
+%%    axis equal,%
+%    samples=400%
+%    }%
+%  }%
+%%
+%\pgfplotsset%
+%  {%
+%  compat=newest,%compat=1.8
+%  nombre,%
+%  /pgfplots/.cd,%
+%  axes,%
+%  grad,%
+%  }%
+%
+%
+%####################################################
+%
+%   Repere (tikz)
+%
+%####################################################
+%
+%   clés
+%
+\newif\if@mys@graph@repere@isdrawn@axis@x@%
+\newif\if@mys@graph@repere@isdrawn@axis@y@%
+\newif\if@mys@graph@repere@isdrawn@axis@z@%
+%
+\newif\if@mys@graph@repere@isdrawn@axis@x@label@%
+\newif\if@mys@graph@repere@isdrawn@axis@y@label@%
+\newif\if@mys@graph@repere@isdrawn@axis@z@label@%
+%
+\newif\if@mys@graph@repere@isdrawn@origin@name@%
+\newif\if@mys@graph@repere@isdrawn@origin@mark@%
+%
+\newif\if@mys@graph@repere@isdrawn@gridded@%
+\newif\if@mys@graph@repere@isdrawn@subgridded@%
+\newif\if@mys@graph@repere@isdrawn@subsubgridded@%
+%
+\newif\if@mys@graph@repere@isdrawn@ticks@x@%
+\newif\if@mys@graph@repere@isdrawn@ticks@y@%
+%
+\newif\if@mys@graph@repere@isdrawn@grad@x@%
+\newif\if@mys@graph@repere@isdrawn@grad@y@%
+%
+\newif\if@mys@graph@repere@ticks@xatorig@%
+\newif\if@mys@graph@repere@ticks@yatorig@%
+%
+\newif\if@mys@graph@repere@isdrawn@base@vect@
+\newif\if@mys@graph@repere@isdrawn@base@point@
+%
+\newif\if@mys@graph@repere@isclipped@
+%
+\let\mys@graph@repere@axis@x@grad@min\relax
+\let\mys@graph@repere@axis@x@grad@max\relax
+\let\mys@graph@repere@axis@y@grad@min\relax
+\let\mys@graph@repere@axis@y@grad@max\relax
+\let\mys@graph@repere@axis@x@ticks@min\relax
+\let\mys@graph@repere@axis@x@ticks@max\relax
+\let\mys@graph@repere@axis@y@ticks@min\relax
+\let\mys@graph@repere@axis@y@ticks@max\relax
+\pgfkeys{%
+    /mys/graph/repere/.search also = /tikz,%
+    /mys/graph/repere/.cd,%
+%
+    clipped/.is if = @mys@graph@repere@isclipped@,%
+    enlarge left/.store in=\mys@graph@repere@enlarge@left,%
+    enlarge right/.store in=\mys@graph@repere@enlarge@right,%
+    enlarge above/.store in=\mys@graph@repere@enlarge@above,%
+    enlarge below/.store in=\mys@graph@repere@enlarge@below,%
+    x axis/.is if = @mys@graph@repere@isdrawn@axis@x@,%
+    y axis/.is if = @mys@graph@repere@isdrawn@axis@y@,%
+    z axis/.is if = @mys@graph@repere@isdrawn@axis@z@,%
+    xy axis/.style={x axis,y axis},%
+    xz axis/.style={x axis, z axis},%
+    yz axis/.style={y axis, z axis},%
+    xyz axis/.style={x axis,y axis, z axis},%
+    x@axis@style/.style = {line width=1pt,solid,-Stealth[]},%
+    x axis style/.style = {/mys/graph/repere/x@axis@style/.append style={#1}},%
+    y@axis@style/.style = {line width=1pt,solid,-Stealth[]},%
+    y axis style/.style = {/mys/graph/repere/y@axis@style/.append style={#1}},%
+    z@axis@style/.style = {line width=1pt,solid,-Stealth[]},%
+    z axis style/.style = {/mys/graph/repere/z@axis@style/.append style={#1}},%
+    add to x axis end/.store in = \mys@graph@repere@axis@x@addtoend,%
+    add to y axis end/.store in = \mys@graph@repere@axis@y@addtoend,%
+    add to z axis end/.store in = \mys@graph@repere@axis@z@addtoend,%
+    add to x axis begin/.store in = \mys@graph@repere@axis@x@addtobegin,%
+    add to y axis begin/.store in = \mys@graph@repere@axis@y@addtobegin,%
+    add to z axis begin/.store in = \mys@graph@repere@axis@z@addtobegin,%
+%
+    add to x clip end/.store in = \mys@graph@repere@clip@x@addtoend,%
+    add to y clip end/.store in = \mys@graph@repere@clip@y@addtoend,%
+    add to z clip end/.store in = \mys@graph@repere@clip@z@addtoend,%
+    add to x clip begin/.store in = \mys@graph@repere@clip@x@addtobegin,%
+    add to y clip begin/.store in = \mys@graph@repere@clip@y@addtobegin,%
+    add to z clip begin/.store in = \mys@graph@repere@clip@z@addtobegin,%
+%
+    x labelled/.is if = @mys@graph@repere@isdrawn@axis@x@label@,%
+    y labelled/.is if = @mys@graph@repere@isdrawn@axis@y@label@,%
+    z labelled/.is if = @mys@graph@repere@isdrawn@axis@z@label@,%
+    x label/.store in = \mys@graph@repere@axis@x@label,%
+    y label/.store in = \mys@graph@repere@axis@y@label,%
+    z label/.store in = \mys@graph@repere@axis@z@label,%
+    x@label@style/.style = {anchor=north west},%
+    x label style/.style = {/mys/graph/repere/x@label@style/.append style={#1}},%
+    y@label@style/.style = {anchor=south west},%
+    y label style/.style = {/mys/graph/repere/y@label@style/.append style={#1}},%
+    z@label@style/.style={anchor=east},%
+    z label style/.style = {/mys/graph/repere/z@label@style/.append style={#1}},%
+%
+    origin ref/.store in = \mys@graph@repere@base@origin@ref,%
+    origin ref/.store in = \mys@graph@repere@base@origin@ref,%
+    origin named/.is if = @mys@graph@repere@isdrawn@origin@name@,%
+    origin marked/.is if = @mys@graph@repere@isdrawn@origin@mark@,%
+    origin at/.store in = \mys@graph@repere@origin@atcoord,% sens à donner à cette option ?
+    origin label/.store in = \mys@graph@repere@isdrawn@origin@label,%
+    origin@mark@style/.style =  {/tikz/mark=*,/tikz/mark size=1.1mm},%
+    origin mark style/.style = {/mys/graph/repere/origin@mark@style/.append style={#1}},%   
+    origin@style/.style = {anchor=north east,font=\small},%\normalsize
+    origin style/.style = {/mys/graph/repere/origin@style/.append style={#1}},%
+%
+    grille/.style={gridded=true},%
+    sans grille/.style={gridded=false},%    
+    gridded/.is if = @mys@graph@repere@isdrawn@gridded@,%
+    grid@style/.style = {line width=0.6pt,densely dashed,black,xstep=\mys@graph@repere@grid@xstep,ystep=\mys@graph@repere@grid@ystep},% bonnes options ?
+    grid style/.style = {/mys/graph/repere/grid@style/.append style={#1}},%
+    x step grid/.store in = \mys@graph@repere@grid@xstep,%
+    y step grid/.store in = \mys@graph@repere@grid@ystep,%
+%
+    subgridded/.is if = @mys@graph@repere@isdrawn@subgridded@,%
+    subgrid@style/.style = {line width=0.4pt,densely dotted,black!70!white,xstep=\mys@graph@repere@subgrid@xstep,ystep=\mys@graph@repere@subgrid@ystep},% bonnes options ?
+    subgrid style/.style = {/mys/graph/repere/subgrid@style/.append style={#1}},%
+    x step subgrid/.store in = \mys@graph@repere@subgrid@xstep,%
+    y step subgrid/.store in = \mys@graph@repere@subgrid@ystep,%
+%
+    subsubgridded/.is if = @mys@graph@repere@isdrawn@subsubgridded@,%
+    subsubgrid@style/.style = {line width=0.2pt,densely dotted,black!40!white,xstep=\mys@graph@repere@subsubgrid@xstep,ystep=\mys@graph@repere@subsubgrid@ystep},% bonnes options ?
+    subsubgrid style/.style = {/mys/graph/repere/subsubgrid@style/.append style={#1}},%
+    x step subsubgrid/.store in = \mys@graph@repere@subsubgrid@xstep,%
+    y step subsubgrid/.store in = \mys@graph@repere@subsubgrid@ystep,%
+%
+    x@pas/.store in = \mys@graph@repere@axis@x@pas,%
+    x pas/.style = {/tikz/xstep=#1,x@pas=#1},%
+    y@pas/.store in = \mys@graph@repere@axis@y@pas,%
+    y pas/.style = {/tikz/ystep=#1,y@pas=#1},%
+    pas/.style = {/tikz/step=#1,x@pas=#1,y@pas=#1},%
+%
+    x ticks/.is if = @mys@graph@repere@isdrawn@ticks@x@,%
+    y ticks/.is if = @mys@graph@repere@isdrawn@ticks@y@,%
+    no ticks/.style={x ticks=false,y ticks=false},
+    sans ticks/.style={x ticks=false,y ticks=false},
+    x ticks size/.store in = \mys@graph@repere@isdrawn@ticks@x@size,%
+    y ticks size/.store in = \mys@graph@repere@isdrawn@ticks@y@size,%
+    xticks@style/.style = {/mys/graph/repere/.cd,/tikz/black,/tikz/line width=1pt},%  ASTUCE : /mys/graph/repere/.cd, pour permettre l'appel à x ticks size dans un x ticks style (est-ce bien utile ?)
+    x ticks style/.style = {/mys/graph/repere/xticks@style/.append style={#1}},%
+    yticks@style/.style = {/mys/graph/repere/.cd,/tikz/black,/tikz/line width=1pt},
+    y ticks style/.style = {/mys/graph/repere/yticks@style/.append style={#1}},%
+    x ticks at orig/.is if = @mys@graph@repere@ticks@xatorig@,%
+    y ticks at orig/.is if = @mys@graph@repere@ticks@yatorig@,%
+    x ticks min/.store in = \mys@graph@repere@axis@x@ticks@min,%
+    x ticks max/.store in = \mys@graph@repere@axis@x@ticks@max,%
+    y ticks min/.store in = \mys@graph@repere@axis@y@ticks@min,%
+    y ticks max/.store in = \mys@graph@repere@axis@y@ticks@max,%
+%
+    x grad/.is if = @mys@graph@repere@isdrawn@grad@x@,%
+    y grad/.is if = @mys@graph@repere@isdrawn@grad@y@,%
+    no grad/.style={x grad=false,y grad=false},%
+    sans grad/.style={x grad=false,y grad=false},%
+    x grad min/.store in = \mys@graph@repere@axis@x@grad@min,%
+    x grad max/.store in = \mys@graph@repere@axis@x@grad@max,%
+    y grad min/.store in = \mys@graph@repere@axis@y@grad@min,%
+    y grad max/.store in = \mys@graph@repere@axis@y@grad@max,%
+    x@grad/.style={below,outer sep=0pt,inner sep=1pt,fill=white,font=\small},%
+    x grad style/.style={/mys/graph/repere/x@grad/.append style={#1}},
+    y@grad/.style={left,outer sep=0pt,inner sep=1pt,fill=white,font=\small},%
+    y grad style/.style={/mys/graph/repere/y@grad/.append style={#1}},%
+    process grad/.code = {\let\mys@graph@repere@grad@process#1},%
+%
+    base@vect/.is if = @mys@graph@repere@isdrawn@base@vect@,%
+    base@point/.is if = @mys@graph@repere@isdrawn@base@point@,%
+    base/.is choice,%
+    base/vect/.style = {base@vect=true,base@point=false},%
+    base/point/.style = {base@vect=false,base@point=true},%
+    base/none/.style = {base@vect=false,base@point=false},%
+%
+    x@vect/.style={-Stealth[],line width=1.2pt},%
+    x vect style/.style={/mys/graph/repere/x@vect/.append style={#1}},
+    x@vect@label/.style={below=0.75mm,outer sep=0pt,inner sep=1pt,text opacity=1,font=\small,pos=0.5},%
+    x vect label style/.style={/mys/graph/repere/x@vect@label/.append style={#1}},
+    x vect label/.store in = \mys@graph@repere@base@vect@x,%
+    y@vect/.style={-Stealth[],line width=1.2pt},%
+    y vect style/.style={/mys/graph/repere/y@vect/.append style={#1}},
+    y@vect@label/.style={left=0.75mm,outer sep=0pt,inner sep=1pt,text opacity=1,font=\small,pos=0.5},%
+    y vect label style/.style={/mys/graph/repere/y@vect@label/.append style={#1}},
+    y vect label/.store in = \mys@graph@repere@base@vect@y,%
+    z@vect/.style={-Stealth[],line width=1.2pt},%
+    z vect style/.style={/mys/graph/repere/z@vect/.append style={#1}},
+    z@vect@label/.style={below,outer sep=0pt,inner sep=1pt,text opacity=1,font=\small},%
+    z vect label style/.style={/mys/graph/repere/z@vect@label/.append style={#1}},
+    z vect label/.store in = \mys@graph@repere@base@vect@z,%
+%
+    x@point/.style={/mys/graph/point/mark@style},%
+    x point style/.style={/mys/graph/point/mark style={#1}},%
+    x@point@label/.style={/mys/graph/point/label style={above},font=\small},%
+    x point label style/.style={/mys/graph/point/label style={#1}},
+%
+    x point label/.store in = \mys@graph@repere@base@point@x,%
+    x point ref/.store in = \mys@graph@repere@base@point@x@ref,%
+    y@point/.style={/mys/graph/point/mark@style},%
+    y point style/.style={/mys/graph/point/mark style={#1}},%
+    y@point@label/.style={/mys/graph/point/label style={right},font=\small},%
+    y point label style/.style={/mys/graph/point/label style={#1}},
+%
+    y point label/.store in = \mys@graph@repere@base@point@y,%
+    y point ref/.store in = \mys@graph@repere@base@point@y@ref,%
+    z@point/.style={/mys/graph/point/mark@style},%
+    z point style/.style={/mys/graph/point/mark style={#1}},%
+    z@point@label/.style={/mys/graph/point/label style={above}},%
+    z point label style/.style={/mys/graph/point/label style={#1}},
+    z point label/.store in = \mys@graph@repere@base@point@z,%
+    z point ref/.store in = \mys@graph@repere@base@point@z@ref,%
+    sans origine/.style = {origin named=false,origin marked = false},%
+    sans unite/.style = {base = none},%
+%
+    only axes/.style = {%
+        origin named = false, origin marked=false,%
+        x ticks = false, y ticks = false, %
+        x ticks at orig=false,y ticks at orig=false,%
+        x grad = false, y grad=false,%
+        base = none,%
+        gridded=false,%
+    },% 
+    nu/.style = {%
+        x axis=false,y axis=false, z axis=false,%
+        x labelled = false, y labelled = false, z labelled = false,%
+        origin named = false, origin marked=false,%
+        x ticks = false, y ticks = false, %
+        x ticks at orig=false,y ticks at orig=false,%
+        x grad = false, y grad=false,%
+        base = none,%
+        },% 
+    }%
+%
+%   user macro : appel de la construction
+%\repere[option]{xmin,xmax,ymin,ymax,zmin,zmax}
+%
+\newcommand*{\drawrepere}[2][]{%
+    \setcounter{mys@graph@points@notnamed@count}{0}%
+    \setcounter{mys@graph@vects@notnamed@count}{0}%
+    \pgfkeys{/mys/graph/point/ref auto = @M@}%
+    \pgfkeys{/mys/graph/vect/ref auto = @u@}%
+    \pgfkeys{%
+        /mys/graph/repere/.cd,%
+        enlarge left=0cm,enlarge right=0cm,enlarge above=0cm,enlarge below=0cm,%
+        xyz axis,%
+%            add to x axis end=3mm,add to y axis end=3mm,%
+%            add to z axis end=0.2mm,% PB : pas homogène, x et y = 2mm mais z = 0.2mm ????
+%            add to x axis begin=3mm,add to y axis begin=3mm,%
+%            add to z axis begin=0.2mm,% PB ?
+            add to x axis begin=0,add to x axis end=0,%
+            add to y axis begin=0,add to y axis end=0,%
+            add to z axis begin=0,add to z axis end=0,% PB : pas homogène, x et y = 2mm mais z = 0.2mm ????
+%
+            add to x clip begin=0,add to x clip end=0,%
+            add to y clip begin=0,add to y clip end=0,%
+            add to z clip begin=0,add to z clip end=0,%
+%
+        x labelled,y labelled,z labelled,%
+            x label = {$x$},y label = {$y$},z label = {$z$},%
+%
+        origin at={(0,0)},%
+            origin named=true,%
+            origin marked=true,%
+            origin ref=O,%
+            origin label=$O$,%
+%
+        gridded,%
+            x step grid=1,y step grid=1,
+%
+        subgridded=false,x step subgrid=1,y step subgrid=1,%
+%
+        subsubgridded=false,x step subsubgrid=1,y step subsubgrid=1,%
+%
+        x pas=1,y pas=1,%
+%
+        x ticks,y ticks,% 
+            x ticks at orig=false,y ticks at orig=false,%
+            x ticks size=2mm,y ticks size=2mm,%
+%
+        x grad,y grad,%
+            process grad=\fpeval,%
+%
+        base=point,%
+%
+        x vect label={$\vect{i}$}, y vect label={$\vect{j}$},z vect label={$\vect{k}$},%
+%
+        x point label={$I$}, y point label={$J$},z point label={$K$},%
+        x point ref=I, y point ref = J, z point ref=K,%
+%
+        clipped=true,%
+        #1%
+        }%
+    \mys@graph@repere@lineplaneorspace#2,,,,,\mys@stop%
+    }%
+%
+%    1D, 2D ou 3D ?
+%
+\newif\if@mys@graph@repere@iD@%
+\newif\if@mys@graph@repere@iiD@%
+\newif\if@mys@graph@repere@iiiD@%
+%
+\def\mys@graph@repere@lineplaneorspace#1,#2,#3,#4,#5,#6,#7\mys@stop{%
+% #7 a pour utilité de virer les virgules après le 6ème argument
+    \ifx\relax\mys@graph@repere@axis@x@grad@min\relax%
+        \def\mys@graph@repere@axis@x@grad@min{#1}
+    \fi
+ %   \ifx\relax\mys@graph@repere@axis@x@grad@max\relax\pgfmathparse{}\pgfmathsetmacro{\mys@graph@repere@axis@x@grad@max}{floor(#2-1)}\fi
+    \ifx\relax\mys@graph@repere@axis@x@grad@max\relax %
+        \pgfmathsetmacro{\mys@graph@repere@axis@x@grad@max}%
+            {(floor(#2/\mys@graph@repere@axis@x@pas))*\mys@graph@repere@axis@x@pas}%
+    \fi
+    \pgfmathparse{abs(#2-\mys@graph@repere@axis@x@grad@max)<0.0001?0:1}
+    \let\montmp\pgfmathresult
+    \ifnum\montmp=0\relax %
+        \pgfmathsetmacro{\mys@graph@repere@axis@x@grad@max}%
+            {(floor(#2/\mys@graph@repere@axis@x@pas)-1)*\mys@graph@repere@axis@x@pas}%
+    \fi
+%
+    \ifx\relax\mys@graph@repere@axis@y@grad@min\relax%
+        \def\mys@graph@repere@axis@y@grad@min{#3}
+    \fi
+% \ifx\relax\mys@graph@repere@axis@y@grad@max\relax\pgfmathsetmacro{\mys@graph@repere@axis@y@grad@max}{ceil(#4-1)}\fi
+    \ifx\relax\mys@graph@repere@axis@y@grad@max\relax%
+        \pgfmathsetmacro{\mys@graph@repere@axis@y@grad@max}%
+            {(floor(#4/\mys@graph@repere@axis@y@pas))*\mys@graph@repere@axis@y@pas}%
+    \fi
+    \pgfmathparse{abs(#4-\mys@graph@repere@axis@y@grad@max)<0.0001?0:1}
+    \let\montmp\pgfmathresult
+    \ifnum\montmp=0\relax
+        \pgfmathsetmacro{\mys@graph@repere@axis@y@grad@max}%
+            {(floor(#4/\mys@graph@repere@axis@y@pas)-1)*\mys@graph@repere@axis@y@pas}%
+    \fi
+%
+    \ifx\relax\mys@graph@repere@axis@x@ticks@min\relax%
+        \def\mys@graph@repere@axis@x@ticks@min{#1}%
+    \fi
+%
+    \ifx\relax\mys@graph@repere@axis@x@ticks@max\relax %
+        \let\mys@graph@repere@axis@x@ticks@max\mys@graph@repere@axis@x@grad@max%
+    \fi
+%
+    \ifx\relax\mys@graph@repere@axis@y@ticks@min\relax%
+        \def\mys@graph@repere@axis@y@ticks@min{#3}
+    \fi
+% \ifx\relax\mys@graph@repere@axis@y@ticks@max\relax\pgfmathsetmacro{\mys@graph@repere@axis@y@ticks@max}{ceil(#4-1)}\fi 
+    \ifx\relax\mys@graph@repere@axis@y@ticks@max\relax %
+        \let\mys@graph@repere@axis@y@ticks@max\mys@graph@repere@axis@y@grad@max%
+    \fi
+%
+    \if@mys@graph@repere@isdrawn@base@vect@%
+        \pgfkeys{%
+            /mys/graph/repere/x axis style={/tikz/arrows=-Stealth[]},%
+            /mys/graph/repere/y axis style={/tikz/arrows=-Stealth[]}%
+            }%
+    \fi
+%
+%
+    \ifx\relax#3\relax%
+        \@mys@graph@repere@iD@true
+        \mys@graph@repere@{#1}{#2}{0}{0}{0}{0}%
+    \else
+        \ifx\relax#5\relax%
+            \@mys@graph@repere@iiD@true
+            \mys@graph@repere@{#1}{#2}{#3}{#4}{0}{0}%
+        \else%
+            \@mys@graph@repere@iiiD@true
+            \mys@graph@repere@{#1}{#2}{#3}{#4}{#5}{#6}%
+        \fi%
+    \fi%
+    }%
+%
+%    macro de construction du repère
+%
+\def\mys@graph@repere@#1#2#3#4#5#6{%
+    \def\mys@graph@repere@xmin{#1}%
+    \def\mys@graph@repere@xmax{#2}%
+    \def\mys@graph@repere@ymin{#3}%
+    \def\mys@graph@repere@ymax{#4}%
+    \def\mys@graph@repere@zmin{#5}%
+    \def\mys@graph@repere@zmax{#6}%
+%
+%   ---    Origine
+%
+    \pgfmathsetmacro{\mys@graph@repere@origin@y}{0}
+    \pgfmathparse{sign(#1)*sign(#2)>0?1:0}
+    \let\montmp\pgfmathresult
+    \ifnum\montmp=1\relax%
+        \pgfmathsetmacro{\mys@graph@repere@origin@x}{#1}
+    \else
+        \pgfmathsetmacro{\mys@graph@repere@origin@x}{0}
+    \fi
+%
+    \pgfmathparse{sign(#3)*sign(#4)>0?1:0}
+    \ifnum\montmp=1\relax%
+        \pgfmathsetmacro{\mys@graph@repere@origin@y}{#3}
+    \else
+        \pgfmathsetmacro{\mys@graph@repere@origin@y}{0}
+    \fi
+%
+%    \pgfkeys{/mys/graph/repere/origin at={(\mys@graph@repere@origin@x,\mys@graph@repere@origin@y)}}
+%
+    \coordinate (\mys@graph@repere@base@origin@ref)%
+ at (\mys@graph@repere@origin@x,\mys@graph@repere@origin@y);%
+%
+    \pgfmathparse{\mys@graph@repere@origin@x==0 && \mys@graph@repere@origin@y==0?1:0}
+    \ifnum\pgfmathresult=0\relax%
+        \pgfkeys{/mys/graph/repere/origin named=false,/mys/graph/repere/origin marked=false}%
+    \fi
+%
+    \if@mys@graph@repere@isdrawn@origin@mark@
+        \mys@graph@repere@origin@mark{/mys/graph/repere/origin@mark@style}{(0,0)}
+    \fi
+%
+    \if@mys@graph@repere@isdrawn@origin@name@
+        \mys@graph@repere@origin@label%
+            {/mys/graph/repere/origin@style}%
+            \mys@graph@repere@base@origin@ref%
+            \mys@graph@repere@isdrawn@origin@label
+    \fi
+%
+%   ---   grille
+% A corriger : 
+% si l'origine du repère est à (35,10) : la grille principale passe par y=36, y=38, ... au lieu de y=35, y=37, ...
+% 
+    \begin{scope}
+    \if@mys@graph@repere@isdrawn@gridded@
+        \if@mys@graph@repere@isdrawn@subgridded@
+            \if@mys@graph@repere@isdrawn@subsubgridded@
+                \mys@graph@repere@grid{/mys/graph/repere/subsubgrid@style,xstep=\mys@graph@repere@subsubgrid@xstep,ystep=\mys@graph@repere@subsubgrid@ystep}{#1}{#2}{#3}{#4}{#5}{#6}%
+            \fi
+            \mys@graph@repere@grid{/mys/graph/repere/subgrid@style,xstep=\mys@graph@repere@subgrid@xstep,ystep=\mys@graph@repere@subgrid@ystep}{#1}{#2}{#3}{#4}{#5}{#6}%
+        \fi
+    \pgfmathparse{isodd(\mys@graph@repere@origin@x)}
+    \ifnum\pgfmathresult=1 %
+%         \def\mys@graph@repere@grid@offset{1}
+    \else
+ %        \def\mys@graph@repere@grid@offset{0}        
+    \fi
+    \pgfmathparse{isodd(\mys@graph@repere@origin@y)}
+    \ifnum\pgfmathresult=1 %
+%         \expandafter\def\expandafter\mys@graph@repere@grid@offset\expandafter{\mys@graph@repere@grid@offset,1}
+    \else
+%         \expandafter\def\expandafter\mys@graph@repere@grid@offset\expandafter{\mys@graph@repere@grid@offset,0}
+    \fi
+        \def\mys@graph@repere@grid@offset{0,0}
+        \mys@graph@repere@grid{/mys/graph/repere/grid@style,xstep=\mys@graph@repere@grid@xstep,ystep=\mys@graph@repere@grid@ystep,shift={(\mys@graph@repere@grid@offset)}}{#1}{#2}{#3}{#4}{#5}{#6}%
+    \fi
+    \end{scope}
+%
+%   ---   axis
+    \if@mys@graph@repere@isdrawn@axis@x@
+        \mys@graph@repere@axis@format%
+            {/mys/graph/repere/x@axis@style}%
+%            {(#1,\mys@graph@repere@origin@y,0) ++(-\mys@graph@repere@axis@x@addtobegin,0,0)}
+            {([xshift=-\mys@graph@repere@axis@x@addtobegin]#1,\mys@graph@repere@origin@y,0)}
+               {([xshift=\mys@graph@repere@axis@x@addtoend]#2,\mys@graph@repere@origin@y,0)}%
+    \fi
+%
+    \if@mys@graph@repere@isdrawn@axis@y@
+        \if@mys@graph@repere@iD@
+        \else
+            \mys@graph@repere@axis@format%
+                {/mys/graph/repere/y@axis@style}%
+                {(\mys@graph@repere@origin@x,#3,0) ++(0,-\mys@graph@repere@axis@y@addtobegin,0)}
+%                {([yshift=-\mys@graph@repere@axis@y@addtobegin]0,#3,0)}%
+                {([yshift=\mys@graph@repere@axis@y@addtoend]\mys@graph@repere@origin@x,#4,0)}%
+        \fi
+    \fi
+%   z axis : PB -->On rajoute \mys@graph@repere@axis@z@addtoend mais en fait ce qui est rajouté semble bien plus grand
+    \if@mys@graph@repere@isdrawn@axis@z@
+        \if@mys@graph@repere@iiiD@
+            \mys@graph@repere@axis@format{/mys/graph/repere/z@axis@style}{(0,0,#5)}{(0,0,#6)--++(0mm,0mm,\mys@graph@repere@axis@z@addtoend)}%
+        \fi
+    \fi
+%
+%   ---   labels des axes
+    \if@mys@graph@repere@isdrawn@axis@x@label@
+        \mys@graph@repere@axis@label%
+            {/mys/graph/repere/x@label@style}%
+            {(#2,\mys@graph@repere@origin@y,0)}%
+            \mys@graph@repere@axis@x@label
+    \fi
+%
+    \if@mys@graph@repere@isdrawn@axis@y@label@
+        \if@mys@graph@repere@iD@
+        \else
+            \mys@graph@repere@axis@label%
+                {/mys/graph/repere/y@label@style}%
+                {(\mys@graph@repere@origin@x,#4,0)}%
+                \mys@graph@repere@axis@y@label%
+        \fi
+    \fi
+%
+    \if@mys@graph@repere@isdrawn@axis@z@label@
+        \if@mys@graph@repere@iiiD@
+            \mys@graph@repere@axis@label%
+                {/mys/graph/repere/z@label@style}%
+                {(0,0,#6)}%
+                \mys@graph@repere@axis@z@label%
+        \fi
+    \fi
+%
+%   ---   ticks
+%
+    \if@mys@graph@repere@isdrawn@ticks@x@
+        \if@mys@graph@repere@iD@
+        \else
+            \pgfmathsetmacro{\mys@graph@repere@axis@x@first}{\mys@graph@repere@axis@x@pas}
+            \pgfmathsetmacro{\opposepas}{-(\mys@graph@repere@axis@x@pas)}
+            \pgfmathsetmacro{\doublepas}{\mys@graph@repere@axis@x@first+\mys@graph@repere@axis@x@pas}
+            \pgfmathsetmacro{\doubleopposepas}{-\doublepas}
+            \pgfmathparse{\mys@graph@repere@axis@x@ticks@min>0}
+            \ifnum\pgfmathresult=1%
+                \pgfmathsetmacro{\mys@graph@repere@axis@x@first}{\mys@graph@repere@axis@x@ticks@min}
+                \pgfmathsetmacro{\opposepas}{-(\mys@graph@repere@axis@x@pas)}
+                \pgfmathsetmacro{\doublepas}{\mys@graph@repere@axis@x@first+\mys@graph@repere@axis@x@pas}
+                \pgfmathsetmacro{\doubleopposepas}{-\doublepas}
+            \fi            
+            \mys@graph@repere@isdrawn@ticksgrads@build%
+                \mys@graph@repere@axis@x@ticks@min%{#1}%
+                \mys@graph@repere@axis@x@ticks@max%{#2}%
+                \mys@graph@repere@isdrawn@ticks@x@size%
+                \mys@graph@repere@axis@x@first%
+                \opposepas%
+                \doublepas%
+                \doubleopposepas%
+                \mys@graph@repere@isdrawn@ticks@x@help%
+                {/mys/graph/repere/xticks@style}%
+        \fi
+    \fi
+    \if@mys@graph@repere@ticks@xatorig@
+        \mys@graph@repere@isdrawn@ticks@x@help%
+            {/mys/graph/repere/xticks@style}%
+            {0}%
+            \mys@graph@repere@isdrawn@ticks@x@size%
+    \fi
+    \if@mys@graph@repere@isdrawn@ticks@y@
+        \if@mys@graph@repere@iD@
+        \else
+            \pgfmathsetmacro{\mys@graph@repere@axis@y@first}{\mys@graph@repere@axis@y@pas}
+            \pgfmathsetmacro{\opposepas}{-(\mys@graph@repere@axis@y@pas)}
+            \pgfmathsetmacro{\doublepas}{\mys@graph@repere@axis@y@first+\mys@graph@repere@axis@y@pas}
+            \pgfmathsetmacro{\doubleopposepas}{-\doublepas}
+            \pgfmathparse{\mys@graph@repere@axis@y@ticks@min>0}
+            \ifnum\pgfmathresult=1%
+                \pgfmathsetmacro{\mys@graph@repere@axis@y@first}{\mys@graph@repere@axis@y@ticks@min}
+                \pgfmathsetmacro{\opposepas}{-(\mys@graph@repere@axis@y@pas)}
+                \pgfmathsetmacro{\doublepas}{\mys@graph@repere@axis@y@first+\mys@graph@repere@axis@y@pas}
+                \pgfmathsetmacro{\doubleopposepas}{-\doublepas}
+            \fi            
+            \mys@graph@repere@isdrawn@ticksgrads@build%
+                \mys@graph@repere@axis@y@ticks@min%{#3}%
+                \mys@graph@repere@axis@y@ticks@max%{#4}%
+                \mys@graph@repere@isdrawn@ticks@y@size%
+                \mys@graph@repere@axis@y@first%
+                \opposepas%
+                \doublepas%
+                \doubleopposepas%
+                \mys@graph@repere@isdrawn@ticks@y@help%
+                {/mys/graph/repere/yticks@style}%
+        \fi
+    \fi
+    \if@mys@graph@repere@ticks@yatorig@
+        \if@mys@graph@repere@iD@
+        \else
+            \mys@graph@repere@isdrawn@ticks@y@help%
+                {/mys/graph/repere/yticks@style}%
+                {0}%
+                \mys@graph@repere@isdrawn@ticks@y@size%
+        \fi
+    \fi
+% et z ?
+%
+%   ---   grad
+%
+    \if@mys@graph@repere@isdrawn@grad@x@
+        \if@mys@graph@repere@iD@
+        \else
+            \pgfmathsetmacro{\mys@graph@repere@axis@x@first}{\mys@graph@repere@axis@x@pas}
+            \pgfmathsetmacro{\opposepas}{-(\mys@graph@repere@axis@x@pas)}
+            \pgfmathsetmacro{\doublepas}{\mys@graph@repere@axis@x@first+\mys@graph@repere@axis@x@pas}
+            \pgfmathsetmacro{\doubleopposepas}{-\doublepas}
+            \pgfmathparse{\mys@graph@repere@axis@x@grad@min>0}
+            \ifnum\pgfmathresult=1%
+                \pgfmathsetmacro{\mys@graph@repere@axis@x@first}{\mys@graph@repere@axis@x@grad@min}
+                \pgfmathsetmacro{\opposepas}{-(\mys@graph@repere@axis@x@pas)}
+                \pgfmathsetmacro{\doublepas}{\mys@graph@repere@axis@x@first+\mys@graph@repere@axis@x@pas}
+                \pgfmathsetmacro{\doubleopposepas}{-\doublepas}
+            \fi            
+        \mys@graph@repere@isdrawn@ticksgrads@build%
+%            {#1}%
+%            {#2}%
+            \mys@graph@repere@axis@x@grad@min
+            \mys@graph@repere@axis@x@grad@max
+            \mys@graph@repere@isdrawn@ticks@x@size%
+            \mys@graph@repere@axis@x@first%
+            \opposepas%
+            \doublepas%
+            \doubleopposepas%
+            \mys@graph@repere@isdrawn@grad@x@help%
+            {/mys/graph/repere/x@grad}%
+            \fi
+    \fi
+    \if@mys@graph@repere@isdrawn@grad@y@
+        \if@mys@graph@repere@iD@
+        \else
+            \pgfmathsetmacro{\mys@graph@repere@axis@y@first}{\mys@graph@repere@axis@y@pas}
+            \pgfmathsetmacro{\opposepas}{-(\mys@graph@repere@axis@y@pas)}
+            \pgfmathsetmacro{\doublepas}{\mys@graph@repere@axis@y@pas+\mys@graph@repere@axis@y@pas}
+            \pgfmathsetmacro{\doubleopposepas}{-\doublepas}
+            \pgfmathparse{\mys@graph@repere@axis@y@grad@min>0}
+            \ifnum\pgfmathresult=1%
+                \pgfmathsetmacro{\mys@graph@repere@axis@y@first}{\mys@graph@repere@axis@y@grad@min}
+                \pgfmathsetmacro{\opposepas}{-(\mys@graph@repere@axis@y@pas)}
+                \pgfmathsetmacro{\doublepas}{\mys@graph@repere@axis@y@first+\mys@graph@repere@axis@y@pas}
+                \pgfmathsetmacro{\doubleopposepas}{-\doublepas}            
+            \fi
+            \mys@graph@repere@isdrawn@ticksgrads@build%
+%                {#3}%
+%                {#4}%
+                \mys@graph@repere@axis@y@grad@min
+                \mys@graph@repere@axis@y@grad@max
+                \mys@graph@repere@isdrawn@ticks@y@size%
+                \mys@graph@repere@axis@y@first%
+                \opposepas%
+                \doublepas%
+                \doubleopposepas%
+                \mys@graph@repere@isdrawn@grad@y@help%
+                {/mys/graph/repere/y@grad}%
+        \fi
+    \fi
+%
+%   ---   base
+%
+    \if@mys@graph@repere@isdrawn@base@point@
+        \mys@graph@repere@base@point
+    \else
+        \if@mys@graph@repere@isdrawn@base@vect@
+            \mys@graph@repere@base@vect%
+        \fi
+    \fi
+%
+%   ---   clip
+%
+%    \if@mys@graph@repere@isclipped@%
+%    \clip ($(current bounding box.north east)+(\mys@graph@repere@enlarge@right,\mys@graph@repere@enlarge@above)$)rectangle($(current bounding box.south west)-(\mys@graph@repere@enlarge@left,\mys@graph@repere@enlarge@below)$);\fi%
+%    \if@mys@graph@repere@isclipped@%
+%        \draw ($(current bounding box.north east)+(\mys@graph@repere@axis@x@addtoend,\mys@graph@repere@axis@y@addtoend)$)rectangle($(current bounding box.south west)+(-\mys@graph@repere@axis@x@addtobegin,-\mys@graph@repere@axis@y@addtobegin)$);\fi
+%    \if@mys@graph@repere@isclipped@%
+%        \clip ($(current bounding box.north east)+(\mys@graph@repere@clip@x@addtoend,\mys@graph@repere@clip@y@addtoend)$)rectangle($(current bounding box.south west)+(-\mys@graph@repere@clip@x@addtobegin,-\mys@graph@repere@clip@y@addtobegin)$);
+%        \fi%
+    \if@mys@graph@repere@isclipped@%
+        \clip ($(current bounding box.south west)+(-\mys@graph@repere@clip@x@addtobegin,-\mys@graph@repere@clip@y@addtobegin)$)rectangle($(\mys@graph@repere@xmax,\mys@graph@repere@ymax)+(\mys@graph@repere@clip@x@addtoend,\mys@graph@repere@clip@y@addtoend)$);
+        \fi%
+%
+%
+%
+    }%
+%
+%    Aux macro : construction de la base
+%
+\def\mys@graph@repere@base@vect@help#1#2#3#4#5{%
+    \draw [#1] #2--#3 node[#4] {#5}; %
+    }%
+%
+\def\mys@graph@repere@base@vect{%
+    \mys@graph@repere@base@vect@help{/mys/graph/repere/x@vect}{(0,0)}{(1,0)}{/mys/graph/repere/x@vect@label}{\mys@graph@repere@base@vect@x}%
+    \if@mys@graph@repere@iiD@
+        \mys@graph@repere@base@vect@help{/mys/graph/repere/y@vect}{(0,0)}{(0,1)}{/mys/graph/repere/y@vect@label}{\mys@graph@repere@base@vect@y}%
+    \fi%
+    \if@mys@graph@repere@iiiD@
+        \mys@graph@repere@base@vect@help{/mys/graph/repere/z@vect}{(0,0,0)}{(0,0,1)}{/mys/graph/repere/z@vect@label}{\mys@graph@repere@base@vect@z}%
+    \fi%
+    }
+%
+\def\mys@graph@repere@base@pt@help#1#2#3#4#5{%
+    \drawpoint[/mys/graph/point/.cd,ref=#5,#1,#3]{#4,#2}
+%    \coordinate (#5) at #2;
+%    \draw[#1] plot coordinates {#2} node[#3]{#4}; 
+    }%
+%
+\def\mys@graph@repere@base@point{%
+    \mys@graph@repere@base@pt@help{/mys/graph/repere/x@point}{1,0}{/mys/graph/repere/x@point@label}{\mys@graph@repere@base@point@x}{\mys@graph@repere@base@point@x@ref}%
+    \if@mys@graph@repere@iiD@
+        \mys@graph@repere@base@pt@help{/mys/graph/repere/y@point}{0,1}{/mys/graph/repere/y@point@label}{\mys@graph@repere@base@point@y}{\mys@graph@repere@base@point@y@ref}%
+    \fi%
+    \if@mys@graph@repere@iiiD@
+    \mys@graph@repere@base@pt@help{/mys/graph/repere/z@point}{0,0,1}{/mys/graph/repere/z@point@label}{\mys@graph@repere@base@point@z}{\mys@graph@repere@base@point@z@ref}%
+    \fi%
+    }
+%
+%    Aux macro : construction des axes
+%
+\def\mys@graph@repere@axis@format#1#2#3#4{%
+    \begin{scope}
+        \draw[#1] #2 -- #3;
+    \end{scope}
+    }%
+%
+%    Aux macro : construction des labels des axes
+%
+\def\mys@graph@repere@axis@label#1#2#3{%
+    \begin{scope}% utile ?
+        \node[#1] at #2{#3};
+    \end{scope}
+    }
+%
+%    Aux macro : construction de l'origine
+%
+\def\mys@graph@repere@origin@mark#1#2{%
+    \draw[#1] plot coordinates {#2};
+    }%
+%
+\def\mys@graph@repere@origin@label#1#2#3{%
+    \node[#1] at (#2){#3};
+    }%
+%
+%    Aux macro : construction des ticks
+%
+\def\mys@graph@repere@isdrawn@ticks@x@help#1#2#3%
+    {%,
+    \draw[#1] ($(#2,\mys@graph@repere@origin@y)-(0,0.5*#3)$)-++(0,#3);%
+    }
+
+%
+\def\mys@graph@repere@isdrawn@ticks@y@help#1#2#3%
+    {%,
+    \draw[#1] ($(\mys@graph@repere@origin@x,#2)-0.5*(#3,0)$)-++(#3,0);%
+    }
+%    {\draw[#1] (\mys@graph@repere@origin@x-0.5*#3,#2)--(\mys@graph@repere@origin@x+0.5*#3,#2);}
+%
+\def\mys@graph@repere@isdrawn@ticksgrads@build#1#2#3#4#5#6#7#8#9{%
+    \pgfmathparse{#2>=#4}%
+    \ifnum\pgfmathresult=1 %
+        \pgfmathparse{#2>=#6}%
+        \ifnum\pgfmathresult=1%
+            \foreach \i  in {#4,#6,...,#2}%
+                {#8{#9}{\i}{#3}}%
+        \else
+            #8{#9}{#4}{#3}%
+        \fi
+    \fi
+    \pgfmathparse{#1<=#5}%
+    \ifnum\pgfmathresult=1 %
+        \pgfmathparse{#1<=#7}%
+        \ifnum\pgfmathresult=1 %
+            \foreach \i  in {#5,#7,...,#1}%
+                {#8{#9}{\i}{#3}}%
+        \else
+            #8{#9}{#5}{#3}
+        \fi
+    \fi
+    }%
+%
+%    Aux macro : construction des graduations
+%
+\def\mys@graph@repere@isdrawn@grad@x@help#1#2#3%
+    {\node[#1] at  ($(#2,\mys@graph@repere@origin@y)-(0,#3*0.5)$){$\mys@graph@repere@grad@process{#2}$};}
+%
+\def\mys@graph@repere@isdrawn@grad@y@help#1#2#3%
+    {\node[#1] at  ($(\mys@graph@repere@origin@x,#2)-(#3*0.5,0)$){$\mys@graph@repere@grad@process{#2}$};}
+%
+%    Aux macro : construction de la grille
+%
+\def\mys@graph@repere@grid#1#2#3#4#5#6#7{%
+    \if@mys@graph@repere@iiiD@
+       \mys@graph@repere@grid@iiid[#1]{#2}{#3}{#4}{#5}{#6}{#7}
+    \else
+        \draw[#1] (#2,#4,#6) grid (#3,#5,#7);
+    \fi
+    }%
+%
+%   ---   grille 3d ? choisir quelle version ? options ?
+%
+\def\mys@graph@repere@grid@iiid@i[#1]#2#3#4#5#6#7{%
+    \foreach \abs in {#2,...,#7}%
+        {%
+        \foreach \ord in {#4,...,#5}%
+            {\draw (\abs,\ord,#6)--(\abs,\ord,#7);}%
+        }%
+    \foreach \abs in {#2,...,#3}%
+        {%
+        \foreach \cote in {#6,...,#7}%
+            {\draw (\abs,#4,\cote)--(\abs,#5,\cote);}%
+        }%
+    \foreach \ord in {#4,...,#5}%
+        {%
+        \foreach \cote in {#6,...,#7}%
+            {\draw (#2,\ord,\cote) -- (#3,\ord,\cote);}%
+        }%
+    }%
+%
+\def\mys@graph@repere@grid@iiid@ii[#1]#2#3#4#5#6#7{%
+    \begin{scope}[canvas is xy plane at z=#6, thick, red]
+      \draw[help lines]  (#2,#4) grid (#3,#5);
+    \end{scope}
+    \begin{scope}[canvas is yz plane at x=#2, thin, blue]
+      \draw [help lines] (#4,#6) grid (#5,#7);
+    \end{scope}
+    \begin{scope}[canvas is xz plane at y=#3, thin, orange]
+      \draw [help lines] (#2,#6) grid (#3,#7);
+    \end{scope}
+    }%
+%
+\def\mys@graph@repere@grid@iiid@iii[#1]#2#3#4#5#6#7{%
+    \begin{scope}[canvas is xy plane at z=0]
+      \draw [help lines, thick, red] (#2,#4) grid (#3,#5);
+    \end{scope}
+    \begin{scope}[canvas is yz plane at x=0, thin, blue]
+      \draw [help lines] (#4,#6) grid (#5,#7);
+    \end{scope}
+    \begin{scope}[canvas is xz plane at y=0, thin, orange]
+      \draw [help lines] (#2,#6) grid (#3,#7);
+    \end{scope}
+    }%
+%
+\def\mys@graph@repere@grid@iiid{\mys@graph@repere@grid@iiid@iii}%
+%
+%
+%####################################################
+%
+%--- Points
+%
+%####################################################
+%
+%    Compteur pour donner une référence aux points sans labels
+%
+\newcounter{mys@graph@points@notnamed@count}%
+\setcounter{mys@graph@points@notnamed@count}{0}%
+%
+%   clés
+%
+\newif\if@mys@graph@point@coord@x@
+\newif\if@mys@graph@point@coord@y@
+\newif\if@mys@graph@point@coord@z@
+%
+\newif\if@mys@graph@point@coord@label@x@
+\newif\if@mys@graph@point@coord@label@y@
+\newif\if@mys@graph@point@coord@label@z@
+%
+\newif\if@mys@graph@point@coord@segment@x@
+\newif\if@mys@graph@point@coord@segment@y@
+\newif\if@mys@graph@point@coord@segment@z@
+%
+\newif\if@mys@graph@point@label@
+\newif\if@mys@graph@point@mark@
+%
+\pgfkeys{%
+    /mys/graph/point/.search also = /tikz,%
+    /mys/graph/point/.cd,%
+    ref auto/.store in = \mys@graph@point@notnamed@name,%
+%
+    x coord/.is if = @mys@graph@point@coord@x@,%
+    y coord/.is if = @mys@graph@point@coord@y@,%
+    z coord/.is if = @mys@graph@point@coord@z@,%
+%
+    x labelled/.is if = @mys@graph@point@coord@label@x@,%
+    y labelled/.is if = @mys@graph@point@coord@label@y@,%
+    z labelled/.is if = @mys@graph@point@coord@label@z@,%
+%
+    x label/.store in = \mys@graph@point@label@x,%
+    y label/.store in = \mys@graph@point@label@y,%
+    z label/.store in = \mys@graph@point@label@z,%
+%
+    x@label@style/.style = {yshift=-\mys@graph@repere@isdrawn@ticks@x@size,below,outer sep=0pt,inner sep=1pt,fill=white,font=\small},%
+    x label style/.style     = {/mys/graph/point/x@label@style/.append style = {#1}},%
+    y@label@style/.style = {xshift=-\mys@graph@repere@isdrawn@ticks@y@size,left,outer sep=0pt,inner sep=1pt,fill=white,font=\small},%
+    y label style/.style     = {/mys/graph/point/y@label@style/.append style = {#1}},%
+    z@label@style/.style = {},%
+    z label style/.style     = {/mys/graph/point/z@label@style/.append style = {#1}},%
+%
+    x segment/.is if = @mys@graph@point@coord@segment@x@,%
+    y segment/.is if = @mys@graph@point@coord@segment@y@,%
+    z segment/.is if = @mys@graph@point@coord@segment@z@,%
+%
+    x@segment@style/.style = {-Stealth[],densely dashed,line width=1pt},%
+    x segment style/.style     = {/mys/graph/point/x@segment@style/.append style = {#1}},%
+    y@segment@style/.style = {-Stealth[],densely dashed,line width=1pt},%
+    y segment style/.style     = {/mys/graph/point/y@segment@style/.append style = {#1}},%
+    z@segment@style/.style = {-Stealth[],densely dashed,line width=1pt},%
+    z segment style/.style     = {/mys/graph/point/z@segment@style/.append style = {#1}},%
+%
+    labelled/.is if = @mys@graph@point@label@,%
+    marked/.is if = @mys@graph@point@mark@,%
+%
+    label@style/.style  = {below left,outer sep=3pt,inner sep=1pt, fill=white},%
+    label style/.style    = {/mys/graph/point/label@style/.append style={#1}},%
+    ref/.store in           = \mys@graph@point@ref,%
+    ref/.default            =  @,%
+    mark@style/.style = {mark=*,mark size=2pt},%
+    mark style/.style   = {/mys/graph/point/mark@style/.append style = {#1}},%
+    }%
+%
+%   user macro
+%
+\newcommand*\drawpoint[2][]{%
+    \begingroup%
+    \pgfkeys{%
+        /mys/graph/point/.cd,%
+%
+        x coord=false,y coord=false,z coord=false,%
+            x labelled=false, y labelled=false,z labelled=false,%
+            x label = {$1$}, y label = {$b$},z label={truc},%
+            x segment = false, y segment= false, z segment=false,%
+%
+        labelled=true,%
+        sans label/.style = {labelled=false},%
+        marked=true,%
+        sans marque/.style = {marked=false},%
+        ref,ref auto=@,%
+        fantome/.style = {sans label,sans marque},%
+%
+        #1%
+        }%
+    \expandafter\mys@graph@drawpoint@namedornot\expandafter{\expanded{#2}}%
+       \endgroup
+    }%
+%
+%
+%
+\def\mys@graph@set@is@decimal@sep#1{%
+    \edef\mys@graph@is@decimal@sep{#1}%
+    \expandafter\def\expandafter\mys@graph@is@decimal@aux\expandafter##\expandafter1\mys@graph@is@decimal@sep##2\mys@stop{##1}%
+    \expandafter\def\expandafter\mys@graph@is@decimal\expandafter##\expandafter1\expandafter{\expandafter\mys@if@decimal\expandafter{\expandafter\mys@graph@is@decimal@aux\expandafter##\expandafter1\mys@graph@is@decimal@sep\mys@stop}}%
+    }%
+%
+\mys@graph@set@is@decimal@sep{,}
+%\def\mys@graph@is@decimal@aux#1,#2\mys@stop{#1}%
+%\def\mys@graph@is@decimal#1{\mys@if@decimal{\mys@graph@is@decimal@aux#1,\mys@stop}}%
+%
+\def\mys@graph@drawpoint@namedornot#1{%
+    \mys@graph@is@decimal{#1}%
+        {\mys@graph@drawpoint@notnamed{#1}}%
+        {\mys@graph@drawpoint@named#1\mys@stop}%
+    }%
+%
+%
+%
+\def\mys@graph@drawpoint@savecoord#1,#2\mys@stop{\cord{#1;#2}}
+%
+\def\mys@graph@drawpoint@named#1,#2\mys@stop{%
+    \expandafter\ifx \mys@graph@point@ref @\relax%
+        \pgfkeys{/mys/graph/point/ref=\detokenize{#1}}%
+    \fi%
+    \coordinate (\mys@graph@point@ref) at (#2) ;%
+    %
+    \if@mys@graph@point@mark@%
+        \draw[/mys/graph/point/mark@style] plot coordinates {(#2)};%
+    \fi%
+    \if@mys@graph@point@label@%
+        \node[/mys/graph/point/label@style] at (\mys@graph@point@ref) {$#1$};%
+    \fi%
+    \mys@graph@point@coord{\mys@graph@point@ref}{2mm}{2mm}%
+    \expandafter\gdef\csname point\string#1\endcsname{#1\mys@graph@drawpoint@savecoord#2\mys@stop}%PB si #1 est une macro
+    \expandafter\gdef\csname coord\string#1\endcsname{\mys@graph@drawpoint@savecoord#2\mys@stop}%PB si #1 est une macro
+    }%
+%
+%
+%
+\def\mys@graph@drawpoint@notnamed#1{%
+    \stepcounter{mys@graph@points@notnamed@count}%
+    \if @\mys@graph@point@ref\relax%
+        \pgfkeys{/mys/graph/point/ref=\mys@graph@point@notnamed@name\arabic{mys@graph@points@notnamed@count}}%
+    \fi%
+    \coordinate (\mys@graph@point@ref) at (#1) ;%
+    \if@mys@graph@point@mark@%
+        \draw[/mys/graph/point/mark@style] plot coordinates{(#1)};%
+    \fi%
+    \mys@graph@point@coord{\mys@graph@point@ref}{2mm}{2mm}%
+    }%
+%
+%
+%
+\def\mys@graph@point@coord#1{%
+% #1 : ref
+    \if@mys@graph@point@coord@x@
+        \coordinate(#1x) at ($(0,0)!(#1)!(1,0)$);%
+        \if@mys@graph@point@coord@segment@x@
+            \draw[/mys/graph/point/x@segment@style](#1)--(#1x);%
+        \fi%
+        \if@mys@graph@point@coord@label@x@
+            \node[/mys/graph/point/x@label@style] at (#1x) {$\mys@graph@point@label@x$};%
+        \fi%
+    \fi%
+    \if@mys@graph@point@coord@y@
+        \coordinate(#1y) at ($(0,0)!(#1)!(0,1)$);%
+        \if@mys@graph@point@coord@segment@y@
+            \draw[/mys/graph/point/y@segment@style](#1)--(#1y);%
+        \fi%
+        \if@mys@graph@point@coord@label@y@
+            \node[/mys/graph/point/y@label@style] at (#1y) {$\mys@graph@point@label@y$};%
+        \fi%
+    \fi%
+    \if@mys@graph@point@coord@z@
+        \coordinate(#1z) at ($(0,0,0)!(#1)!(0,0,1)$);%
+        \if@mys@graph@point@coord@segment@z@
+            \draw[/mys/graph/point/z@segment@style](#1)--(#1z);%
+        \fi%
+        \if@mys@graph@point@coord@label@z@
+            \node[/mys/graph/point/z@label@style] at (#1z) {$\mys@graph@point@label@z$};%
+        \fi%
+    \fi%
+    }%
+%
+%
+%
+%\newcommand*\drawpoints[2][]{\mys@graph@points{#1}#2;\mys@stop}%
+\NewExpandableDocumentCommand\drawpoints{O{}m}{\expandafter\mys@graph@points@@\expandafter{#2}{#1}}%
+%\NewExpandableDocumentCommand\drawpoints{O{}m}{\expandafter\mys@graph@points@@\expandafter{#1}{#2}}%
+%
+%
+%
+\def\mys@graph@points@@#1#2{\mys@graph@points{#2}#1;\mys@stop}
+%\def\mys@graph@points@@#1#2{\mys@graph@points{#1}#2;\mys@stop}
+%\def\mys@graph@points#1#2;#3\mys@stop{%
+%    \mys@graph@points@{#1}#2\mys@stop%
+%    \ifx\relax#3\relax%
+%    \else%
+%        \mys@graph@points{#1}#3\mys@stop%
+%    \fi%
+%    }%
+\def\mys@graph@points#1#2;#3\mys@stop{%
+    \mys@graph@points@{#1}#2[\mys@stop%
+    \ifx\relax#3\relax%
+    \else%
+        \mys@graph@points{#1}#3\mys@stop%
+    \fi%
+    }%
+%
+%
+%
+%\def\mys@graph@points@#1{%
+%    \@ifnextchar[{\mys@graph@points@opt{#1}}{\mys@graph@points@noopt{#1}}%
+%    }%
+%\def\mys@graph@points@#1#2{%
+%    \@ifnextchar[{\mys@graph@points@opt{#1}{#2}}{\mys@graph@points@noopt{#1}{#2}}%
+%    }%
+\def\mys@graph@points@#1#2[#3\mys@stop{%
+    \ifx\relax#3\relax%
+        \mys@graph@points@noopt{#1}#2\mys@stop
+    \else%
+        \mys@graph@points@opt{#1}#2[#3%
+    \fi%
+    }%
+%
+%
+%
+%\def\mys@graph@points@opt#1[#2]#3\mys@stop{\drawpoint[#1,#2]{#3}}%
+%\def\mys@graph@points@opt#1#2[#3]#4\mys@stop{\def\tmp{#2#4}\show\tmp\drawpoint[#1,#3]{#2#4}}%
+\def\mys@graph@points@opt#1#2[#3]#4[{\drawpoint[#1,#3]{#2#4}}
+%
+%\def\mys@graph@points@noopt#1#2\mys@stop{\ifx\relax#1\relax\drawpoint{#2}\else\drawpoint[#1]{#2}\fi}%
+\def\mys@graph@points@noopt#1#2\mys@stop{\ifx\relax#1\relax\drawpoint{#2}\else\drawpoint[#1]{#2}\fi}
+%
+%
+%
+%####################################################
+%
+%--- Vecteur
+%
+%####################################################
+%
+%    Compteur pour donner une référence aux points sans labels
+%
+\newcounter{mys@graph@vects@notnamed@count}%
+\setcounter{mys@graph@vects@notnamed@count}{0}%
+%
+%   clés
+%
+\newif\if@mys@graph@vect@label@
+\newif\if@mys@graph@vect@mark@
+%
+\let\mys@graph@vect@label\relax
+%
+\pgfkeys{%
+    /mys/graph/vect/.search also = /tikz,%
+    /mys/graph/vect/.cd,%
+    ref auto/.store in = \mys@graph@vect@notnamed@name,%
+%
+    labelled/.is if = @mys@graph@vect@label@,%
+    marked/.is if = @mys@graph@vect@mark@,%
+%
+    label/.store in           = \mys@graph@vect@label,%
+    label/.default            = ,%    
+    label@style/.style  = {below left,outer sep=3pt,inner sep=1pt, fill=white,pos=0.5},%
+    label style/.style    = {/mys/graph/vect/label@style/.append style={#1}},%
+    ref/.estore in           = \mys@graph@vect@ref,%
+    ref/.default            =  @,%
+    deb ref/.estore in = \mys@graph@vect@deb@ref,%
+    fin ref/.estore in = \mys@graph@vect@fin@ref,%
+    vect@style/.style = {->,arrows={-Latex[length=1ex]}},%
+    vecteur style/.style   = {/mys/graph/vect/mark@style/.append style = {#1}},%
+    }%
+%
+%   user macro
+%
+\newcommand*\drawvecteur[2][]{%
+    \begingroup%
+    \pgfkeys{%
+        /mys/graph/vect/.cd,%
+%
+        labelled=true,%
+        marked=true,%
+        ref,%
+        #1%
+        }%
+    \expandafter\mys@graph@drawvect@namedornot\expandafter{\expanded{#2}}%
+    \endgroup%
+    }%
+%
+%
+%
+\def\mys@graph@drawvect@namedornot#1{%
+    \mys@graph@drawvect@is@named#1,\mys@stop%
+        {\mys@graph@drawvect@notnamed#1\mys@stop}%
+        {\mys@graph@drawvect@named#1\mys@stop}%
+    }%
+%
+%
+%
+\def\mys@graph@drawvect@is@named#1,#2,#3\mys@stop{% si 2 ; alors vecteur nommé (nom;debut;fin)
+    \ifx\relax#3\relax %
+        \expandafter\@firstoftwo%
+    \else %
+        \expandafter\@secondoftwo%
+    \fi%
+    }%
+%
+%
+%
+%
+\def\mys@graph@drawvect@named#1,#2,#3\mys@stop{%
+    \expandafter\ifx \mys@graph@vect@ref @\relax%
+        \pgfkeys{/mys/graph/vect/ref=#1,/mys/graph/vect/deb ref=#1d,/mys/graph/vect/fin ref=#1f}%
+    \fi%
+    \coordinate (\mys@graph@vect@ref) at ($0.5*(#2)+0.5*(#3)$) ;%
+    \coordinate (\mys@graph@vect@deb@ref) at (#2) ;%
+    \coordinate (\mys@graph@vect@fin@ref) at (#3) ;%
+    %
+    \if@mys@graph@vect@mark@%
+        \if@mys@graph@vect@label@%
+            \draw[/mys/graph/vect/mark@style] (#2)--(#3)node[/mys/graph/vect/label@style]{\ifx\relax\mys@graph@vect@label$\vect{#1}$\else$\mys@graph@vect@label$\fi};%
+        \else
+            \draw[/mys/graph/vect/mark@style] (#2)--(#3);%        
+        \fi
+    \else%
+        \if@mys@graph@vect@label@%
+            \path (#2) (#3)node[/mys/graph/vect/label@style]{\ifx\relax\mys@graph@vect@label$\vect{#1}$\else$\mys@graph@vect@label$\fi};%
+        \fi
+    \fi%
+    }%
+%
+%
+%
+\def\mys@graph@drawvect@notnamed#1,#2\mys@stop{%
+    \stepcounter{mys@graph@vects@notnamed@count}%
+    \if @\mys@graph@vect@ref\relax%
+        \pgfkeys{/mys/graph/vect/ref=\mys@graph@vect@notnamed@name\arabic{mys@graph@vects@notnamed@count},/mys/graph/vect/deb ref=\mys@graph@vect@notnamed@name\arabic{mys@graph@vects@notnamed@count}d,/mys/graph/vect/fin ref=\mys@graph@vect@notnamed@name\arabic{mys@graph@vects@notnamed@count}f}%
+    \fi%
+    \coordinate (\mys@graph@vect@ref) at ($0.5*(#1)+0.5*(#2)$) ;%
+    \coordinate (\mys@graph@vect@deb@ref) at (#1);%
+    \coordinate (\mys@graph@vect@fin@ref) at (#2);%
+    \if@mys@graph@vect@mark@%
+        \draw[/mys/graph/vect/mark@style] (#1)--(#2);%
+    \fi%
+    }%
+%
+%
+%
+\newcommand*\drawvecteurs[1]{\mys@graph@vecteurs#1;\mys@stop}%
+%
+%
+%
+\def\mys@graph@vecteurs#1;#2\mys@stop{%
+    \mys@graph@vecteurs@#1\mys@stop%
+    \ifx\relax#2\relax%
+    \else%
+        \mys@graph@vecteurs#2\mys@stop%
+    \fi%
+    }%
+%
+%
+%
+\def\mys@graph@vecteurs@{%
+    \@ifnextchar[{\mys@graph@vecteurs@opt}{\mys@graph@vecteurs@noopt}%
+    }%
+%
+%
+%
+\def\mys@graph@vecteurs@opt[#1]#2\mys@stop{\drawvecteur[#1]{#2}}%
+\def\mys@graph@vecteurs@noopt#1\mys@stop{\drawvecteur{#1}}%
+%
+%%####################################################
+%%
+%%--- Droites
+%%
+%%####################################################
+%%
+%%    Compteur pour donner une référence aux points sans labels
+%%
+%\newcounter{mys@graph@drts@notnamed@count}%
+%\setcounter{mys@graph@drts@notnamed@count}{0}%
+%%
+%%   clés
+%%
+%\newif\if@mys@graph@drt@label@
+%\newif\if@mys@graph@drt@mark@
+%%
+%\pgfkeys{%
+%    /mys/graph/drt/.search also = /tikz,%
+%    /mys/graph/drt/.cd,%
+%    ref auto/.store in = \mys@graph@drt@notnamed@name,%
+%%
+%    labelled/.is if = @mys@graph@drt@label@,%
+%    marked/.is if = @mys@graph@drt@mark@,%
+%%
+%    label@style/.style  = {below left,outer sep=3pt,inner sep=1pt, fill=white,pos=0.5},%
+%    label style/.style    = {/mys/graph/drt/label@style/.append style={#1}},%
+%    ref/.estore in           = \mys@graph@drt@ref,%
+%    ref/.default            =  @,%
+%    deb ref/.estore in = \mys@graph@drt@deb@ref,%
+%    fin ref/.estore in = \mys@graph@drt@fin@ref,%
+%    }%
+%%
+%%   user macro
+%%
+%\newcommand*\drawdroite[2][]{%
+%    \begingroup%
+%    \pgfkeys{%
+%        /mys/graph/drt/.cd,%
+%%
+%        labelled=true,%
+%            marked=true,%
+%            ref,%
+%%
+%        #1%
+%        }%
+%    \expandafter\mys@graph@drawdrt@namedornot\expandafter{\expanded{#2}}%
+%    \endgroup%
+%    }%
+%%
+%%
+%%
+%\def\mys@graph@drawdrt@namedornot#1{%
+%    \mys@graph@drawdrt@is@named#1;\mys@stop%
+%        {\mys@graph@drawdrt@notnamed#1\mys@stop}%
+%        {\mys@graph@drawdrt@named#1\mys@stop}%
+%    }%
+%%
+%%
+%%
+%\def\mys@graph@drawdrt@is@named#1;#2;#3\mys@stop{% si 2 ; alors vecteur nommé (nom;debut;fin)
+%    \ifx\relax#3\relax %
+%        \expandafter\@firstoftwo%
+%    \else %
+%        \expandafter\@secondoftwo%
+%    \fi%
+%    }%
+%%
+%%
+%%
+%\def\mys@graph@drawdrt@named#1;#2;#3\mys@stop{%
+%    \expandafter\ifx \mys@graph@drt@ref @\relax%
+%        \pgfkeys{/mys/graph/drt/ref=#1,/mys/graph/drt/deb ref=#1d,/mys/graph/drt/fin ref=#1f}%
+%    \fi%
+%    \coordinate (\mys@graph@drt@ref) at ($0.5*(#2)+0.5*(#3)$) ;%
+%    
+%    \coordinate (\mys@graph@drt@deb@ref) at (#2) ;%
+%    \coordinate (\mys@graph@drt@fin@ref) at (#3) ;%
+%    \if@mys@graph@drt@label@%
+%            \draw (#2)--(#3)node[/mys/graph/drt/label@style]{$#1$};%
+%    \else
+%            \draw (#2)--(#3);%        
+%    \fi
+%    }%
+%%
+%%
+%%
+%\def\mys@graph@drawdrt@notnamed#1;#2\mys@stop{%
+%    \stepcounter{mys@graph@drts@notnamed@count}%
+%    \if @\mys@graph@drt@ref\relax%
+%        \pgfkeys{/mys/graph/drt/ref=\mys@graph@drt@notnamed@name\arabic{mys@graph@drts@notnamed@count},/mys/graph/drt/deb ref=\mys@graph@drt@notnamed@name\arabic{mys@graph@drts@notnamed@count}d,/mys/graph/drt/fin ref=\mys@graph@drt@notnamed@name\arabic{mys@graph@drts@notnamed@count}f}%
+%    \fi%
+%    \coordinate (\mys@graph@drt@ref) at ($0.5*(#1)+0.5*(#2)$) ;%
+%    \coordinate (\mys@graph@drt@deb@ref) at (#1);%
+%    \coordinate (\mys@graph@drt@fin@ref) at (#2);%
+%    }%
+%%
+%%
+%%
+%\newcommand*\drawdroites[1]{\mys@graph@droites#1/\mys@stop}%
+%%
+%%
+%%
+%\def\mys@graph@droites#1/#2\mys@stop{%
+%    \mys@graph@droites@#1\mys@stop%
+%    \ifx\relax#2\relax%
+%    \else%
+%        \mys@graph@droites#2\mys@stop%
+%    \fi%
+%    }%
+%%
+%%
+%%
+%\def\mys@graph@droites@{%
+%    \@ifnextchar[{\mys@graph@droites@opt}{\mys@graph@droites@noopt}%
+%    }%
+%%
+%%
+%%
+%\def\mys@graph@droites@opt[#1]#2\mys@stop{\drawdroite[#1]{#2}}%
+%\def\mys@graph@droites@noopt#1\mys@stop{\drawdroite{#1}}%
+%%
+%%
+%%
+%%
+%####################################################
+%
+%--- Fonction
+%
+%####################################################
+%
+%   clés
+%
+\newif\if@mys@graph@fct@label@
+\newif\if@mys@graph@fct@gnuplot@
+%
+\pgfkeys{%
+    /mys/graph/fct/.search also = /tikz,%
+    /mys/graph/fct/.cd,%
+%
+    gnuplot/.is if =@mys@graph@fct@gnuplot@,%
+%    
+    labelled/.is if = @mys@graph@fct@label@,%
+%
+    label pos/.store in = \mys@graph@fonction@label@pos,%
+    label pos/.default = 1,%
+%
+    label/.store in = \mys@graph@fonction@label,%
+    label/.default = {\mathcal{C}},%
+%
+    label@style/.style  = {below,outer sep=0pt,inner sep=1pt, fill=white},%
+    label style/.style    = {/mys/graph/fct/label@style/.append style={#1}},%
+    fonction@style/.style = {line width=1pt,samples=1000,domain=\mys@graph@repere@xmin:\mys@graph@repere@xmax},%
+    fonction style/.style   = {/mys/graph/fct/fonction@style/.append style = {#1}},%
+    plot@style/.style = {},%
+    plot style/.style   = {/mys/graph/fct/plot@style/.append style = {#1}},%
+%    courbe@style/.style = {line width=1pt,samples=1000},%
+    courbe style/.style   = {/mys/graph/fct/fonction@style/.append style = {#1}},%
+    }%
+%
+%   user macro
+%
+\newcommand*\drawfonction[2][]{%
+    \begingroup%
+    \pgfkeys{%
+        /mys/graph/fct/.cd,%
+%
+        labelled=true,label pos,label,gnuplot=true,%
+%
+        #1%
+        }%
+%    \mys@graph@drawfct{#2}%
+    \if@mys@graph@fct@gnuplot@
+        \mys@graph@drawfct@gnuplot{#2}
+    \else
+        \mys@graph@drawfct@nognuplot{#2}
+    \fi
+    \endgroup
+    }%
+%
+%
+%
+\newcommand*\drawfonctionparpoints[2][]{%
+    \begingroup%
+    \pgfkeys{%
+        /mys/graph/fct/.cd,%
+%
+        labelled=true,label,label pos,label,%
+%
+        #1%
+        }%
+    \mys@graph@drawfct@bypts{#2}%
+    \endgroup
+    }%
+%
+%
+%
+\def\mys@graph@drawfct#1{%
+    \if@mys@graph@fct@gnuplot@
+        \mys@graph@drawfct@gnuplot{#1}
+    \else
+        \mys@graph@drawfct@nognuplot{#1}
+    \fi
+    }%
+%
+\def\mys@graph@drawfct@bypts#1{%
+    \if@mys@graph@fct@label@%
+        \draw%
+            [%
+            /mys/graph/fct/fonction@style,%
+%            decoration=%
+%                {%
+%                markings,
+%                mark = at position \mys@graph@fonction@label@pos with%
+%                    {\node[/mys/graph/fct/label@style]{$\mys@graph@fonction@label$};}%
+%                },%
+%            postaction=decorate,%
+            ]  plot coordinates {#1} node[/mys/graph/fct/label@style]{$\mys@graph@fonction@label$}; %
+    \else
+        \draw[/mys/graph/fct/fonction@style] plot coordinates {#1};%(\x,{#1});    
+    \fi%
+    }%
+%
+% ATTENTION : SI L'OPTION "ONLY MARKS" EST PASSÉE, IL FAUT AUSSI PASSER L'OPTION "LABELLED=FALSE" SINON ON OBTIENT UNE ERREUR
+% ON A TOUJOURS L'ERREUR EN UTILISANT GNUPLOT
+%\drawfonction[gnuplot=true,labelled=false,fonction style={only marks,mark=o,samples at = {-4,-3,-2,-1,-0.5,0,0.5,1,2,3,4}}]{4-0.5*x*x}
+%\drawfonction[gnuplot=false,labelled=false,fonction style={only marks,mark=o,samples at = {-4,-3,-2,-1,-0.5,0,0.5,1,2,3,4}}]{4-0.5*(\x)^2}
+\def\mys@graph@drawfct@gnuplot#1{%
+    \if@mys@graph@fct@label@%
+        \draw%
+            [%
+            decoration=%
+                {%
+                markings,%
+                mark = at position \mys@graph@fonction@label@pos with%
+                    {\node[/mys/graph/fct/label@style]{$\mys@graph@fonction@label$};}%
+                },
+            postaction=decorate,%
+            /mys/graph/fct/fonction@style,%
+            ] plot[/mys/graph/fct/plot@style] function{#1};
+                %  node[/mys/graph/fct/label@style]{$\mys@graph@fonction@label$}; %
+    \else
+        \draw[/mys/graph/fct/fonction@style] plot function {#1};%(\x,{#1});    
+    \fi%
+    }%
+%
+\def\mys@graph@drawfct@nognuplot#1{%
+    \if@mys@graph@fct@label@%
+        \draw%
+            [%
+            /mys/graph/fct/fonction@style,%
+            decoration=%
+                {%
+                markings,
+                mark = at position \mys@graph@fonction@label@pos with%
+                    {\node[/mys/graph/fct/label@style]{$\mys@graph@fonction@label$};}%
+                },
+            postaction=decorate,%
+            ] plot (\x,{#1});% node[/mys/graph/fct/label@style]{$\mys@graph@fonction@label$}; %
+    \else
+        \draw[/mys/graph/fct/fonction@style] plot (\x,{#1});    
+    \fi%
+    }%
+%
+%
+%
+\newcommand*\drawfonctions[1]{\mys@graph@fonctions#1;\mys@stop}%
+%
+%
+%
+\def\mys@graph@fonctions#1;#2\mys@stop{%
+    \mys@graph@fonctions@#1\mys@stop%
+    \ifx\relax#2\relax%
+    \else%
+        \mys@graph@fonctions#2\mys@stop%
+    \fi%
+    }%
+%
+%
+%
+\def\mys@graph@fonctions@{%
+    \@ifnextchar[{\mys@graph@fonctions@opt}{\mys@graph@fonctions@noopt}%
+    }%
+%
+%
+%
+\def\mys@graph@fonctions@opt[#1]#2\mys@stop{\drawfonction[#1]{#2}}%
+\def\mys@graph@fonctions@noopt#1\mys@stop{\drawfonction{#1}}%
+%
+%
+%
+%####################################################
+%
+%--- Suite explicite
+%
+%####################################################
+%
+%   clés
+%
+\newif\if@mys@graph@suite@label@
+%
+\pgfkeys{%
+    /mys/graph/suite/explicite/n/.cd,%
+    n min/.store in = \mys@graph@suite@n@min,%
+    n max/.store in = \mys@graph@suite@n@max,%    
+    pas/.store in = \mys@graph@suite@n@pas,%
+    pas/.default=1,%
+    pas@/.code = {%
+        \pgfmathsetmacro\draw@suite@n@second@calc{\mys@graph@suite@n@min+\mys@graph@suite@n@pas}
+        },%
+    .unknown/.code = {%
+        \let\currname\pgfkeyscurrentname%
+        \let\currval\pgfkeyscurrentvalue%
+        \ifx#1\pgfkeysnovalue%
+             \pgfqkeys{/mys/graph/suite/explicite}{remainingkeys/.append style/.expand once=\currname}%
+        \else%
+             \pgfqkeys{/mys/graph/suite/explicite}{remainingkeys/.append style/.expand twice={\expandafter\currname\expandafter=\expandafter{\currval}}}%
+        \fi%
+        }%
+    }
+%
+\pgfkeys{%
+    /mys/graph/suite/explicite/.search also = /tikz,%
+    /mys/graph/suite/explicite/.cd,%
+%
+    labelled/.is if = @mys@graph@suite@label@,%
+%
+%    label pos/.store in = \mys@graph@suite@label@pos,%
+%    label pos/.default = 1,%
+%
+    label/.store in = \mys@graph@suite@label,%
+    label/.default = {u},%
+%
+    label@style/.style  = {below right,outer sep=0pt,inner sep=1pt, fill=white,pos=1},%
+    label style/.style    = {/mys/graph/suite/explicite/label@style/.append style={#1}},%
+    suite@style/.style = {samples at = {\mys@graph@suite@n@min,\draw@suite@n@second@calc,...,\mys@graph@suite@n@max},mark=*,mark size=2pt,only marks,mark options={blue}},%
+    suite style/.style   = {/mys/graph/suite/explicite/suite@style/.append style = {#1}},%
+    }%
+%
+%   user macro
+%
+\newcommand*\drawsuiteexplicite[2][]{%
+    \begingroup%
+    \pgfqkeys{/mys/graph/suite/explicite}{remainingkeys/.style={}}
+    \pgfmathsetmacro\draw@suite@nmin@calc{ceil(\mys@graph@repere@xmin)}
+    \pgfmathsetmacro\draw@suite@nmax@calc{floor(\mys@graph@repere@xmax)}
+    \pgfkeys{%
+        /mys/graph/suite/explicite/.cd,%
+%
+        labelled=true,label%,label pos,%
+    }
+    \pgfkeys{%
+        /mys/graph/suite/explicite/n/.cd,%
+        n min=\draw@suite@nmin@calc,n max=\draw@suite@nmax@calc,pas,%
+        #1,pas@%
+        }%
+    \pgfkeys{/mys/graph/suite/explicite/.cd,remainingkeys}        
+    \mys@graph@drawsuiteexpl{#2}%
+    \endgroup
+    }%
+%
+%
+%
+\def\mys@graph@drawsuiteexpl#1{%
+    \if@mys@graph@suite@label@%
+        \draw%
+            [/mys/graph/suite/explicite/suite@style] plot ({\x},{#1}) node[/mys/graph/suite/explicite/label@style]{$\mys@graph@suite@label$}; %
+    \else
+        \draw[/mys/graph/suite/explicite/suite@style] plot  ({\x},{#1});%(\x,{#1});    
+    \fi%
+    }%
+%
+%
+%
+\newcommand*\drawsuitesexplicites[1]{\mys@graph@suites@expl#1;\mys@stop}%
+%
+%
+%
+\def\mys@graph@suites@expl#1;#2\mys@stop{%
+    \mys@graph@suites@expl@#1\mys@stop%
+    \ifx\relax#2\relax%
+    \else%
+        \mys@graph@suites@expl#2\mys@stop%
+    \fi%
+    }%
+%
+%
+%
+\def\mys@graph@suites@expl@{%
+    \@ifnextchar[{\mys@graph@suites@expl@opt}{\mys@graph@suites@expl@noopt}%
+    }%
+%
+%
+%
+\def\mys@graph@suites@expl@opt[#1]#2\mys@stop{\drawsuiteexplicite[#1]{#2}}%
+\def\mys@graph@suites@expl@noopt#1\mys@stop{\drawsuiteexplicite{#1}}%
+%
+%
+%
+%####################################################
+%
+%--- Suite recurrente
+%
+%####################################################
+%
+%   clés
+%
+\newif\if@mys@graph@suite@label@
+%
+\newif\if@mys@graph@suite@surOx@
+\newif\if@mys@graph@suite@surOy@
+\newif\if@mys@graph@suite@repgraph@
+\newif\if@mys@graph@suite@named@
+\newif\if@mys@graph@suite@trace@
+\newif\if@mys@graph@suite@delta@
+\newif\if@mys@graph@suite@courbe@
+%
+\pgfkeys{%
+    /mys/graph/suite/rec/n/.cd,%
+    n min/.store in = \mys@graph@suite@n@min,%
+    n max/.store in = \mys@graph@suite@n@max,%    
+%    pas/.store in = \mys@graph@suite@pas,%
+    .unknown/.code = {%
+        \let\currname\pgfkeyscurrentname%
+        \let\currval\pgfkeyscurrentvalue%
+        \ifx#1\pgfkeysnovalue%
+             \pgfqkeys{/mys/graph/suite/rec}{remainingkeys/.append style/.expand once=\currname}%
+        \else%
+             \pgfqkeys{/mys/graph/suite/rec}{remainingkeys/.append style/.expand twice={\expandafter\currname\expandafter=\expandafter{\currval}}}%
+        \fi%
+        }%
+    }
+%
+\pgfkeys{%
+    /mys/graph/suite/rec/.search also = /tikz,%
+    /mys/graph/suite/rec/.cd,%
+%
+    trace/.is if = @mys@graph@suite@trace@,%
+    trace/.default=true,%
+%
+    courbe/.is if = @mys@graph@suite@courbe@,%
+    courbe/.default=true,%
+%
+    delta/.is if = @mys@graph@suite@delta@,%
+    delta/.default=true,%
+%
+    named/.is if = @mys@graph@suite@named@,%
+    named/.default=true,%
+    nom/.store in=\mys@graph@suite@nom,
+    nom/.default={u},
+%
+    sur Ox/.is if = @mys@graph@suite@surOx@,%
+    sur Ox/.default=true,
+    sur Oy/.is if = @mys@graph@suite@surOy@,%
+    sur Oy/.default=true,
+    rep graph/.is if=@mys@graph@suite@repgraph@,
+    rep graph/.default=true,
+    only Ox/.style={sur Ox=true,sur Oy=false,rep graph=false},
+    only Ox/.default=true,%
+    only Oy/.style={sur Oy=true,sur Ox=false,rep graph=false},
+    only Oy/.default=true,%
+    only rep/.style={sur Ox=false,sur Oy=false,rep graph=true},
+    only rep/.default=true,%
+%
+    labelled/.is if = @mys@graph@suite@label@,%
+    labelled/.default=true,
+%
+    label pos/.store in = \mys@graph@suite@label@pos,%
+    label pos/.default = 1,%
+%
+    label/.store in = \mys@graph@suite@label,%
+    label/.default = {U},%
+%
+%    suite@style/.style = {samples at = {\mys@graph@suite@n@min,\draw@suite@n@second@calc,...,\mys@graph@suite@n@max},mark=*,mark size=2pt,only marks,blue},%
+%    suite style/.style   = {/mys/graph/suite/rec/suite@style/.append style = {#1}},%
+    Ox label@style/.style  = {below=2pt,outer sep=0pt,inner sep=1pt, fill=white},%
+    Ox label style/.style    = {/mys/graph/suite/rec/Ox label@style/.append style={#1}},
+    Ox@style/.style = {mark=*,mark size=2pt,only marks,mark options={red}},%
+    Ox style/.style   = {/mys/graph/suite/rec/Ox@style/.append style = {#1}},%
+    Oy label@style/.style  = {left=2pt,outer sep=0pt,inner sep=1pt, fill=white},%
+    Oy label style/.style    = {/mys/graph/suite/rec/Ox label@style/.append style={#1}},
+    Oy@style/.style = {mark=*,mark size=2pt,only marks,mark options={red}},%
+    Oy style/.style   = {/mys/graph/suite/rec/Oy@style/.append style = {#1}},%
+    label@style/.style  = {above=2pt,anchor=south,outer sep=0pt,inner sep=1pt, fill=white},%
+    label style/.style    = {/mys/graph/suite/rec/label@style/.append style={#1}},%
+    rep graph@style/.style = {mark=*,mark size=2pt,only marks,mark options={blue}},%
+    rep graph style/.style   = {/mys/graph/suite/rec/rep graph@style/.append style = {#1}},%
+    delta@style/.style  = {solid,black,line width=0.6pt,domain=\mys@graph@repere@xmin:\mys@graph@repere@xmax},%
+    delta style/.style    = {/mys/graph/suite/rec/delta@style/.append style={#1}},%
+    courbe@style/.style  = {solid,smooth,domain=\mys@graph@repere@xmin:\mys@graph@repere@xmax,black,line width=0.6pt},%
+    courbe style/.style    = {/mys/graph/suite/rec/courbe@style/.append style={#1}},%
+    trace@style/.style  = {densely dashed,red,line width=1.1pt},%
+    trace style/.style    = {/mys/graph/suite/rec/courbe@style/.append style={#1}},%
+    trace@axe@style/.style  = {densely dashed,blue,line width=0.7pt},%
+    trace axe style/.style    = {/mys/graph/suite/rec/trace@axe@style/.append style={#1}},%
+%    fonction@style/.style  = {solid,black,line width=0.6pt},%
+%    fonction style/.style    = {/mys/graph/suite/rec/fonction@style/.append style={#1}},%
+%
+    cache/.style={sur Ox=false,sur Oy=false,rep graph=false,trace=false},
+%
+    }%
+%
+%   user macro
+%
+\newcommand*\drawsuiterecurrente[3][]{%
+    \begingroup%
+    \pgfqkeys{/mys/graph/suite/rec}{remainingkeys/.style={}}
+    \pgfmathsetmacro\draw@suite@nmin@calc{ceil(\mys@graph@repere@xmin)}
+    \pgfmathsetmacro\draw@suite@nmax@calc{floor(\mys@graph@repere@xmax)}
+    \pgfkeys{%
+        /mys/graph/suite/rec/.cd,%
+%
+        named,nom,%
+        labelled,label,label pos,%
+        delta,courbe,trace%
+    }
+    \pgfkeys{%
+        /mys/graph/suite/rec/n/.cd,%
+        n min=\draw@suite@nmin@calc,n max=\draw@suite@nmax@calc,%pas=1,%
+        #1%
+        }%
+    \pgfkeys{/mys/graph/suite/rec/.cd,remainingkeys}
+    \if@mys@graph@suite@delta@
+        \draw[/mys/graph/suite/rec/delta@style] plot ({\x},{\x}) ;    
+    \fi
+    \if@mys@graph@suite@courbe@
+        \draw[/mys/graph/suite/rec/courbe@style] plot ({\x},{#3}) ;    
+    \fi
+    \mys@graph@drawsuiterec{#2}{#3}%
+    \endgroup
+    }%
+%
+%
+%
+\def\mys@graph@drawsuiterec#1#2{%
+    \pgfmathtruncatemacro{\mys@graph@suite@n@tmp}{\mys@graph@suite@n@min+1}
+    \def\utmpold{#1}\let\utmpoldold\relax
+    \if@mys@graph@suite@named@
+        \if@mys@graph@suite@surOx@
+            \draw%
+                [/mys/graph/suite/rec/Ox@style] plot ({\utmpold},{0}) node[/mys/graph/suite/rec/Ox label@style]{$\mys@graph@suite@nom_{\mys@graph@suite@n@min}$}; %
+        \fi
+        \if@mys@graph@suite@surOy@
+            \draw%
+                [/mys/graph/suite/rec/Oy@style] plot ({0},{\utmpold}) node[/mys/graph/suite/rec/Oy label@style]{$\mys@graph@suite@nom_{\mys@graph@suite@n@min}$}; %
+        \fi
+        \if@mys@graph@suite@repgraph@
+            \draw%
+                [/mys/graph/suite/rec/Oy@style] plot ({\mys@graph@suite@n@min},{\utmpold}) node[/mys/graph/suite/rec/label@style]{$\mys@graph@suite@label_{\mys@graph@suite@n@min}$}; %
+        \fi
+    \else
+         \if@mys@graph@suite@surOx@
+            \draw%
+                [/mys/graph/suite/rec/Ox@style] plot ({\utmpold},{0}) ; %
+        \fi
+        \if@mys@graph@suite@surOy@
+            \draw%
+                [/mys/graph/suite/rec/Oy@style] plot ({0},{\utmpold})  ; %
+        \fi
+        \if@mys@graph@suite@repgraph@
+            \draw%
+                [/mys/graph/suite/rec/Oy@style] plot ({\mys@graph@suite@n@min},{\utmpold}) ; %
+        \fi
+    \fi
+    \if@mys@graph@suite@trace@
+        \if@mys@graph@suite@surOy@
+            \draw%
+                [/mys/graph/suite/rec/Oy@style] plot ({\utmpold},{0}) node[/mys/graph/suite/rec/Ox label@style]{$\mys@graph@suite@nom_{\mys@graph@suite@n@min}$}; %
+        \fi        
+    \fi
+    \let\x\utmpold
+    \pgfmathsetmacro{\utmp}{#2}
+    \if@mys@graph@suite@trace@
+        \if@mys@graph@suite@surOx@
+            \draw[/mys/graph/suite/rec/trace@axe@style] (\utmpold,0)--(\utmpold,\utmpold);
+        \fi
+        \if@mys@graph@suite@surOy@
+            \draw[/mys/graph/suite/rec/trace@axe@style] (\utmpold,0)--(\utmpold,\utmpold)--(0,\utmpold);
+        \fi
+    \fi
+    \foreach \ntmp [var=\utmp,remember=\utmpold as \utmpoldold,remember =\utmp as \utmpold] in {\mys@graph@suite@n@tmp,...,\mys@graph@suite@n@max}
+        {%
+        \let\x\utmpold
+        \pgfmathsetmacro{\utmp}{#2}
+        \if@mys@graph@suite@trace@
+            \ifx\relax\utmpoldold\relax 
+                \draw[/mys/graph/suite/rec/trace@style] (\utmpold,\utmpold)--(\utmpold,\utmp);            
+            \else
+                \draw[/mys/graph/suite/rec/trace@style] (\utmpoldold,\utmpold)--(\utmpold,\utmpold)--(\utmpold,\utmp);
+            \fi
+        \fi
+        \if@mys@graph@suite@surOx@
+            \if@mys@graph@suite@trace@
+                \draw[/mys/graph/suite/rec/trace@style] (\utmpold,\utmp)--(\utmp,\utmp);
+                \draw[/mys/graph/suite/rec/trace@axe@style]  (\utmp,\utmp)--(\utmp,0);
+            \fi
+            \if@mys@graph@suite@named@
+                \draw%
+                    [/mys/graph/suite/rec/Ox@style,/mys/graph/suite/rec/trace@axe@style] plot ({\utmp},{0}) node[/mys/graph/suite/rec/Ox label@style]{$\mys@graph@suite@nom_{\ntmp}$}; %
+            \else
+                \draw%
+                    [/mys/graph/suite/rec/Ox@style] plot ({\utmp},{0}); %
+            \fi
+        \fi
+        \if@mys@graph@suite@surOy@
+            \if@mys@graph@suite@trace@
+                \draw[/mys/graph/suite/rec/trace@axe@style] (\utmpold,\utmp)--(0,\utmp);
+            \fi
+            \if@mys@graph@suite@named@
+                \draw%
+                    [/mys/graph/suite/rec/Oy@style] plot ({0},{\utmp}) node[/mys/graph/suite/rec/Oy label@style]{$\mys@graph@suite@nom_{\ntmp}$}; %
+            \else
+                \draw%
+                    [/mys/graph/suite/rec/Oy@style] plot ({0},{\utmp}); %
+            \fi
+        \fi
+        \if@mys@graph@suite@repgraph@
+            \if@mys@graph@suite@label@%
+                \draw%
+                    [/mys/graph/suite/rec/rep graph@style] plot ({\ntmp},{\utmp}) node[/mys/graph/suite/rec/label@style]{$\mys@graph@suite@label_{\ntmp}$}; %
+            \else
+                \draw[/mys/graph/suite/rec/rep graph@style] plot  ({\ntmp},{\utmp});%(\x,{#1});    
+            \fi
+        \fi
+        }%
+    }%
+%
+%
+%
+\newcommand*\drawsuitesrecurrentes[1]{\mys@graph@suites@rec#1;\mys@stop}%
+%
+%
+%
+\def\mys@graph@suites@rec#1;#2\mys@stop{%
+    \mys@graph@suites@rec@#1\mys@stop%
+    \ifx\relax#2\relax%
+    \else%
+        \mys@graph@suites@rec#2\mys@stop%
+    \fi%
+    }%
+%
+%
+%
+\def\mys@graph@suites@rec@{%
+    \@ifnextchar[{\mys@graph@suites@rec@opt}{\mys@graph@suites@rec@noopt}%
+    }%
+%
+%
+%
+\def\mys@graph@suites@rec@opt[#1]#2\mys@stop{\drawsuiterecurrente[#1]{#2}}%
+\def\mys@graph@suites@rec@noopt#1\mys@stop{\drawsuiterecurrente{#1}}%
+%
+%
+%
+\endinput

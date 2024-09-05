@@ -1,0 +1,76 @@
+\documentclass{article}
+%
+%\usepackage{trace}
+%
+\usepackage{luatex}
+\ifluatex \else\usepackage{pdfprivacy}\usepackage{fontspec}\fi
+%
+\setlength{\parindent}{0pt}
+%
+\def\esphor{\hspace{1cm}}
+%
+\def\packtested{mys-notation-trigo}
+\usepackage{\packtested}
+%
+%####################################################
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%
+%  Titre du chapitre
+                     \title{\packtested}
+                     \author{moi}
+%
+%++++++++++++++++++++++++++++++++++++++++++++++++++++
+%####################################################
+%
+\begin{document}
+%
+\maketitle{}
+%
+%==========
+%
+            \subsection{Unités}
+%
+%==========
+%
+$2\pi\rad$   ---> définition de rad comme opérateur ou \verb|\newcommand*|
+
+\degrecelsius{4.3}  ---> Pas top (espacement horizontal avant °)
+%
+%==========
+%
+            \subsection{Arc}
+%
+%==========
+%
+$\arcG{ABC}$
+
+$\arcO{ABC}$
+%
+%==========
+%
+            \subsection{Angle}
+%
+%==========
+%
+$\angleG{ABC}$
+  \esphor  
+$\angleG{A_gB^tC}$ 
+
+$\angleO{u,v}$
+  \esphor  
+$\angleO{OA,BD}$
+  \esphor  
+$\angleO*{OA^{t^t},B_{q_q}D}$ 
+  \esphor  
+$\angleO[\bigg]{OA^{t^t},B_{q_q}D}$
+  \esphor  
+$\angleO'{2\vect{u}-\vect{v},\vect{u}+\vect{v}}$
+
+\setiinotationformat\angleO{#1,#2}{#1\,;---#2}
+$\angleO'{2\vect{OA^{t^t}}-\vect{BC_{q_q}},\vect{OA}}$% pour des sommes ...
+  \esphor  
+$\angleO'*{2\vect{OA^{t^t}}-\vect{BC_{q_q}},\vect{OA}}$
+  \esphor  
+$\angleO'[\bigg]{2\vect{OA^{t^t}}-\vect{BC_{q_q}},\vect{OA}}$
+%
+\end{document}

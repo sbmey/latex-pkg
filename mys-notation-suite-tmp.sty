@@ -1,0 +1,535 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\ProvidesExplPackage%
+  {mys-notation-suite-tmp}%
+  {2014/08/18}%
+  {0.0}%
+  {to do the job}%
+%
+%####################################################
+%
+\@ifpackageloaded{expl3}{}{\RequirePackage{expl3}}
+\@ifpackageloaded{xparse}{}{\RequirePackage{xparse}}
+\@ifpackageloaded{l3keys2e}{}{\RequirePackage{l3keys2e}}
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%####################################################
+%
+% Notation d'une suite
+%
+%####################################################
+%
+\NewDocumentCommand{\suite}{som}%
+  {%
+  \IfBooleanTF {#1}%
+    {
+    \IfNoValueTF{#2}
+      {
+      \mleft(#3\c_math_subscript_token{n}\mright)
+      \c_math_subscript_token{n\in\N}
+      }
+      {
+      \mleft(#3\c_math_subscript_token{n}\mright)
+      \c_math_subscript_token{n\in#2}
+      }
+    }
+    {
+    \IfNoValueTF{#2}
+      {\mleft(#3\c_math_subscript_token{n}\mright)}
+      {
+      \mleft(#3\c_math_subscript_token{n}\mright)
+      \c_math_subscript_token{n\geqslant#2}
+      }
+    }
+  }
+% usage
+% \suite*[\N]{u} --> (u_n)_n\in\N
+% \suite*{u} --> (u_n)_n\in\N
+% \suite[0]{u} --> (u_n)_n\geqslant 0
+% \suite{u} --> (u_n)
+%
+%####################################################
+%
+% Notation de la définition d'une suite
+%
+%####################################################
+%
+% Options
+%
+\keys_define:nn {defsuite}%
+  {%
+  rec                .bool_set:N =     \l_mslf_defsuite_rec_bool,%
+  rec                .initial:n={true},%
+  rec                .default:n={true},%
+%
+  name               .tl_set:N =     \l_mslf_defsuite_name_tl,%
+  name               .initial:n={u},%
+  name               .default:n={u},%
+%
+  premier-indice     .int_set:N =    \l_mslf_defsuite_premierindice_int,%
+  premier-indice     .initial:n = {0},%
+  premier-indice     .default:n = {0},%
+%
+  premier-indice-def .int_set:N =     \l_mslf_defsuite_premierindicedef_int,%
+  premier-indice-def .initial:n = {-1},%
+  premier-indice-def .default:n = {-1},%	
+%
+  inline             .bool_set:N = \l_mslf_defsuite_inline_bool,%
+  inline  .initial:n={false},%
+  inline  .default:n={true},%
+%
+  def-entier  .bool_set:N =     \l_mslf_defsuite_defentier_bool,%
+  def-entier  .initial:n={false},%
+  def-entier  .default:n={true},%
+  }%
+%
+% Main macro
+%
+\NewDocumentCommand{\suitedef}{O{}}%
+  {%
+  \group_begin:
+  \keys_set:nn{defsuite}{#1}	
+  \int_compare:nT%
+    {-1=\l_mslf_defsuite_premierindicedef_int}%
+    {%
+    \int_set_eq:NN%
+      \l_mslf_defsuite_premierindicedef_int%
+      \l_mslf_defsuite_premierindice_int%
+    }%
+  \bool_if:NTF\l_mslf_defsuite_rec_bool%
+    {%
+    \bool_if:NTF\l_mslf_defsuite_inline_bool%
+      {\suiterecdef*}%
+      {\suiterecdef}%
+    }%
+    {\suiteexpldef}%
+  }%
+%
+% Aux macros
+%
+\NewDocumentCommand{\suiterecdef}{smm}%
+  {%
+  \IfBooleanTF#1%
+    {%
+    $%
+    \tl_use:N\l_mslf_defsuite_name_tl%
+      \c_math_subscript_token%
+      {\int_use:N\l_mslf_defsuite_premierindice_int}%
+    =#2$~et~$#3$%
+    \bool_if:NT\l_mslf_defsuite_defentier_bool%
+      {~pour~tout~%
+    \int_compare:nTF%
+      {0=\l_mslf_defsuite_premierindicedef_int}%
+      {$n\in\N$}%
+      {%
+      entier~$n\geqslant%
+        \int_use:N\l_mslf_defsuite_premierindicedef_int$%
+      }}%
+    }%
+    {%
+    $\left\lbrace\begin{lgathered}%
+    \tl_use:N\l_mslf_defsuite_name_tl%
+      \c_math_subscript_token%
+      {\int_use:N\l_mslf_defsuite_premierindice_int}%
+      =#2\\%
+    #3%
+        \bool_if:NT\l_mslf_defsuite_defentier_bool%
+         {\text{~pour~tout~}%
+      \int_compare:nTF%
+        {0=\l_mslf_defsuite_premierindicedef_int}%
+        {n\in\N}%
+        {%
+        \text{entier~}n\geqslant%
+          \int_use:N\l_mslf_defsuite_premierindicedef_int%
+        }}%
+    \end{lgathered}\right.$%
+    }%
+  \group_end:%
+  }%
+%
+%
+%
+\NewDocumentCommand{\suiteexpldef}{m}%
+  {$#1$\group_end:}
+%
+%####################################################
+%
+% Initialisation d'une suite pour utilisation ultérieure
+%
+%####################################################
+%
+% Options
+%
+\bool_new:N\l__bool_initsuite_explicite%
+\bool_new:N\l__bool_initsuite_rec_ordrei%
+\bool_new:N\l__bool_initsuite_rec_ordreii%
+\bool_new:N\l__bool_initsuite_terme_affiche%
+%
+\keys_define:nn { suite/init/all }
+  {
+  affiche            .bool_set:N         =  \l__bool_initsuite_terme_affiche_bool,
+  affiche            .initial:n          =  false,
+  affiche            .default:n          =  true,
+  affiche            .value_forbidden:n  =  true,
+%
+  nom                .tl_set:N           =  \l_initsuite_nom_tl,%
+  nom                .initial:n          =  u,
+%
+  ordre              .choice:,
+      ordre /0       .code:n             =
+          {
+          \bool_set_true:N\l__bool_initsuite_explicite
+          \bool_set_false:N\l__bool_initsuite_rec_ordrei
+          \bool_set_false:N\l__bool_initsuite_rec_ordreii
+          },
+      ordre /1       .code:n             =
+          {
+          \bool_set_false:N\l__bool_initsuite_explicite
+          \bool_set_true:N\l__bool_initsuite_rec_ordrei
+          \bool_set_false:N\l__bool_initsuite_rec_ordreii
+          },
+      ordre /2       .code:n             =
+          {
+          \bool_set_false:N\l__bool_initsuite_explicite
+          \bool_set_false:N\l__bool_initsuite_rec_ordrei
+          \bool_set_true:N\l__bool_initsuite_rec_ordreii
+          },
+  ordre              .initial:n          = {2},
+  ordre              .default:n          = {0}
+  }
+%
+\keys_define:nn { suite/init/expl }
+  {%
+  indice-depart      .int_set:N          =  \l_initsuite__inddep_int,%
+  indice-depart      .initial:n          =  {0},
+  }
+% 
+\keys_define:nn { suite/init/rec1 }
+  {%
+  indice-depart      .int_set:N          =  \l_initsuite__inddep_int,%
+  indice-depart      .initial:n          =  {0},
+%
+  premier-terme      .fp_set:N           =  \l_initsuite__premterme_fp,%
+  premier-terme      .initial:n          =  1,
+  }
+%
+\keys_define:nn { suite/init/rec2 }
+  {%
+  indice-depart      .int_set:N          =  \l_initsuite__inddep_int,%
+  indice-depart      .initial:n          =  {0},
+%
+  premier-terme      .fp_set:N           =  \l_initsuite__premterme_fp,%
+  premier-terme      .initial:n          =  1,
+%
+  second-terme       .fp_set:N           =  \l_initsuite__secterme_fp,%
+  second-terme       .initial:n          =  2,
+  }
+%
+% Main macro
+%
+\NewDocumentCommand{\initsuite}{O{}mm}%,affiche=false
+% #1 : options
+% #2 : définition de la suite
+%          si ordre=0 (suite explicite) --> #1 = n
+%          si ordre=1 (suite récurrente d'ordre 1) : u_{n+1} est défini par #1 = u_{n} et #3 = n
+%          si ordre=3 (suite récurrente d'ordre 2) : u_{n+2} est défini par #1 = u_{n}, #2 = u_{n+1} et #4 = n (indice de #1)
+%              exple : u(n+2)=u(n)+u(n+1)*n     <---> #1+#2*#4
+%                      Pour u(n+1)=u(n)+nu(n-1) <---> (#2)+(#4+1)*(#1)
+% #3 : indice final demandé
+%      si ordre=0 (suite explicite) --> définition de la suite : #1 = n
+  {
+  \keys_set_known:nnN{suite/init/all}{#1}\l__mys_suite_init_keynotall_tl
+%  \__mys_suite_save_recrel:nc{#2}{l__mys_suite\l_initsuite_nom_tl _def_tl}
+  \bool_if:NT\l__bool_initsuite_explicite
+    {
+    \keys_set:nV{suite/init/expl}\l__mys_suite_init_keynotall_tl
+    \calcsuite__explicite:nnnV
+      {\int_use:N\l_initsuite__inddep_int}
+      {#2}
+      {#3}
+      \l_initsuite_nom_tl
+    }
+  \bool_if:NT\l__bool_initsuite_rec_ordrei
+    {
+    \keys_set:nV{suite/init/rec1}\l__mys_suite_init_keynotall_tl
+    \calcsuite__recurrence_ordrei:nnnnn
+      {\fp_use:N\l_initsuite__premterme_fp}
+      {#2}
+      {\int_use:N\l_initsuite__inddep_int}
+      {#3}
+      {\tl_use:N\l_initsuite_nom_tl}
+    }
+  \bool_if:NT\l__bool_initsuite_rec_ordreii
+    {
+    \keys_set:nV{suite/init/rec2}\l__mys_suite_init_keynotall_tl
+    \calcsuite__recurrence_ordreii:nnnnnn
+      {\fp_use:N\l_initsuite__premterme_fp}
+      {\fp_use:N\l_initsuite__secterme_fp}
+      {#2}
+      {\int_use:N\l_initsuite__inddep_int}
+      {#3}
+      {\tl_use:N\l_initsuite_nom_tl}
+    }
+  }
+%
+% Aux macros
+%
+\cs_new:Npn\__mys_suite_save_recrel:nN#1#2{\tl_set:Nn#2{#1}}
+\cs_generate_variant:Nn\__mys_suite_save_recrel:nN{nc}
+% 
+% Suite explicite
+%
+\cs_new:Npn \calcsuite__explicite:nnnn #1 #2 #3 #4
+% #1 : indice de départ de la suite
+% #2 : définition de la suite : #1 = n
+% #3 : indice final demandé
+% #4 : nom de la suite
+  {%
+  \cs_set:Npn\calcsuite__relationexplicite_aux##1##2{#2}
+  \int_step_inline:nnnn
+    {\int_use:N\l_initsuite__inddep_int}
+    {1}
+    {#3}
+    {
+    \fp_gset:cn{suite#4##1}
+      {\calcsuite__relationexplicite_aux{##1}{#2}}
+    }
+  }
+%
+\cs_generate_variant:Nn\calcsuite__explicite:nnnn{ffnn,nnnV}
+%
+\NewDocumentCommand{\suiteexplicite}{mm}
+  {\calcsuite__explicite:nnnn {2}{#1}{0}{#2}}
+%
+% Suite récurrente d'ordre 1
+%
+\cs_new:Npn\calcsuite__recurrence_ordrei:nnnnn#1#2#3#4#5
+% #1 : premier terme
+% #2 : définition de la suite : u_{n} <-> #1 et n <-> #3
+% #3 : indice de départ de la suite
+% #4 : indice final demandé
+% #5 : nom de la suite
+  {%
+  \fp_gset:cn{suite#5#3}{#1}%
+  \cs_set:Npn\calcsuite__relationrecordrei_aux##1##2##3%
+    {#2}%
+  \int_compare:nF { #3 = #4 }%
+    {%
+    \calcsuite__recurrence_ordrei:fnfnn%fnnfnn
+      {
+      \fp_eval:n
+        {\calcsuite__relationrecordrei_aux{#1}{#2}{#3}}
+      }%
+      {#2}%
+      {\int_eval:n {#3+1}}%
+      {#4}%
+      {#5}%
+    }
+  \cs_gset:cpn{suite#5}##1{\fp_use:c{suite#5##1}}%
+  }%
+% 
+\cs_generate_variant:Nn
+  \calcsuite__recurrence_ordrei:nnnnn
+  { fnfnn }
+%
+\NewDocumentCommand{\suiteordrei}{mm}
+  {\calcsuite__recurrence_ordrei:nnnnn {2}{#1}{0}{#2}}
+%
+% Suite récurrente d'ordre 2
+%
+\cs_new:Npn \calcsuite__recurrence_ordreii:nnnnnn #1 #2 #3 #4 #5 #6
+% #1 : premier terme
+% #2 : second terme
+% #3 : définition de la suite : #1 = u_{n},  #2 = u_{n+1}, #4 = n (indice de #1)
+% exple : #1+#2*#4 correspond à u(n+2)=u(n)+u(n+1)*n
+% Pour u(n+1)=u(n)+nu(n-1) : (#2)+(#4+1)*(#1)
+% #4 : indice de départ de la suite
+% #5 : indice final demandé
+% #6 : nom suite
+  {%
+  \cs_set:Npn\calcsuite__relationrecordreii_aux:
+    ##1##2##3##4
+    {#3}
+  \int_compare:nTF { #5 = #4 }
+    {\fp_gset:cn{suite#6#4}{#1}}
+    {
+    \fp_gset:cn{suite#6#4}{#1}%
+    \calcsuite__recurrence_ordreii:nnnnnn%fnnfnn
+      {#2}
+      {
+      \fp_eval:n
+        {
+        \calcsuite__relationrecordreii_aux:
+          {#1}{#2}{#3}{#4}
+        }
+      }
+      {#3}
+      {\int_eval:n{#4+1}}
+      {#5}
+      {#6}
+    }
+  \cs_gset:cpn{suite#6}##1{\fp_use:c{suite#6##1}}%
+  }
+%
+\cs_generate_variant:Nn \calcsuite__recurrence_ordreii:nnnnnn{ fnnfnn }
+%
+% Utile ?
+%
+\cs_new:Npn\_mslf_suite_get_termegeneral:nnnN#1#2#3#4
+% #1: indice premier terme
+% #2: valeur premier terme
+% #3: raison
+% #4: sauvegarde
+  {
+  \tl_set:cx{mslf_suite_#1_termegeneral}
+    {#2+(n-#1)\times #3}
+  \cs_new:cpn{mslf_suite_terme_#1}:##1
+    {\fp_eval:n{#2+(##1-#1)* #3}}
+  \tl_set:cx{mslf_suite_#1_termegeneral_redac}:
+    {
+    $#2+(n-#1)\times #3=
+    \num{\fp_eval:n{#2-(#1)*(#3)}}-\num{#3}n$
+    }
+  }
+%
+% Calcul d'un terme
+%
+\keys_define:nn { suite/terme }
+  {
+  precision          .int_set:N          =  \l__suite_precision_int,%
+  precision          .initial:n          =  {2},
+%
+  nom                .tl_set:N           =  \l__suite_nom_tl,%
+  nom                .initial:n          =  u,
+  }
+%
+%
+\NewDocumentCommand{\setterme}{m}
+  {\keys_set:nn{suite/terme}{#1}}
+%
+%
+\NewDocumentCommand{\terme}{O{}m}
+  {
+  \keys_set:nn{suite/terme}{#1}
+  \clist_clear_new:N\l_listedestermes_clist
+  \clist_set:Nf \l_mes_indicesdestermes_clist{#2}
+  \clist_map_inline:Nn
+    \l_mes_indicesdestermes_clist
+    {
+    \clist_gput_right:Nn\l_listedestermes_clist%
+      {
+      \numprint
+        {
+        \fp_eval:n
+          {
+          \__mslf_round:nn
+            {\use:c{suite\l__suite_nom_tl##1}}
+            \l__suite_precision_int
+          }
+        }
+      }
+    }
+  \clist_use:Nnnn\l_listedestermes_clist{~et~ }{,~}{~et~}
+  }
+%
+%
+%
+\keys_define:nn { suite/termetxt }
+  {
+  precision          .int_set:N          =  \l__suite_termetxt_precision_int,%
+  precision          .initial:n          =  {2},
+%
+  nom                .tl_set:N           =  \l__suite_termetxt_nom_tl,%
+  nom                .initial:n          =  u,
+%
+  dots               .bool_set:N = \l__suite_termetxt_dots_bool,
+  }
+%
+\NewDocumentCommand{\termetxt}{O{}m}
+  {
+  \keys_set:nn{suite/termetxt}{#1}
+  \edef\tmp
+    {
+    \noexpand\calculer
+      [
+      print=true,
+      eq=true,
+      precision=\int_use:N\l__suite_termetxt_precision_int
+      ]
+    }
+  \clist_clear_new:N\l_listedestermes_clist%
+  \clist_set:Nn \l_mes_indicesdestermes_clist {#2}
+  \clist_map_inline:Nn%
+    \l_mes_indicesdestermes_clist
+    {
+    \clist_gput_right:Nn\l_listedestermes_clist
+      {
+      $\tl_use:N\l__suite_termetxt_nom_tl
+        \c_math_subscript_token{##1}
+        \bool_if:NT\l__suite_termetxt_dots_bool{=\dots}
+        \tmp
+        {\use:c{suite\l__suite_termetxt_nom_tl##1}}
+      $
+      }
+    }
+  \clist_use:Nnnn\l_listedestermes_clist{~et~ }{,~}{~et~}
+  }
+%
+% Usage : 
+% \initsuite[indice-depart=1,premier-terme=2,second-terme=2,nom=v,ordre=2,affiche=true]{2*#1+(#2)^2}{5}
+%
+% \terme[nom=v]{1}%
+%
+% \initsuite[indice-depart=1,premier-terme=2,nom=u,ordre=1]{(1.2)^(#1)}{5}
+%
+% \terme{1}
+%
+% \terme{1,2,3}
+%
+% \initsuite[indice-depart=1,nom=u,ordre=0]{(2.3)^(#1)}{5}
+%
+% \terme{1}
+%
+% \terme{1,2,3}
+%%
+%%####################################################
+%%
+%% Suite Arithmétique
+%%
+%%####################################################
+%%
+%% Options
+%%
+%\keys_define:nn {suite}
+%  {
+%  name  .tl_set:N=\l_mslf_suite_name_tl,
+%  name  .initial:n={u},
+%  name  .default:n={u},
+%  indice-1 .int_set:N=\l_mslf_suite_indicei_int,
+%  indice-1 .initial:n={1},
+%  indice-1 .default:n={1},	
+%  }
+%%
+%%
+%%
+%\NewDocumentCommand{\suitearithmetique}{omm}%
+%  {
+%  \group_begin:
+%  \keys_set:nn{suite}
+%    {#1}
+%  \group_end:	
+%  }
+%
+\endinput%

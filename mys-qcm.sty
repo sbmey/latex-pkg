@@ -1,0 +1,171 @@
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    DÉCLARATION PACKAGE
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-qcm}%
+    [2021/05/25 v0.0 to do the job]%
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    PACKAGES NÉCESSAIRES
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+\@ifpackageloaded{wasysym}%
+    {\typeout{Essai de chargement multiple du package wasysym.}}%
+    {\RequirePackage{wasysym}}%
+%
+\@ifpackageloaded{xparse}%
+    {\typeout{Essai de chargement multiple du package xparse.}}%
+    {\RequirePackage{xparse}}%
+%
+\@ifpackageloaded{tabularray}%
+    {\typeout{Essai de chargement multiple du package tabularray.}}%
+    {\RequirePackage{tabularray}}%
+\UseTblrLibrary{counter}%
+%
+\@ifpackageloaded{xinttools}%
+    {\typeout{Essai de chargement multiple du package xinttools.}}%
+    {\RequirePackage{xinttools}}%
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    CODE
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%======================================%
+%
+%     case cochée / à cocher    
+%
+%======================================
+%
+\newcommand*\rep{\Square\;}
+\newcommand*\brep{\CheckedBox\;}
+\newcommand*\oldrep{}
+\newcommand{\hidebrep}{\let\oldrep\brep\let\brep\rep}
+\newcommand{\unhidebrep}{\let\brep\oldrep\let\oldrep\relax}
+%
+%
+%
+%\NewDocumentEnvironment{qcm}{r()}%
+%  {\begin{itemize-}(#1)%
+%        \NewCommandCopy\olditem\item%
+%        \RenewDocumentCommand{\item}{t'sd()}{%
+%            \IfBooleanTF{##1}%
+%                {%
+%                \IfBooleanTF{##2}%
+%                    {\IfNoValueTF{##3}{\olditem*[\brep]}{\olditem*(##3)[\brep]}}%
+%                    {\olditem[\brep]}
+%                }%
+%                {%
+%                \IfBooleanTF{##2}%
+%                    {\IfNoValueTF{##3}{\olditem*[\rep]}{\olditem*(##3)[\rep]}}%
+%                    {\olditem[\rep]}
+%                }%
+%            }%
+%     }%
+%  {\end{itemize-}}%
+%
+%======================================
+%
+%     réponses proposées    
+%
+%======================================
+%
+%\NewDocumentEnvironment\propositions{O{\linewidth}m}
+%    {\begin{tabu} to #1 {}}
+%    {}
+%\begin{propositions}{3}[1,2,1.5][l,l,c]
+%  reponse 1 & rrree  & foijfoif
+%\end{propositions}
+%
+%
+%
+\newcounter{qcmquestionnum}%
+%
+\def\qcmlabel{}
+\let\qcmlabel\rep
+%
+\def\breponse{0}
+%
+\newcommand*{\circled}[1]{\tikz[baseline=(char.base)] \node[shape=circle,fill=blue!20,draw,inner sep=2pt] (char) {#1};}%
+\def\repnum#1{#1}
+\def\brepnum#1{\circled{#1}}
+%
+\def\qcmtblrcles{}%
+%
+\ExplSyntaxOn
+\keys_define:nn { mys/qcm }
+ {
+ rep .clist_set:N = \l_mslf_qcm_rep_clist,
+ rep .initial:n = 0,
+ outer .tl_set:N = \l_mslf_qcm_outertblr_tl,
+ outer .initial:n = {},
+ inner .tl_set:N = \l_mslf_qcm_innertblr_tl,
+ inner .initial:n = {},
+ num .bool_set:N = \l_mslf_qcm_itemnum_bool,
+ num .initial:n=false,
+ corr .bool_set:N = \l_mslf_qcm_corr_tl,
+ corr  .initial:n=false,
+ corr  .default:n=true,
+ end .tl_set:N = \l_mslf_qcm_end_tl,
+ end .initial:n = {},
+ }
+%
+\cs_set:Nn\mys_end_qcm:n{#1}
+\NewDocumentCommand\SetQcm{m}{\keys_set:nn { mys/qcm } { #1 }}
+%
+\newcommand*{\QCMitemcheck}{%
+    \let\qcmlabel\rep%
+    \stepcounter{qcmquestionnum}%
+    \bool_if:NT\l_mslf_qcm_corr_tl{
+        \xintFor ##1 in \l_mslf_qcm_rep_clist \do
+            {\ifnum\value{qcmquestionnum}=##1\relax \let\qcmlabel\brep\xintBreakFor \fi}%
+    }
+    \qcmlabel%
+    }%
+%
+\newcommand*{\QCMitemnum}{%
+    \let\qcmlabel\repnum%
+    \stepcounter{qcmquestionnum}%
+    \bool_if:NT\l_mslf_qcm_corr_tl{
+        \xintFor ##1 in \l_mslf_qcm_rep_clist \do
+            {\ifnum\value{qcmquestionnum}=##1\relax \let\qcmlabel\brepnum\xintBreakFor \fi}%
+    }
+    \qcmlabel{\Alph{qcmquestionnum}.}%
+    }%
+%
+\def\truc#1#2{\begin{tblr}[#1]{#2}}
+\NewDocumentEnvironment{qcm}{O{}mO{}+b}{%
+  \setcounter{qcmquestionnum}{0}
+  \group_begin:
+  \keys_set:nn { mys/qcm } { #1 }
+  \bool_if:NTF\l_mslf_qcm_itemnum_bool{\let\QCMrep\QCMitemnum}{\let\QCMrep\QCMitemcheck}
+  \exp_args:Nee\truc{\l_mslf_qcm_outertblr_tl}{%
+        colspec={@{} *{#2}{>{\exp_not:n{\QCMrep\;}}X[l]} @{}},%
+        \l_mslf_qcm_innertblr_tl,#3}%
+    #4
+    \end{tblr}%
+    \group_end:
+}{\tl_use:N\l_mslf_qcm_end_tl}%
+\ExplSyntaxOff
+%
+%    \begin{qcm}[rep={1},outer = {baseline=t},inner={rows={red}},num=true]{3}[column{1}={blue}]
+%        $\overline A$ et $M$ sont indépendants. %P(M sachant A)
+%    &  $A$ et $\overline M$ ne sont pas indépendants. %
+%    &  Les deux autres propositions sont fausses.  \\
+%    \end{qcm}
+\endinput

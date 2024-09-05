@@ -1,0 +1,117 @@
+%
+%####################################################
+%
+%  Declaration package
+%
+%####################################################
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-notation-trigo}%
+    [2019/07/07 v0.0 to do the job]%
+%
+%####################################################
+%
+\@ifpackageloaded{xparse}%
+    {\typeout{Essai de chargement multiple du package xparse.}}%
+    {\RequirePackage{xparse}}%
+%
+\@ifpackageloaded{mys-code-tool}%
+    {\typeout{Essai de chargement multiple du package mys-code-tool.}}%
+    {\RequirePackage{mys-code-tool}}%
+%
+\@ifpackageloaded{mys-delimiteur}%
+    {\typeout{Essai de chargement multiple du package mys-delimiteur.}}%
+    {\RequirePackage{mys-delimiteur}}%
+%
+\@ifpackageloaded{mys-notation-vect}%
+    {\typeout{Essai de chargement multiple du package mys-notation-vect.}}%
+    {\RequirePackage{mys-notation-vect}}%
+\usetikzlibrary{angles}
+%
+%####################################################
+%####################################################
+%##########
+%##########    CODE
+%##########
+%####################################################
+%####################################################
+%
+%====================================================
+%
+%---   Unités
+%
+%====================================================
+%
+%   --- Radian
+%
+\@ifundefined{rad}{\DeclareMathOperator{\rad}{rad}}{}% opérateur adapté ou non ?
+%
+%   --- Degré
+%
+\newcommand*\degrecelsius[1]{$#1$\,\textcelsius}
+%
+%====================================================
+%
+%---   Arcs
+%
+%====================================================
+%
+%
+% PROBLEME
+% fonte : fourier
+\DeclareFontEncoding{FMX}{}{}%
+\DeclareFontSubstitution{FMX}{futm}{m}{n}%
+\DeclareSymbolFont{mys-largesymbols}{FMX}{futm}{m}{n}% ATTENTION : si largesymbols au lieu de mys-largesymbols alors \left, \right, \mleft et \mright n'ont plus d'effet
+%\DeclareMathAccent{\widearc}{\mathord}{mys-largesymbols}{216}%
+\DeclareMathAccent{\wideOarc}{\mathord}{mys-largesymbols}{228}%
+%
+\newcommand*\arcG[1]{\widearc{#1}}%
+%
+\newcommand*\arcO[1]{\wideOarc{#1}}%
+%
+%% CI-DESSOUS C'EST MIEUX MAIS COMMENT OBTENIR L'ARC FLÊCHÉ
+% yhmath package
+\DeclareFontFamily{OMX}{yhex}{}%
+\DeclareFontShape{OMX}{yhex}{m}{n}{<->yhcmex10}{}%
+\DeclareSymbolFont{yhlargesymbols}{OMX}{yhex}{m}{n}%
+\DeclareMathAccent{\widearc}{\mathord}{yhlargesymbols}{"F3}%
+%
+%====================================================
+%
+%---   Angle
+%
+%====================================================
+%
+%
+%------   Angle géométrique
+% Fonte : mathabx-type1
+\DeclareFontFamily{U}{mathx}{\hyphenchar\font45}
+\DeclareFontShape{U}{mathx}{m}{n}{
+      <5> <6> <7> <8> <9> <10>
+      <10.95> <12> <14.4> <17.28> <20.74> <24.88>
+      mathx10
+      }{}
+\DeclareSymbolFont{mathx}{U}{mathx}{m}{n}
+\DeclareFontSubstitution{U}{mathx}{m}{n}
+\DeclareMathAccent{\varwidehat}{0}{mathx}{"70}
+%
+\newcommand*\angleG[1]{\varwidehat{#1}}%
+\let\angleg\angleG%
+%
+%------   Angle orienté
+%
+\setiinotationformat\angleO{#1,#2}{#1\,;#2}%
+\setiinotationformatprime\angleO{#1,#2}{\vect{#1},\vect{#2}}%
+\declareiinotation\angleO{\inparen}%
+%
+%====================================================
+%
+%--- 
+%
+%====================================================
+%
+
+%
+\endinput

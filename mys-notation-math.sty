@@ -1,0 +1,284 @@
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    DÉCLARATION PACKAGE
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\NeedsTeXFormat{LaTeX2e}%
+%
+\ProvidesPackage%
+    {mys-notation-math}%
+    [2019/07/07 v0.0 to do the job]%
+%
+\@ifpackageloaded{xspace}%
+    {\typeout{Essai de chargement multiple du package xspace.}}%
+    {\RequirePackage{xspace}}%
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    PACKAGES NÉCESSAIRES
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%====    CODE
+%
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+%
+%======================================
+%
+%---   overline pour les lettres en italique
+%
+%======================================
+%
+%\newbox\mysItaOverlineBox
+%
+%\makeatletter
+%\def\getslant #1{\strip@pt\fontdimen1 #1}
+%
+%\def\itaoverline #1{\mathchoice
+% {{\setbox\mysItaOverlineBox=\hbox{$\m@th\displaystyle #1$}%
+%    \dimen@ \getslant\the\textfont\symletters \ht\mysItaOverlineBox
+%    \divide\dimen@ \tw@ 
+%    \kern\dimen@ 
+%    \overline{\kern-\dimen@ \box\mysItaOverlineBox\kern\dimen@ }\kern-\dimen@ }}
+% {{\setbox\mysItaOverlineBox=\hbox{$\m@th\textstyle #1$}%
+%    \dimen@ \getslant\the\textfont\symletters \ht\mysItaOverlineBox
+%    \divide\dimen@ \tw@ 
+%    \kern\dimen@ 
+%    \overline{\kern-\dimen@ \box\mysItaOverlineBox\kern\dimen@ }\kern-\dimen@ }}
+% {{\setbox\mysItaOverlineBox=\hbox{$\m@th\scriptstyle #1$}%
+%    \dimen@ \getslant\the\scriptfont\symletters \ht\mysItaOverlineBox
+%    \divide\dimen@ \tw@ 
+%    \kern\dimen@ 
+%    \overline{\kern-\dimen@ \box\mysItaOverlineBox\kern\dimen@ }\kern-\dimen@ }}
+% {{\setbox\mysItaOverlineBox=\hbox{$\m@th\scriptscriptstyle #1$}%
+%    \dimen@ \getslant\the\scriptscriptfont\symletters \ht\mysItaOverlineBox
+%    \divide\dimen@ \tw@ 
+%    \kern\dimen@ 
+%    \overline{\kern-\dimen@ \box\mysItaOverlineBox\kern\dimen@ }\kern-\dimen@ }}%
+% {}}
+%
+%
+%
+% -- itaoverline (ported from https://tex.stackexchange.com/a/95079/114489 CC-BY-SA 3.0) --
+\ExplSyntaxOn
+\let\oldoverline\overline
+% Gets the slant per pt of the height of a character in a given font.
+% Returns a dimensionless value which can be multiplied with a height in pt.
+\cs_new:Nn \__itaoverline_get_slant_per_pt_of_height:n { \dim_to_decimal:n { \fontdimen1 #1 } }
+
+% Typesets an overline kerned by a given amount for a given box.
+%
+% Usage: \__itaoverline_kerned_overline:NN <kern dim> <content box>
+\cs_new:Nn \__itaoverline_kerned_overline:NN
+{
+    % Start drawing overline after half the slant width.
+    \kern #1
+    \oldoverline
+        {
+            % Move back half the slant width.
+            \kern -#1
+            % Insert the box containing the content.
+            \box_use_drop:N #2
+            % Move half the slant width forward again.
+            \kern #1
+        }
+    % Move half the slant width back once more, after finishing the overline.
+    \kern -#1
+}
+
+\NewDocumentCommand \itaoverline { m }
+{
+    \mathchoice
+        {{ % display style math
+            % Typeset #1 in hbox and store in variable for measuring and later use.
+            \hbox_set:Nn \l_tmpa_box { $\dim_zero:N \mathsurround \displaystyle #1$ }
+            % Get the slant width for the hbox's height.
+            % (note: in a dimension expression, writing values next to each other is multiplication)
+            %
+            % |←→|____
+            % |  /   /
+            % | /   /
+            % |/___/
+            \dim_set:Nn \l_tmpa_dim
+                {
+                    \__itaoverline_get_slant_per_pt_of_height:n { \textfont\symletters }
+                    \box_ht:N \l_tmpa_box
+                }
+            
+            % Use only half the slant width.
+            \dim_set:Nn \l_tmpa_dim { \l_tmpa_dim / 2 }
+
+            % This results in the overline being above the slanted character's
+            % horizontal at half it's height.
+            %
+            %  |←-→|
+            %     ____
+            %   /   /
+            %  /   /
+            % /___/
+
+            \__itaoverline_kerned_overline:NN \l_tmpa_dim \l_tmpa_box
+        }}
+        {{ % text style math
+            \hbox_set:Nn \l_tmpa_box { $\dim_zero:N \mathsurround \textstyle #1$ }
+            \dim_set:Nn \l_tmpa_dim
+                {
+                    \__itaoverline_get_slant_per_pt_of_height:n { \textfont\symletters }
+                    \box_ht:N \l_tmpa_box
+                }
+            \dim_set:Nn \l_tmpa_dim { \l_tmpa_dim / 2 }
+
+            \__itaoverline_kerned_overline:NN \l_tmpa_dim \l_tmpa_box
+        }}
+        {{ % script style math
+            \hbox_set:Nn \l_tmpa_box { $\dim_zero:N \mathsurround \scriptstyle #1$ }
+            \dim_set:Nn \l_tmpa_dim
+                {
+                    \__itaoverline_get_slant_per_pt_of_height:n { \scriptfont\symletters }
+                    \box_ht:N \l_tmpa_box
+                }
+            \dim_set:Nn \l_tmpa_dim { \l_tmpa_dim / 2 }
+
+            \__itaoverline_kerned_overline:NN \l_tmpa_dim \l_tmpa_box
+        }}
+        {{ % script script style math
+            \hbox_set:Nn \l_tmpa_box { $\dim_zero:N \mathsurround \scriptscriptstyle #1$ }
+            \dim_set:Nn \l_tmpa_dim
+                {
+                    \__itaoverline_get_slant_per_pt_of_height:n { \scriptscriptfont\symletters }
+                    \box_ht:N \l_tmpa_box
+                }
+            \dim_set:Nn \l_tmpa_dim { \l_tmpa_dim / 2 }
+
+            \__itaoverline_kerned_overline:NN \l_tmpa_dim \l_tmpa_box
+        }}
+}
+\ExplSyntaxOff
+\let\overline\itaoverline
+%
+% https://tex.stackexchange.com/questions/95014/aligning-overline-to-italics-font
+%
+\newbox\usefulbox
+%
+\def\getslant #1{\strip@pt\fontdimen1 #1}
+
+\def\OverLine #1{\mathchoice
+ {{\setbox\usefulbox=\hbox{$\m@th\displaystyle #1$}%
+    \dimen@ \getslant\the\textfont\symletters \ht\usefulbox
+    \divide\dimen@ \tw@ 
+    \kern\dimen@ 
+    \oldoverline{\kern-\dimen@ \box\usefulbox\kern\dimen@ }\kern-\dimen@ }}
+ {{\setbox\usefulbox=\hbox{$\m@th\textstyle #1$}%
+    \dimen@ \getslant\the\textfont\symletters \ht\usefulbox
+    \divide\dimen@ \tw@ 
+    \kern\dimen@ 
+    \oldoverline{\kern-\dimen@ \box\usefulbox\kern\dimen@ }\kern-\dimen@ }}
+ {{\setbox\usefulbox=\hbox{$\m@th\scriptstyle #1$}%
+    \dimen@ \getslant\the\scriptfont\symletters \ht\usefulbox
+    \divide\dimen@ \tw@ 
+    \kern\dimen@ 
+    \oldoverline{\kern-\dimen@ \box\usefulbox\kern\dimen@ }\kern-\dimen@ }}
+ {{\setbox\usefulbox=\hbox{$\m@th\scriptscriptstyle #1$}%
+    \dimen@ \getslant\the\scriptscriptfont\symletters \ht\usefulbox
+    \divide\dimen@ \tw@ 
+    \kern\dimen@ 
+    \oldoverline{\kern-\dimen@ \box\usefulbox\kern\dimen@ }\kern-\dimen@ }}%
+ {}}
+%
+%
+%======================================
+%
+%---   n-uplets
+%
+%======================================
+%
+%   ---   n-uplets
+%
+% la commande \sequ{1}{n} donnera "x1,x2,...,xn" et \sequ[y]{2}{k} donne "y2,y3,...,yk"
+\ExplSyntaxOn
+\NewDocumentCommand{\sequ}{O{x}mm}
+  {
+  \FPeval\result{clip(1+#2)} 
+  \ensuremath
+    {
+    #1\c_math_subscript_token{#2},\,
+    #1\c_math_subscript_token{\result},
+    \dots,\,
+    #1\c_math_subscript_token{#3}
+    }
+  }
+\ExplSyntaxOff
+%
+%======================================
+%
+%   Ensemble
+%
+%======================================
+%
+%   ---   Construction récursive de l'ensemble
+%
+\def\mys@ensemble#1{%
+    \mys@ensemble@#1;\mys@stop%
+    }%
+%
+\def\mys@ensemble@#1;#2\mys@stop{%
+    \ifx\relax#2\relax#1\else#1\,;\mys@ensemble@#2\mys@stop\fi%
+    }%
+%
+%   ---   user macro
+%
+\def\mys@not@math@newdots@gobble@implicitspace{%
+    \let\ldotsold\ldots%
+    \def\ldotsnew{\@ifnextchar\,{\ldotsold\@gobble}{\ldotsold}}%
+    \let\ldots\ldotsnew%
+    \let\dotsold\dots%
+    \def\dotsnew{\@ifnextchar\,{\dotsold\@gobble}{\dotsold}}%
+    \let\dots\dotsnew%
+    \let\cdotsold\cdots%
+    \def\cdotsnew{\@ifnextchar\,{\cdotsold\@gobble}{\cdotsold}}%
+    \let\cdots\cdotsnew%
+    }%
+%
+% ATTENTION : si ça dépasse la longueur de la ligne c'est foutu.
+% Voir comment utiliser \\ dans l'argument pour pouvoir utiliser multlined
+\DeclarePairedDelimiterX{\ensemble}[1]\{\}{%
+%    \mys@not@math@newdots@gobble@implicitspace% A enlever ? à remettre ?
+    \mys@ensemble{#1}}%
+%
+%======================================
+%
+%   Ensemble vide
+%
+%======================================
+%
+\let\ensemblevide\emptyset
+%
+%======================================
+%
+%   Fonction partie entière
+%
+%======================================
+%
+\DeclareMathOperator\partent{E}%
+%
+%
+%######################################
+%######################################
+%
+                \endinput
+%
+%######################################
+%######################################
